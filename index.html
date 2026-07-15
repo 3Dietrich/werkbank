@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Werkbank – Bausteine</title>
+<link rel="stylesheet" href="css/main.css" />
+<link rel="stylesheet" href="css/werkbank.css" />
+</head>
+<body>
+<div class="topbar">
+    <h1>Werkbank <small>Bausteine aus teslacoil – bearbeiten, verfeinern, rüberkopieren</small></h1>
+    <div class="topbar-right">
+        <button class="pb-btn" id="reset" title="Alle Einstellungen der Werkbank verwerfen">↺ Zurücksetzen</button>
+    </div>
+</div>
+
+<div id="app">
+    <p class="wb-hint">
+        <b>Rechtsklick</b> auf jedes Bedienelement öffnet seine Settings. Regler/Fader:
+        ziehen oder Doppelklick auf den Wert. Alles überlebt den Reload.
+    </p>
+
+    <section class="wb-bench" id="bench-knob">
+        <h2>Knob / Fader <span class="wb-src">lib/Knob.js · lib/KnobMetaEditor.js</span></h2>
+        <p class="wb-note">
+            Eine Klasse, drei Gestalten. Rechtsklick → <b>Gestalt</b>: Knob · Fader waagerecht ·
+            Fader senkrecht, dazu die Fader-Länge. Nur die SVG-Zeichnung wechselt – Wert,
+            Label, Ziehen und Tastatur sind für alle drei identisch. Die Zieh-Achse folgt der
+            Gestalt (waagerecht = nach rechts erhöht).
+        </p>
+        <div class="wb-row" id="knobs"></div>
+    </section>
+
+    <section class="wb-bench" id="bench-ctrls">
+        <h2>Select · Toggle · Readout <span class="wb-src">lib/ElementSettings.js</span></h2>
+        <p class="wb-note">
+            Die Bedienelemente ohne Regler. Rechtsklick → Label (an/aus), Farben, Größe,
+            Feldbreite. Das Panel ist rein optisch, es verstellt nie einen Wert.
+        </p>
+        <div class="wb-row" id="ctrls"></div>
+    </section>
+
+    <section class="wb-bench" id="bench-seq">
+        <h2>Step-Sequenzer <span class="wb-src">lib/StepSeqUI.js · lib/stepSeq.js</span></h2>
+        <p class="wb-note">Steps klicken oder vertikal ziehen. Länge über den Regler.</p>
+        <div class="wb-row" id="seq"></div>
+    </section>
+
+    <section class="wb-bench" id="bench-keys">
+        <h2>Tasten-Regel <span class="wb-src">lib/keyRoute.js</span></h2>
+        <p class="wb-note">
+            Beantwortet: „gehört diese Taste dem fokussierten Element oder dem globalen
+            Shortcut?“ – nicht nach Tag, sondern danach, ob das Element die Taste selbst
+            braucht. Klick irgendwo rein und drücke Space / e / Pfeiltasten:
+        </p>
+        <div class="wb-row wb-keyprobe">
+            <label class="select-field"><span>Textfeld (text)</span><input type="text" value="tippen" /></label>
+            <label class="select-field"><span>Select (arrows)</span>
+                <select><option>eins</option><option>zwei</option></select></label>
+            <label class="select-field toggle-field"><input type="checkbox" /><span>Checkbox (none)</span></label>
+            <div class="wb-verdict" id="verdict">— noch keine Taste —</div>
+        </div>
+    </section>
+</div>
+
+<script type="module" src="werkbank.js"></script>
+</body>
+</html>

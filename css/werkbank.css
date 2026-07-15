@@ -1,0 +1,43 @@
+/* werkbank.css – NUR das Drumherum der Werkbank.
+   Die Bausteine selbst bringen ihre Optik aus css/main.css mit (aus teslacoil kopiert) –
+   hier wird nichts davon überschrieben, sonst sähe der Baustein hier anders aus als dort,
+   und genau das soll die Werkbank ja verhindern. */
+
+.wb-hint {
+  color: var(--muted); font-size: 12px; margin: 0 0 4px;
+  border-left: 2px solid var(--accent); padding-left: 10px;
+}
+.wb-hint b { color: var(--text); }
+
+/* Eine „Werkbank-Platte“ pro Baustein: klar abgesetzt, damit man sieht, was zusammengehört. */
+.wb-bench {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: 12px 14px 16px;
+}
+.wb-bench h2 {
+  margin: 0 0 4px; font-size: 14px; font-weight: 600; letter-spacing: .02em;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+/* Herkunft immer mit dranschreiben: die Werkbank ist eine Sammlung zum Rüberkopieren –
+   man muss sofort sehen, WELCHE Datei man mitnimmt. */
+.wb-src {
+  color: var(--muted); font-size: 11px; font-weight: 400;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.wb-note { color: var(--muted); font-size: 11.5px; margin: 0 0 12px; max-width: 70ch; }
+.wb-note b { color: var(--text); font-weight: 600; }
+
+.wb-row {
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 18px;
+  background: var(--panel2); border-radius: 6px; padding: 14px;
+}
+
+/* Tasten-Sonde: zeigt live, wem die Taste gehört. */
+.wb-keyprobe { align-items: center; }
+.wb-verdict {
+  margin-left: auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; color: var(--accent); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; min-width: 34ch;
+}
+.wb-verdict .wb-global { color: var(--on); }
+.wb-verdict .wb-local { color: var(--accent2); }
