@@ -18,6 +18,15 @@ Also:
 - **Der Taktgeber bleibt draußen** (`Clock.js`, `TriggerDivider.js`): eine Werkbank
   braucht keine Zeit.
 
+  Nachtrag 20260717: draußen heißt nicht weg. @dpas Bild ist **ein Netzteil an einer
+  Werkbank** – es steht daneben und liefert Takt statt Strom, *„wobei das Netzteil auch
+  auf der Werkbank bearbeitet werden kann"*. Der [Taktgeber](../taktgeber/) ist seitdem
+  genau dafür geschnitten: `state.js` (SSOT mit `get/set/on/off`) + `modules.js`
+  (Manifest: jede Gruppe, jedes Control, jeder Bereich) + `ui.js` (kennt keinen Parameter
+  beim Namen). Wer das Manifest liest, kennt jeden Parameter und sein Automations-Ziel,
+  ohne eine Zeile seiner UI zu sehen – das ist die Nahtstelle. Was noch fehlt, ist auf
+  beiden Seiten dasselbe: **die Gruppe als eigener Baustein** (s. „Noch offen").
+
 ## Starten
 
 Nur über einen lokalen Server (ES-Module, kein `file://`):
