@@ -211,6 +211,13 @@ keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { 
 // Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern).
 window.addEventListener('keydown', (e) => keyMidi.dispatchKey(e));
 
+// ESC verlässt den MIDI-Learn-Modus (NICHT den Tasten-Modus — @dpa 20260719). Läuft über
+// den Button-Klick, damit dessen .active-Zustand synchron bleibt. Ein aktiver Lern-Vorgang
+// (Banner/Horchen) fängt ESC vorher per capture ab → erst zweites ESC verlässt den Modus.
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && midiBtn.classList.contains('active')) midiBtn.click();
+});
+
 // ── Übergruppe ein-/ausklappen (@dpa 20260718_203341) ──────────────────────────
 // Icon links an der Headline; eingeklappt ist der Hauptschirm leer (okay). Zustand im
 // eigenen State (überlebt Reload wie alles andere).

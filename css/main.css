@@ -953,6 +953,9 @@ body {
 .km-b-btn { background: #2a3140; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-size: 11px; }
 .km-b-x { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; }
 .km-b-x:hover { color: var(--accent2); }
+/* Der gerade gelernte Control auffällig markiert (@dpa 20260719): kräftige Akzent-Umrandung
+   + Tönung, ohne die eigene BG-Farbe des Controls zu überschreiben (inset box-shadow). */
+.km-learning { border-radius: 4px; box-shadow: 0 0 0 2px var(--accent), inset 0 0 0 999px rgba(90,209,255,.14); }
 /* Selbst-Zuweisung der Haupt-Buttons (@dpa 20260719_120425): Learning-Panel UNTER dem
    Header-Button, sanfter Rahmen (feedback_sanfte_rahmen), kleine Radien. */
 .km-self {
