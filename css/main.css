@@ -582,8 +582,9 @@ body {
 .kme-row input[type="number"]::-webkit-inner-spin-button,
 .group-settings input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: inner-spin-button;
-  opacity: 1; width: 16px; height: 100%; align-self: stretch;
-  margin-left: 4px; cursor: pointer;
+  opacity: 1;            /* immer sichtbar, nicht nur bei Hover (KEIN height:100% – das kollabiert zu 0!) */
+  width: 16px;           /* breitere Trefferfläche; Höhe kommt aus dem etwas höheren Feld (padding 4px) */
+  cursor: pointer;
 }
 /* JEDER Farbwähler ist schmal (@dpa 20260716_132014: „die Farbwähler können schmaler") –
    nach Typ, nicht nach Klasse. Vorher galt das nur für die beiden Knob-Editor-Klassen;
