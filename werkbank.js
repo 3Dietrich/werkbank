@@ -227,5 +227,50 @@ const applyBenchCollapse = () => benchTakt.classList.toggle('bench-collapsed', !
 taktCollapse.addEventListener('click', () => { taktState.set('benchCollapsed', !taktState.get('benchCollapsed')); applyBenchCollapse(); });
 applyBenchCollapse();
 
+// ── Instrument-Beschreibung: raus aus dem Body → aufklappbares [?] rechts im Header
+//    (@dpa 20260720: „nimmt immer Platz ein"). Die wb-note (summary=Titel + Fließtext)
+//    wandert in ein schwebendes Popover, das ein [?] rechts in der Headline öffnet. ─────
+function mountBenchHelp(sectionId) {
+    const section = document.querySelector('#' + sectionId);
+    if (!section) return;
+    const note = section.querySelector(':scope > .wb-note');
+    const h2 = section.querySelector('h2');
+    if (!note || !h2) return;
+    const summary = note.querySelector('summary');
+    const title = summary ? summary.textContent.trim() : '';
+    const clone = note.cloneNode(true);
+    const s = clone.querySelector('summary'); if (s) s.remove();
+    const bodyHtml = clone.innerHTML.trim();
+    note.remove();
+
+    const btn = document.createElement('button');
+    btn.className = 'wb-help-btn'; btn.type = 'button'; btn.textContent = '?';
+    btn.title = 'Beschreibung anzeigen';
+    h2.appendChild(btn);
+
+    let pop = null;
+    const close = () => {
+        if (!pop) return;
+        pop.remove(); pop = null; btn.classList.remove('active');
+        document.removeEventListener('mousedown', onOut, true);
+        document.removeEventListener('keydown', onKey, true);
+    };
+    const onOut = (e) => { if (pop && !pop.contains(e.target) && e.target !== btn) close(); };
+    const onKey = (e) => { if (e.key === 'Escape' && pop) { e.stopPropagation(); close(); } };
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (pop) { close(); return; }
+        pop = document.createElement('div'); pop.className = 'wb-help-pop';
+        pop.innerHTML = (title ? `<div class="wb-help-title">${title}</div>` : '') + `<div class="wb-help-body">${bodyHtml}</div>`;
+        document.body.appendChild(pop);
+        btn.classList.add('active');
+        const r = btn.getBoundingClientRect();
+        pop.style.left = Math.max(8, Math.min(r.right - pop.offsetWidth, window.innerWidth - pop.offsetWidth - 8)) + 'px';
+        pop.style.top = (r.bottom + 6) + 'px';
+        setTimeout(() => { document.addEventListener('mousedown', onOut, true); document.addEventListener('keydown', onKey, true); }, 0);
+    });
+}
+mountBenchHelp('bench-taktgeber');
+
 // „Zurücksetzen"-Knopf entfernt (@dpa 20260719_040136). Reset weiterhin über die Konsole:
 //   MiniState.reset(); MiniState.reset('werkbank_taktmetro'); location.reload();
