@@ -510,6 +510,10 @@ body {
    → sie brauchen fill, sonst blieben sie unsichtbar bzw. schwarz. */
 /* Der Fader zeichnet seine Bahn randlos aus – hier gibt es keinen Leerraum abzuziehen. */
 .knob-shape-fader .knob-svg { width: auto; height: auto; margin-bottom: 0; }
+/* Der Container umschließt die Fader-Bahn eng statt im festen 64px-Kasten zu sitzen –
+   sonst bleibt trotz Padding=0 links/rechts (bzw. oben/unten) Luft (@dpa 20260719, image-11).
+   Zwei Klassen → schlägt die .knob-size-*-Breiten. */
+.knob-container.knob-shape-fader { width: fit-content; }
 /* Waagerechter Fader ('Fader W'): auch der Zieh-Cursor dreht sich mit – nach rechts
    ziehen erhöht, senkrecht zu ziehen waere hier widersinnig. */
 .knob-fader-w .knob-svg, .knob-fader-w .knob-value, .knob-fader-w .knob-label { cursor: ew-resize; }
