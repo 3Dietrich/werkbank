@@ -574,9 +574,17 @@ body {
 .kme-row input, .kme-row select {
   flex: 0 0 70px; width: 70px; min-width: 0;
   background: var(--bg); border: 1px solid var(--line); border-radius: 3px;
-  padding: 3px 6px; color: var(--text); font-size: 11px; font-variant-numeric: tabular-nums;
+  padding: 4px 6px; color: var(--text); font-size: 11px; font-variant-numeric: tabular-nums;
 }
 .kme-row input:focus, .kme-row select:focus { outline: none; border-color: var(--accent); }
+/* Zahlen-Stepper: größere Bedienfläche – man traf oft die falsche Pfeilhälfte
+   (@dpa 20260719, image-10). Pfeile breiter und über die volle Feldhöhe. */
+.kme-row input[type="number"]::-webkit-inner-spin-button,
+.group-settings input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: inner-spin-button;
+  opacity: 1; width: 16px; height: 100%; align-self: stretch;
+  margin-left: 4px; cursor: pointer;
+}
 /* JEDER Farbwähler ist schmal (@dpa 20260716_132014: „die Farbwähler können schmaler") –
    nach Typ, nicht nach Klasse. Vorher galt das nur für die beiden Knob-Editor-Klassen;
    die Element-Settings (.es-bg/.es-fg) erbten die 70px, standen mit ihrem ✕ zu zweit in
