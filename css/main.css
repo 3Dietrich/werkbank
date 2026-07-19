@@ -963,6 +963,11 @@ body {
   box-shadow: 0 4px 16px rgba(0,0,0,.4);
 }
 .pb-btn.active { background: var(--accent); color: #071018; border-color: var(--accent); }
+/* Header Tasten/MIDI: solange aktiv, sanft hell/dunkel atmen (2 Hz = 0,5 s Periode),
+   damit man den offenen Learn-Modus nicht vergisst (@dpa 20260719). Nur diese beiden. */
+@keyframes km-hdr-breathe { 0%, 100% { filter: brightness(.82); } 50% { filter: brightness(1.12); } }
+#keyedit.active, #midiedit.active { animation: km-hdr-breathe .5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { #keyedit.active, #midiedit.active { animation: none; } }
 
 /* ═══ Takt-Beat-Anzeige (@dpa 20260718_203341) ════════════════════════════════════
    Ein Punkt je Beat, der erste = Hauptbeat; der laufende Beat leuchtet. Alles über
