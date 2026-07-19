@@ -882,10 +882,12 @@ body {
 .btn-container { display: flex; }
 /* Button-Label-Positionen (@dpa 20260719_120425): Label außen, Caption im Button zentriert. */
 .btn-field.btn-label-off .btn-label { display: none; }
-.btn-field.btn-label-top { flex-direction: column-reverse; }
-.btn-field.btn-label-bottom { flex-direction: column; }
-.btn-field.btn-label-left { flex-direction: row-reverse; align-items: center; }
-.btn-field.btn-label-right { flex-direction: row; align-items: center; }
+/* Button-DOM ist [label, button] (Toggle umgekehrt) – daher hier die zum Toggle
+   gespiegelte flex-Zuordnung, sonst landet „Oben" unten (@dpa 20260719). */
+.btn-field.btn-label-top { flex-direction: column; }
+.btn-field.btn-label-bottom { flex-direction: column-reverse; }
+.btn-field.btn-label-left { flex-direction: row; align-items: center; }
+.btn-field.btn-label-right { flex-direction: row-reverse; align-items: center; }
 /* flex, damit Caption im Button zentriert bleibt. */
 .ctrl-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
 /* Button-Control OHNE Text = reines Icon (z.B. Debug-Rec-Rücksetzen). Es bekommt einen
