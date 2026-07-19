@@ -351,10 +351,20 @@ body {
 /* Gruppen-Settings-Popup */
 .group-settings {
   position: fixed; z-index: 1100; width: 264px;
-  background: var(--panel2); border: 1px solid var(--accent); border-radius: 6px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.6); padding: 10px; font-size: 11px;
+  /* dunklerer BG (#0003) + SANFTER Rahmen wie die Control-Settings, kleine Radien
+     (@dpa 20260719 – vorher harter Akzent-Rand). */
+  background: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.2)), var(--panel2);
+  border: 1px solid var(--sel-line); border-radius: 4px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6); padding: 8px; font-size: 11px;
   display: flex; flex-direction: column; gap: 6px;
 }
+/* Verschiebbare Kopfzeile (Titel = Gruppenname, kein Control-Name) + Fußhinweis. */
+.gs-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: move; margin-bottom: 2px; }
+.gs-title { font-size: 11px; color: var(--text); font-weight: 600; }
+.gs-header .kme-close { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; line-height: 1; padding: 0 2px; }
+.gs-header .kme-close:hover { color: var(--accent2); }
+.gs-foot { color: var(--muted); font-size: 10px; text-align: center; margin-top: 3px; opacity: .8; }
+.gs-pct { color: var(--muted); font-size: 10px; margin-left: -2px; }
 /* Zeilen mit Select + mehreren Icons (Combo/Snapshot) dürfen umbrechen */
 .group-settings .gs-row { flex-wrap: wrap; }
 .group-settings .gs-row .pb-icon { padding: 2px 5px; min-width: 22px; }
