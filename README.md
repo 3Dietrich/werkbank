@@ -37,6 +37,9 @@ python3 -m http.server 8000
 
 → <http://localhost:8000/>
 
+**`Address already in use`** = der Port ist von einem früheren Server belegt. Beenden mit
+`kill $(lsof -ti :8000)` (Port anpassen) – oder einfach den laufenden weiterbenutzen.
+
 ## Was drin ist
 
 | Baustein | Datei | Hängt ab von |

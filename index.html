@@ -11,55 +11,90 @@
 <div class="topbar">
     <h1>Werkbank <small>Bausteine aus teslacoil – bearbeiten, verfeinern, rüberkopieren</small></h1>
     <div class="topbar-right">
-        <button class="pb-btn" id="reset" title="Alle Einstellungen der Werkbank verwerfen">↺ Zurücksetzen</button>
+        <span class="wb-tip"><b>Rechtsklick</b> = Settings · Regler ziehen/Doppelklick · alles überlebt den Reload</span>
+        <!-- „Zurücksetzen" entfernt (@dpa 20260719_040136: „wie eine Bombe die man nicht berühren
+             sollte"). Reset gibt es weiter über MiniState.reset()/localStorage, nur nicht als Knopf. -->
     </div>
 </div>
 
 <div id="app">
-    <p class="wb-hint">
-        <b>Rechtsklick</b> auf jedes Bedienelement öffnet seine Settings. Regler/Fader:
-        ziehen oder Doppelklick auf den Wert. Alles überlebt den Reload.
-    </p>
-
-    <section class="wb-bench" id="bench-knob">
-        <h2>Knob / Fader <span class="wb-src">lib/Knob.js · lib/KnobMetaEditor.js</span></h2>
-        <p class="wb-note">
-            Eine Klasse, drei Gestalten. Rechtsklick → <b>Gestalt</b>: Knob · Fader waagerecht ·
-            Fader senkrecht, dazu die Fader-Länge. Nur die SVG-Zeichnung wechselt – Wert,
-            Label, Ziehen und Tastatur sind für alle drei identisch. Die Zieh-Achse folgt der
-            Gestalt (waagerecht = nach rechts erhöht).
-        </p>
+    <!-- @dpa 20260718_203341: „erstmal nur den Bereich der ÜberGruppe Metronom+Transport
+         anzeigen". Die anderen Benches bleiben im DOM (Tasten-Regel „ist super, soll nicht
+         weg! nur unsichtbar") — sie sind nur per .wb-hidden ausgeblendet und jederzeit
+         zurückholbar. -->
+    <section class="wb-bench wb-hidden" id="bench-knob">
+        <h2>Knob / Fader <span class="wb-src">Knob.js · KnobMetaEditor.js</span></h2>
         <div class="wb-row" id="knobs"></div>
+        <details class="wb-note">
+            <summary>Eine Klasse, drei Gestalten</summary>
+            Rechtsklick → <b>Gestalt</b>: Knob · Fader waagerecht · Fader senkrecht, dazu die
+            Fader-Länge. Nur die SVG-Zeichnung wechselt – Wert, Label, Ziehen und Tastatur sind
+            für alle drei identisch. Die Zieh-Achse folgt der Gestalt.
+        </details>
     </section>
 
-    <section class="wb-bench" id="bench-ctrls">
-        <h2>Select · Toggle · Readout <span class="wb-src">lib/ElementSettings.js</span></h2>
-        <p class="wb-note">
-            Die Bedienelemente ohne Regler. Rechtsklick → Label (an/aus), Farben, Größe,
-            Feldbreite. Das Panel ist rein optisch, es verstellt nie einen Wert.
-        </p>
+    <section class="wb-bench wb-hidden" id="bench-ctrls">
+        <h2>Select · Toggle · Readout <span class="wb-src">ElementSettings.js</span></h2>
         <div class="wb-row" id="ctrls"></div>
+        <details class="wb-note">
+            <summary>Bedienelemente ohne Regler</summary>
+            Rechtsklick → Label (an/aus), Farben, Größe, Feldbreite. Das Panel ist rein optisch,
+            es verstellt nie einen Wert.
+        </details>
     </section>
 
-    <section class="wb-bench" id="bench-seq">
-        <h2>Step-Sequenzer <span class="wb-src">lib/StepSeqUI.js · lib/stepSeq.js</span></h2>
-        <p class="wb-note">Steps klicken oder vertikal ziehen. Länge über den Regler.</p>
+    <section class="wb-bench wb-hidden" id="bench-seq">
+        <h2>Step-Sequenzer <span class="wb-src">StepSeqUI.js · stepSeq.js</span></h2>
         <div class="wb-row" id="seq"></div>
+        <details class="wb-note">
+            <summary>Steps klicken oder vertikal ziehen</summary>
+            Länge über den Regler. Braucht nur eine Engine mit <code>running</code>,
+            <code>seqPos(which)</code>, <code>resetSeq(which)</code> – hier eine Attrappe.
+        </details>
     </section>
 
-    <section class="wb-bench" id="bench-keys">
-        <h2>Tasten-Regel <span class="wb-src">lib/keyRoute.js</span></h2>
-        <p class="wb-note">
-            Beantwortet: „gehört diese Taste dem fokussierten Element oder dem globalen
-            Shortcut?“ – nicht nach Tag, sondern danach, ob das Element die Taste selbst
-            braucht. Klick irgendwo rein und drücke Space / e / Pfeiltasten:
-        </p>
+    <section class="wb-bench wb-wide wb-hidden" id="bench-keys">
+        <h2>Tasten-Regel <span class="wb-src">keyRoute.js</span></h2>
         <div class="wb-row wb-keyprobe">
             <label class="select-field"><span>Textfeld (text)</span><input type="text" value="tippen" /></label>
             <label class="select-field"><span>Select (arrows)</span>
                 <select><option>eins</option><option>zwei</option></select></label>
             <label class="select-field toggle-field"><input type="checkbox" /><span>Checkbox (none)</span></label>
             <div class="wb-verdict" id="verdict">— noch keine Taste —</div>
+        </div>
+        <details class="wb-note">
+            <summary>Wem gehört die Taste?</summary>
+            Beantwortet: „gehört diese Taste dem fokussierten Element oder dem globalen Shortcut?“
+            – nicht nach Tag, sondern danach, ob das Element die Taste selbst braucht. Klick in ein
+            Feld und drücke Space / e / Pfeiltasten.
+        </details>
+    </section>
+
+    <section class="wb-bench wb-wide" id="bench-taktgeber">
+        <!-- Ein-/Ausklapp-Icon LINKS an der Übergruppen-Headline (@dpa 20260718_203341).
+             Eingeklappt = Hauptbildschirm leer (ausdrücklich okay). Die Headline bleibt
+             (Instrumentenname), eigene Settings potentiell später. -->
+        <h2><button class="wb-collapse" id="taktCollapse" type="button" title="Ein-/Ausklappen">▾</button> Takt + Metronom <span class="wb-src">taktmetro/defs.js · group/GroupHost.js</span></h2>
+        <div id="taktgeber"></div>
+        <details class="wb-note">
+            <summary>Transport / Tempo · Takt / Metronom — Neu-Port (P1–P4)</summary>
+            Zwei Gruppen aus <b>einer</b> deklarativen defs-Quelle (gemappt aus taktgeber),
+            gezeigt mit teslacoils Fabriken. <b>e</b> = Anordnen-Modus (Gruppen/Controls frei
+            verschiebbar). Rechtsklick auf Gruppen-Titel = Settings, Rechtsklick auf ein Control
+            = dessen Optik. Gezogene Werte = „Knob ohne Knob". Der Header-Schalter
+            <b>⌨ Tasten/MIDI</b> zeigt/ändert Tastenbelegung + MIDI-Learn über allen Controls.
+            <b>▶</b> (oder die belegte Taste) startet das Metronom — echter Ton aus taktgebers
+            metro.js/clock.js.
+        </details>
+    </section>
+
+    <section class="wb-bench wb-scratch wb-hidden" id="bench-scratch">
+        <h2>Arbeitsplatz <span class="wb-src">freie Fläche</span></h2>
+        <div class="wb-row wb-scratch-area" id="scratch">
+            <p class="wb-scratch-hint">
+                Freier Platz für kleine Tests (KI) und Module, die du beschreibst – siehe
+                <code>ddw.md</code>. Bleibt bewusst leer, bis etwas draufkommt.
+            </p>
         </div>
     </section>
 </div>

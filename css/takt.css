@@ -1,0 +1,210 @@
+/* takt.css — Optik des Taktgebers.
+ *
+ * Formensprache = teslacoil (@dpa 20260717: „alles in Gruppen, Header(-Gruppen) und
+ * Settings. Alles platzsparend! Platzsparen/d ist mir wichtig!"). Die drei Regeln, an
+ * denen das hängt:
+ *   1. Gruppen stehen NEBENEINANDER und sind so breit wie ihr Inhalt (`fit-content`) –
+ *      keine Gruppe darf den Bildschirm füllen.
+ *   2. Was man nicht ständig dreht, wohnt in den Settings, nicht im Körper.
+ *   3. Settings sind ein SCHWEBENDES Fenster – aufgeklappt schoben sie sonst alles
+ *      darunter weg (@dpa: „platzsparender als extra Fenster").
+ */
+
+:root {
+  --bg: #14161a; --panel: #1d2027; --panel2: #23272f; --line: #333844;
+  --fg: #e7e9ee; --dim: #9aa0ac; --accent: #ff7043; --accent2: #4fc3f7;
+  --ok: #66bb6a; --off: #444a56;
+  /* Selektionsrahmen: benannter Kontrast aus teslacoil – leichte Färbung + 1px, kein Ring. */
+  --sel-bg: rgba(79,195,247,.10); --sel-line: rgba(79,195,247,.55);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 13px/1.35 -apple-system, system-ui, sans-serif; padding: 12px;
+}
+[hidden] { display: none !important; }
+
+/* ── Kopfzeile ────────────────────────────────────────────────────────────── */
+.head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+h1 { font-size: 15px; margin: 0; letter-spacing: .5px; font-weight: 600; }
+.hint { color: var(--dim); font-size: 10px; }
+
+/* ── Gruppen ──────────────────────────────────────────────────────────────── */
+/* `align-items: flex-start` ist der Punkt: ohne das zieht flex jede Gruppe auf die Höhe
+   der höchsten – kurze Gruppen bekämen unten Leerraum, den niemand bestellt hat. */
+#modules { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+/* `max-width` ist hier kein Schönheitsmaß, sondern die Umbruch-Kante: ohne sie zieht
+   `fit-content` eine Gruppe mit acht Reglern zu einem 630px-Band, und aus „nebeneinander"
+   wird wieder „untereinander". 380px ist teslacoils Gruppenbreite. */
+.group {
+  background: var(--gbg, var(--panel)); border: 1px solid var(--gcol, var(--line));
+  border-radius: 7px; padding: 6px 8px 8px;
+  width: fit-content; max-width: min(380px, 100%);
+  font-size: calc(13px * var(--gs, 1));
+}
+.g-head { display: flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
+.g-arrow { color: var(--dim); font-size: 9px; width: 9px; transition: transform .12s; }
+.group.closed .g-arrow { transform: rotate(-90deg); }
+.g-title {
+  color: var(--gcol, var(--dim)); font-size: calc(10px * var(--gs, 1));
+  text-transform: uppercase; letter-spacing: .8px; font-weight: 600;
+}
+.group.closed .g-body { display: none; }
+.g-body { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* ── Controls ─────────────────────────────────────────────────────────────── */
+/* Ein Control ist eine schmale Spalte: Label+Wert oben, Regler darunter. Nebeneinander
+   ergeben mehrere davon eine dichte Zeile statt einer Liste (das war der Platzfresser). */
+.ctrl { display: inline-flex; flex-direction: column; gap: 1px; color: var(--dim); font-size: calc(10px * var(--gs, 1)); }
+.ctrl .val { color: var(--fg); font-size: calc(11px * var(--gs, 1)); font-variant-numeric: tabular-nums; }
+.ctrl input[type=range] { width: calc(74px * var(--gs, 1)); height: 14px; margin: 0; accent-color: var(--gcol, var(--accent2)); }
+.ctrl.tog { flex-direction: row; align-items: center; gap: 4px; }
+.ctrl.tog input { accent-color: var(--gcol, var(--accent2)); margin: 0; }
+.ctrl[data-key] { cursor: context-menu; }
+.ctrl.sel { background: var(--sel-bg); outline: 1px solid var(--sel-line); border-radius: 4px; }
+
+button {
+  background: var(--panel2); color: var(--fg); border: 1px solid var(--line);
+  border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: calc(12px * var(--gs, 1));
+  font-family: inherit;
+}
+button:hover:not(:disabled) { border-color: var(--gcol, var(--accent)); }
+button:disabled { opacity: .35; cursor: default; }
+button.on { background: #3a2630; border-color: var(--accent2); color: #ffd9bf; }
+
+select, input[type=number], input[type=text] {
+  background: var(--panel2); color: var(--fg); border: 1px solid var(--line);
+  border-radius: 4px; padding: 3px 5px; font-size: 11px; font-family: inherit;
+}
+
+/* Segment-Schalter (Modus 1/2) */
+.seg { display: inline-flex; }
+.seg button { border-radius: 0; margin-left: -1px; padding: 3px 7px; font-size: calc(11px * var(--gs, 1)); }
+.seg button:first-child { border-radius: 4px 0 0 4px; margin-left: 0; }
+.seg button:last-child { border-radius: 0 4px 4px 0; }
+.seg button.sel { background: var(--gcol, var(--accent2)); color: #04202b; border-color: var(--gcol, var(--accent2)); }
+
+/* ── Transport ────────────────────────────────────────────────────────────── */
+/* Start/Stop + ! + !! sind EIN Block – wie in teslacoil (@dpa 20260717). */
+.tp { display: inline-flex; align-items: stretch; }
+.tp > button { border-radius: 0; margin-left: -1px; }
+.tp > button:first-child { border-radius: 4px 0 0 4px; margin-left: 0; }
+.tp > button:last-child { border-radius: 0 4px 4px 0; }
+.startbtn { font-weight: 600; min-width: calc(58px * var(--gs, 1)); }
+.bang { font-weight: 700; color: var(--dim); padding: 4px 6px; }
+.bang:hover:not(:disabled) { color: var(--accent2); }
+/* Bremsen/Anschieben bleiben schmal – sie sind Griffe, keine Hauptknöpfe. */
+.nudge button { padding: 4px 6px; font-weight: 600; }
+.nudge button.act { background: var(--accent2); color: #04202b; border-color: var(--accent2); }
+
+.bpm {
+  font-size: calc(20px * var(--gs, 1)); font-weight: 700; font-variant-numeric: tabular-nums;
+  cursor: text; line-height: 1;
+}
+.bpm small { font-size: calc(9px * var(--gs, 1)); color: var(--dim); font-weight: 400; }
+.bpm.bent { color: var(--accent2); }   /* gebogen = nicht der gespeicherte Wert */
+.bpm input { width: 4.5em; font-size: calc(15px * var(--gs, 1)); font-weight: 700; }
+
+/* Beat-Punkte: die 1 trägt einen Ring, der laufende Schlag leuchtet. */
+.beats { display: flex; gap: 3px; }
+.beat { width: calc(9px * var(--gs, 1)); height: calc(9px * var(--gs, 1)); border-radius: 50%; background: var(--off); transition: background .05s; }
+.beat.acc { outline: 1px solid var(--gcol, var(--accent)); outline-offset: 1px; }
+.beat.hit { background: var(--accent2); }
+.beat.hit.acc { background: var(--gcol, var(--accent)); }
+
+.tapbtn { font-size: calc(13px * var(--gs, 1)); padding: 7px 14px; font-weight: 600; }
+
+/* ── Schwebende Fenster (Settings + Rechtsklick-Menü) ─────────────────────── */
+.panel {
+  position: fixed; z-index: 50; background: var(--panel2); border: 1px solid var(--sel-line);
+  border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.5); font-size: 11px;
+}
+.p-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 4px 6px; border-bottom: 1px solid var(--line); cursor: move; user-select: none;
+}
+.p-head .t { color: var(--dim); text-transform: uppercase; letter-spacing: .8px; font-size: 9px; }
+.p-x { background: none; border: none; color: var(--dim); padding: 0 2px; font-size: 12px; line-height: 1; }
+.p-body { padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+.p-sub { color: var(--dim); font-size: 9px; text-transform: uppercase; letter-spacing: .8px; margin-top: 2px; }
+/* Zweispaltig wie teslacoils Settings: Labelspalte schmal, Eingabe fix – so bleibt das
+   Fenster schmal, egal wie lang ein Label ist. */
+.p-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 6px; align-items: center; }
+.p-grid label { color: var(--dim); }
+.p-grid input[type=range] { width: 96px; }
+.p-grid input[type=color] { width: 26px; height: 20px; padding: 0; border: 1px solid var(--line); background: none; }
+.p-grid .v { color: var(--fg); font-variant-numeric: tabular-nums; min-width: 3.4em; display: inline-block; }
+.vislist { display: flex; flex-wrap: wrap; gap: 3px 10px; max-width: 210px; }
+.vislist label { color: var(--dim); display: inline-flex; gap: 3px; align-items: center; }
+.p-note { color: var(--dim); font-size: 10px; max-width: 220px; }
+
+/* Rechtsklick-Menü am Control */
+.popover { position: fixed; z-index: 60; background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px; width: 200px; box-shadow: 0 6px 20px rgba(0,0,0,.45); font-size: 11px; }
+.popover .pt { font-weight: 600; margin-bottom: 3px; }
+.popover .pi { color: var(--dim); font-size: 10px; margin-bottom: 6px; }
+.popover button { margin-right: 5px; padding: 3px 8px; font-size: 11px; }
+
+/* Tasten-Belegung: das Feld zeigt die Taste, ein Klick horcht auf die nächste. */
+.kbrow { flex-direction: row !important; align-items: center; gap: 3px; }
+/* inline-flex + min-height, damit eine LEERE Belegung die Zeilenhöhe hält (@dpa 20260717:
+   „achte bei ‚leer' auf die Zeilenhöhe die bleiben soll") – sonst fällt der Knopf zusammen. */
+.kb { min-width: 62px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center;
+  text-align: center; font-variant-numeric: tabular-nums; }
+/* Das × zum Löschen einer Belegung – schmal und ruhig, kein Hauptknopf. */
+.kb-x { padding: 2px 5px; color: var(--dim); line-height: 1; }
+.kb-x:hover { color: var(--accent); }
+/* Im Settings-Raster darf der Knopf nicht auf die Spaltenbreite wachsen – „B" auf 140px
+   sieht aus wie ein Hauptknopf und ist doch nur eine Anzeige. */
+.p-grid .ctrl { justify-self: start; }
+.kb.listen { border-color: var(--accent2); color: var(--accent2); }
+
+/* „Knob ohne Knob" (@dpa 20260717): ein gezogener Zahlenwert statt eines Faders. Sieht aus
+   wie eine Wertanzeige, der Zeiger verrät die Griffigkeit. */
+.dragnum {
+  cursor: ew-resize; user-select: none; padding: 1px 5px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--panel);
+  font-variant-numeric: tabular-nums; min-width: 3.4em; text-align: center;
+}
+.dragnum:hover { border-color: var(--gcol, var(--accent)); }
+.dragnum:focus { outline: 1px solid var(--sel-line); }
+.dragnum.drag { border-color: var(--accent2); color: var(--accent2); }
+
+/* Sanfter Strich statt „TECHNIK"-Überschrift (@dpa 20260717). */
+.p-div { height: 1px; background: var(--line); opacity: .6; margin: 4px 0 2px; border-radius: 1px; }
+
+/* ── MIDI-Learn (@dpa 20260717) ───────────────────────────────────────────── */
+/* Control + 🎹-Icon in einer Zeile. Das Icon zeigt sich erst beim Überfahren des Controls
+   (platzsparend, @dpa) – eine belegte Bindung bleibt sichtbar, damit man Zuordnungen sieht. */
+.mwrap { display: inline-flex; align-items: center; gap: 4px; }
+.midi-ic {
+  padding: 1px 4px; font-size: 11px; line-height: 1; color: var(--dim);
+  filter: grayscale(1); opacity: 0; transition: opacity .1s;
+}
+.mwrap:hover .midi-ic, .midi-ic:focus { opacity: .7; }
+.mwrap:hover .midi-ic:hover { opacity: 1; filter: none; }
+.midi-ic.bound { opacity: 1; filter: none; border-color: var(--accent2); }
+
+/* Schwebendes MIDI-Banner „über dem Settingsfenster" (Learn- bzw. Editor-Modus). */
+.midi-learn {
+  position: fixed; z-index: 70; left: 50%; top: 12px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px; max-width: min(600px, 94vw);
+  background: var(--panel2); border: 1px solid var(--accent2); border-radius: 7px;
+  padding: 7px 10px; box-shadow: 0 6px 24px rgba(0,0,0,.55); font-size: 12px;
+}
+.midi-learn .ml-ico { font-size: 15px; }
+.midi-learn .ml-txt { color: var(--fg); }
+.midi-learn .ml-ch { margin-left: 2px; }
+.midi-learn .ml-btn { padding: 3px 8px; font-size: 11px; }
+
+/* MIDI-Learn (Transport-Settings): das gelernte Signal soll man finden, ohne zu suchen. */
+.learned { font-variant-numeric: tabular-nums; color: var(--accent2); }
+
+/* Tap-Reset: steht neben dem Tab-Knopf, ist aber keiner – schmal und ruhig. */
+.tapreset { font-size: calc(13px * var(--gs, 1)); padding: 7px 9px; color: var(--dim); }
+
+/* VG- und BG-Wähler stehen als Paar in EINER Rasterzelle. teslacoil-Lehre: die Zelle quillt
+   über, wenn ein Farbwähler die Feldbreite der Zahlenfelder erbt – deshalb hier fix. */
+.p-cols { display: inline-flex; align-items: center; gap: 2px; }
+.p-cols input[type=color] { width: 26px; height: 20px; padding: 0; border: 1px solid var(--line); background: none; }

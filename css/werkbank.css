@@ -1,36 +1,93 @@
 /* werkbank.css – NUR das Drumherum der Werkbank.
    Die Bausteine selbst bringen ihre Optik aus css/main.css mit (aus teslacoil kopiert) –
    hier wird nichts davon überschrieben, sonst sähe der Baustein hier anders aus als dort,
-   und genau das soll die Werkbank ja verhindern. */
+   und genau das soll die Werkbank ja verhindern.
 
-.wb-hint {
-  color: var(--muted); font-size: 12px; margin: 0 0 4px;
-  border-left: 2px solid var(--accent); padding-left: 10px;
+   Layout-Grundsatz (@dpa 20260717): platzsparend. Eine Werkbank braucht FREIEN PLATZ, und
+   die Werkzeuge müssen draufpassen – also stehen die Bausteine als kompakte Kacheln
+   nebeneinander (Grid) statt jeder über die volle Breite, ihre Erklärung ist eingeklappt,
+   und der Rest der Fläche bleibt als Arbeitsplatz frei. */
+
+/* #app kommt aus main.css als vertikale Spalte – hier zum kompakten Kachel-Grid gemacht.
+   Das ist Werkbank-Gerüst (kein Baustein), darf also überschrieben werden. */
+#app {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  align-content: start;
+  gap: 12px;
+  padding: 12px 14px;
 }
-.wb-hint b { color: var(--text); }
 
-/* Eine „Werkbank-Platte“ pro Baustein: klar abgesetzt, damit man sieht, was zusammengehört. */
+/* Knapper Bedien-Hinweis in der Kopfzeile statt als eigener Absatz (spart eine Zeile). */
+.wb-tip { color: var(--muted); font-size: 11.5px; margin-right: 4px; }
+.wb-tip b { color: var(--text); }
+
+/* Eine „Werkbank-Platte“ pro Baustein: klar abgesetzt, aber kompakt. */
 .wb-bench {
   background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-  padding: 12px 14px 16px;
+  padding: 8px 10px 10px;
+  display: flex; flex-direction: column; gap: 6px;
 }
 .wb-bench h2 {
-  margin: 0 0 4px; font-size: 14px; font-weight: 600; letter-spacing: .02em;
-  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .02em;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
 }
 /* Herkunft immer mit dranschreiben: die Werkbank ist eine Sammlung zum Rüberkopieren –
    man muss sofort sehen, WELCHE Datei man mitnimmt. */
 .wb-src {
-  color: var(--muted); font-size: 11px; font-weight: 400;
+  color: var(--muted); font-size: 10.5px; font-weight: 400;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
-.wb-note { color: var(--muted); font-size: 11.5px; margin: 0 0 12px; max-width: 70ch; }
+
+/* Der Bench, in den die zwei Takt/Metronom-Gruppen mounten, muss die absolut positionierten
+   Gruppen umschließen — das GroupHost-Panel ist selbst position:relative und misst sich. */
+#taktgeber { position: relative; min-height: 40px; }
+
+/* Ausgeblendete Benches (@dpa 20260718_203341): im DOM bleiben (Tasten-Regel „soll nicht
+   weg! nur unsichtbar"), nur nicht gezeigt — jederzeit zurückholbar. */
+.wb-hidden { display: none; }
+
+/* Ein-/Ausklapp-Icon der Übergruppe. Kleiner Radius (@dpa: dezente Rundungen). */
+.wb-collapse {
+  background: none; border: none; color: var(--accent); cursor: pointer;
+  font-size: 12px; line-height: 1; padding: 2px 4px; border-radius: 3px;
+  transition: transform .12s;
+}
+.wb-collapse:hover { background: var(--sel-bg); }
+/* Eingeklappt: Caret zeigt nach rechts, der Gruppen-Bereich verschwindet (Hauptschirm leer). */
+.bench-collapsed .wb-collapse { transform: rotate(-90deg); }
+.bench-collapsed #taktgeber, .bench-collapsed > .wb-note { display: none; }
+.wb-noaudio {
+  position: absolute; top: 4px; right: 6px; z-index: 5;
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 4px;
+  color: var(--muted); font-size: 11px; padding: 3px 8px; pointer-events: none;
+}
+
+/* Erklärung eingeklappt: verfügbar, aber kostet im Ruhezustand nur eine Zeile. */
+.wb-note {
+  color: var(--muted); font-size: 11.5px; max-width: 70ch;
+  border-left: 2px solid var(--line); padding-left: 8px;
+}
+.wb-note summary {
+  cursor: pointer; color: var(--muted); font-size: 11px;
+  list-style: none; user-select: none;
+}
+.wb-note summary::before { content: "▸ "; color: var(--accent); }
+.wb-note[open] summary::before { content: "▾ "; }
+.wb-note[open] summary { color: var(--text); margin-bottom: 4px; }
 .wb-note b { color: var(--text); font-weight: 600; }
+.wb-note code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px; color: var(--accent2);
+}
 
 .wb-row {
-  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 18px;
-  background: var(--panel2); border-radius: 6px; padding: 14px;
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px;
+  background: var(--panel2); border-radius: 6px; padding: 10px;
 }
+
+/* Bänke, die von Natur aus breiter sind (horizontale Zeile), dürfen zwei Spalten belegen. */
+.wb-wide { grid-column: span 2; }
 
 /* Tasten-Sonde: zeigt live, wem die Taste gehört. */
 .wb-keyprobe { align-items: center; }
@@ -41,3 +98,17 @@
 }
 .wb-verdict .wb-global { color: var(--on); }
 .wb-verdict .wb-local { color: var(--accent2); }
+
+/* Der Arbeitsplatz: der eigentliche freie Platz. Nimmt, was übrig ist, und lädt zum
+   Draufstellen ein – hierhin baut die KI kleine Tests, hierüber beschreibt @dpa Module. */
+.wb-scratch { grid-column: 1 / -1; }
+.wb-scratch-area {
+  border: 1px dashed var(--line); background: transparent;
+  min-height: 120px; align-items: center; justify-content: center;
+}
+.wb-scratch-hint {
+  color: var(--muted); font-size: 11.5px; text-align: center; margin: 0; max-width: 60ch;
+}
+.wb-scratch-hint code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--accent2);
+}

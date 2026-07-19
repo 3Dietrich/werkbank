@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8" />
+<title>GroupHost – Selbsttest</title>
+<link rel="stylesheet" href="../../css/main.css" />
+<link rel="stylesheet" href="../../css/werkbank.css" />
+<style>#host{position:relative;min-height:400px;padding:12px}</style>
+</head><body>
+<div id="host"></div>
+<script type="module">
+import { mountGroups } from './GroupHost.js';
+import { MiniState } from '../MiniState.js';
+
+// Zwei Demo-Gruppen – mindestens die zwei, die man im e-Mode verschieben soll.
+const state = new MiniState({
+    cutoff: 800, reso: 2, ftype: 'LP', active: true, note: '',
+    bpm: 120, gain: 0.7, run: false,
+});
+const defs = {
+    DEFAULTS: { cutoff: 800, reso: 2, bpm: 120, gain: 0.7 },
+    KNOBS: {
+        cutoff: { label: 'Cutoff', min: 20, max: 18000, curve: 'log', unit: 'Hz', decimals: 0 },
+        reso:   { label: 'Reso', min: 0.1, max: 20, curve: 'log', unit: 'Q', decimals: 1 },
+        bpm:    { label: 'BPM', min: 20, max: 400, decimals: 0 },
+        gain:   { label: 'Gain', min: 0, max: 1, decimals: 2 },
+    },
+    SELECTS: { ftype: { label: 'Typ', options: ['LP', 'HP', 'BP'] } },
+    TOGGLES: { active: { label: 'aktiv' }, run: { label: 'läuft' } },
+    NOTES: {}, TEXTS: {},
+    BUTTONS: { go: { label: 'Go', onClick: () => window.__go = (window.__go || 0) + 1 } },
+    GROUPS: [
+        { name: 'Filter', selects: ['ftype'], toggles: ['active'], knobs: ['cutoff', 'reso'] },
+        { name: 'Transport', toggles: ['run'], buttons: ['go'], knobs: ['bpm', 'gain'] },
+    ],
+};
+window.__host = mountGroups(document.getElementById('host'), state, defs, {});
+window.__ready = true;
+</script>
+</body></html>

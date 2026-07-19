@@ -12,6 +12,9 @@ import { ElementSettings } from './lib/ElementSettings.js';
 import { StepSeqUI } from './lib/StepSeqUI.js';
 import { MiniState } from './lib/MiniState.js';
 import { targetKind, globalKeyOk, arrowKeyOk } from './lib/keyRoute.js';
+import { mountGroups } from './lib/group/GroupHost.js';
+import { taktMetroDefs } from './lib/taktmetro/defs.js';
+import { createTaktEngine } from './lib/taktmetro/engine.js';
 
 const state = new MiniState({
     ampSeqLen: 8,
@@ -44,16 +47,17 @@ for (const def of DEMO_KNOBS) {
         ...saved,
         onChange: (v) => state.set('val_' + def.key, v),
     });
-    knob._defaultMeta = knob.getMeta();
+    knob._defaultMeta = knob.getMeta();   // Original-Range/Kurve für „Zurücksetzen"
+    knob.element.dataset.ctrl = 'k:' + def.key;   // Kennung für Hilfe-Text (kme-help)
     knob.element.addEventListener('contextmenu', (e) => {
         e.preventDefault(); e.stopPropagation(); metaEditor.open(knob);
     });
     knobRow.appendChild(knob.element);
 }
-// Meta-Änderungen sichern (der Editor meldet sie über onApply).
-metaEditor.onApply = (k, meta) => {
+// Meta-Änderungen sichern (der Editor meldet sie über onApply(knob), Meta via getMeta()).
+metaEditor.onApply = (knob) => {
     const all = { ...(state.get('knobMeta') || {}) };
-    all[k.id.replace(/^knob_/, '')] = meta;
+    all[knob.id.replace(/^knob_/, '')] = knob.getMeta();
     state.set('knobMeta', all);
 };
 
@@ -151,6 +155,70 @@ window.addEventListener('keydown', (e) => {
         + `${mine ? 'GLOBAL (Shortcut greift)' : 'LOKAL (Element behält sie)'}</span>`;
 });
 
-document.querySelector('#reset').addEventListener('click', () => {
-    MiniState.reset(); location.reload();
-});
+// ── Takt + Metronom – Neu-Port (P1) + echter Ton (P4) ──────────────────────────
+// Der frühere Mount lief über taktgebers eigene ui.js (der „eigene Scheiß"). Jetzt füttert
+// EINE deklarative defs-Quelle (lib/taktmetro/defs.js, gemappt aus taktgeber-Manifest +
+// Defaults) teslacoils Fabriken via mountGroups — zwei Gruppen, im e-Mode ('e') frei
+// verschiebbar. Eigener MiniState mit eigenem localStorage-Key = klare, isolierte Naht.
+// P4: die Action-Buttons treiben jetzt die echte Audio-Engine (metro.js/clock.js aus
+// taktgeber). onAction(id) hat dieselbe Signatur wie die alte Attrappe — die defs bleiben
+// audio-blind.
+const TAKT_LS = 'werkbank_taktmetro';
+const taktState = new MiniState(taktMetroDefs().DEFAULTS, TAKT_LS);
+const taktRoot = document.querySelector('#taktgeber');
+const taktEngine = createTaktEngine(taktState);
+const taktDefs = taktMetroDefs({ onAction: (id) => taktEngine.onAction(id) });
+const takt = mountGroups(taktRoot, taktState, taktDefs, {});
+// Der Start-Knopf trägt den ON-Zustand (Metronom läuft) → nutzt die „BG an"-Farbe (Task D).
+taktEngine.onRunning((on) => takt.setCtrlOn('b:start', on));
+// Die Takt-Anzeige leuchtet auf dem laufenden Beat (zeit-ausgerichtet vom Engine).
+taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
+
+// ── P3: Tasten/MIDI-Overlay-Schalter im Header (K5) ─────────────────────────────
+// Ein Schalter „neben Helphints" (die Werkbank hat keine Helphints, also in der Topbar):
+// an → alles dunkler, über jedem Control seine Tastenbelegung + 🎹, an Ort und Stelle
+// änderbar. Aus → normal bedienbar, die Belegungen wirken (Space startet, 1/2 = !/!!, …).
+const keyMidi = takt.keyMidi;
+// Zwei getrennte Header-Schalter (@dpa 20260719_040136: „zwei buttons, bei einzeln …
+// übersichtlicher"): einer für Tasten, einer für MIDI. Jeder zeigt/versteckt seinen Teil
+// des Badges über allen Controls.
+// Radio-Verhalten (@dpa 20260719_120425: „bitte nur einen von beiden aktivieren"):
+// das Einschalten des einen schaltet den anderen aus — wie ein Selector.
+const mkHeaderToggle = (id, label, title, onToggle) => {
+    const btn = document.createElement('button');
+    btn.className = 'pb-btn'; btn.id = id; btn.type = 'button';
+    btn.textContent = label; btn.title = title;
+    btn.addEventListener('click', () => {
+        const on = btn.classList.toggle('active');
+        if (on && btn._radioPeer && btn._radioPeer.classList.contains('active')) {
+            btn._radioPeer.classList.remove('active');
+            btn._radioPeer._onToggle(false);
+        }
+        onToggle(on);
+    });
+    btn._onToggle = onToggle;
+    document.querySelector('.topbar-right').appendChild(btn);
+    return btn;
+};
+const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => keyMidi.setKeyEdit(on));
+const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => keyMidi.setMidiEdit(on));
+keyBtn._radioPeer = midiBtn; midiBtn._radioPeer = keyBtn;
+// Die Haupt-Buttons SELBST tasten-/MIDI-zuweisbar (@dpa 20260719_120425): self-Targets —
+// kein Badge über dem Button, das Learning erscheint DARUNTER (mit [↵] bei der Taste).
+keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { self: true });
+keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { self: true });
+// Globale Verteilung: ein belegter Tastendruck löst sein Control aus (nur außerhalb des
+// Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern).
+window.addEventListener('keydown', (e) => keyMidi.dispatchKey(e));
+
+// ── Übergruppe ein-/ausklappen (@dpa 20260718_203341) ──────────────────────────
+// Icon links an der Headline; eingeklappt ist der Hauptschirm leer (okay). Zustand im
+// eigenen State (überlebt Reload wie alles andere).
+const benchTakt = document.querySelector('#bench-taktgeber');
+const taktCollapse = document.querySelector('#taktCollapse');
+const applyBenchCollapse = () => benchTakt.classList.toggle('bench-collapsed', !!taktState.get('benchCollapsed'));
+taktCollapse.addEventListener('click', () => { taktState.set('benchCollapsed', !taktState.get('benchCollapsed')); applyBenchCollapse(); });
+applyBenchCollapse();
+
+// „Zurücksetzen"-Knopf entfernt (@dpa 20260719_040136). Reset weiterhin über die Konsole:
+//   MiniState.reset(); MiniState.reset('werkbank_taktmetro'); location.reload();
