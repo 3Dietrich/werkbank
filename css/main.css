@@ -19,6 +19,9 @@
   /* Gleicher Kontrast in der e-Mode-Farbe (Anordnen = orange). */
   --sel2-bg: rgba(255,159,90,.10);
   --sel2-line: rgba(255,159,90,.45);
+  /* Zentrale Stellschraube für die Zahlen-Stepper-Pfeile (@dpa 20260719): native Spinner
+     sind winzig; hier prozentual vergrößern (1 = nativ, 1.7 = ~70% größer). Eine Stelle. */
+  --spin-scale: 1.7;
 }
 
 * { box-sizing: border-box; }
@@ -579,11 +582,15 @@ body {
 .kme-row input:focus, .kme-row select:focus { outline: none; border-color: var(--accent); }
 /* Zahlen-Stepper: größere Bedienfläche – man traf oft die falsche Pfeilhälfte
    (@dpa 20260719, image-10). Pfeile breiter und über die volle Feldhöhe. */
+.kme-row input[type="number"], .group-settings input[type="number"] { padding-right: 3px; }
 .kme-row input[type="number"]::-webkit-inner-spin-button,
 .group-settings input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: inner-spin-button;
   opacity: 1;            /* immer sichtbar, nicht nur bei Hover (KEIN height:100% – das kollabiert zu 0!) */
-  width: 16px;           /* breitere Trefferfläche; Höhe kommt aus dem etwas höheren Feld (padding 4px) */
+  /* prozentual größer über die zentrale Variable; von der rechten Kante wachsen lassen,
+     damit die Pfeile im Feld bleiben. */
+  transform: scale(var(--spin-scale));
+  transform-origin: right center;
   cursor: pointer;
 }
 /* JEDER Farbwähler ist schmal (@dpa 20260716_132014: „die Farbwähler können schmaler") –
