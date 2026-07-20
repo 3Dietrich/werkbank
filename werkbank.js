@@ -161,18 +161,20 @@ window.addEventListener('keydown', (e) => {
 // Defaults) teslacoils Fabriken via mountGroups — zwei Gruppen, im e-Mode ('e') frei
 // verschiebbar. Eigener MiniState mit eigenem localStorage-Key = klare, isolierte Naht.
 // P4: die Action-Buttons treiben jetzt die echte Audio-Engine (metro.js/clock.js aus
-// taktgeber). onAction(id) hat dieselbe Signatur wie die alte Attrappe — die defs bleiben
-// audio-blind.
+// taktgeber). onAction(id, phase) — phase ('down'/'up') MUSS durchgereicht werden, sonst
+// wirken die Gate-Knöpfe −/+ nicht als gehaltener ASR-Nudge (@dpa 20260720, Punkt C).
 const TAKT_LS = 'werkbank_taktmetro';
 const taktState = new MiniState(taktMetroDefs().DEFAULTS, TAKT_LS);
 const taktRoot = document.querySelector('#taktgeber');
 const taktEngine = createTaktEngine(taktState);
-const taktDefs = taktMetroDefs({ onAction: (id) => taktEngine.onAction(id) });
+const taktDefs = taktMetroDefs({ onAction: (id, phase) => taktEngine.onAction(id, phase) });
 const takt = mountGroups(taktRoot, taktState, taktDefs, {});
 // Der Start-Knopf trägt den ON-Zustand (Metronom läuft) → nutzt die „BG an"-Farbe (Task D).
 taktEngine.onRunning((on) => takt.setCtrlOn('b:start', on));
 // Die Takt-Anzeige leuchtet auf dem laufenden Beat (zeit-ausgerichtet vom Engine).
 taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
+// Debug/Headless-Test-Haken (wie _selftest.html sein __host): Zugriff auf Engine/State/Host.
+window.__takt = { engine: taktEngine, state: taktState, host: takt };
 
 // ── P3: Tasten/MIDI-Overlay-Schalter im Header (K5) ─────────────────────────────
 // Ein Schalter „neben Helphints" (die Werkbank hat keine Helphints, also in der Topbar):
