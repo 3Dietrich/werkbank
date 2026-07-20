@@ -564,7 +564,10 @@ body {
    (fit-content), mit einer Untergrenze für die kurzen Panels (Keyboard) und einer
    Obergrenze gegen ausufernde Namen. Rand = „Selektionsrahmen" statt vollem Akzent. */
 .knob-meta-editor {
-  position: fixed; z-index: 1000;
+  /* Control-Settings müssen ÜBER dem Tab-Sonderfenster (special-pop z 1100) liegen
+     (@dpa 20260720): ein Control auf dem TabSet öffnet seine Settings, die dürfen nicht
+     dahinter verschwinden. */
+  position: fixed; z-index: 1300;
   width: fit-content; min-width: 264px; max-width: 380px;
   background: var(--panel2); border: 1px solid var(--sel-line);
   border-radius: 6px; box-shadow: 0 8px 32px rgba(0,0,0,.6);
@@ -1062,29 +1065,36 @@ body {
   position: fixed; z-index: 1100; min-width: 220px; max-width: 92vw;
   background: var(--panel2); border: 1px solid var(--sel-line);
   border-radius: 5px; box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  /* Nie höher als der Schirm: der Kopf bleibt, der Body scrollt (@dpa 20260720: „Fenster
+     sau lang"). Zusammen mit dem breiteren Tabellen-Layout brechen die Hilfstexte in
+     weniger Zeilen um. */
+  display: flex; flex-direction: column; max-height: 86vh;
 }
 .special-head {
   display: flex; justify-content: space-between; align-items: center;
   padding: 6px 10px; background: var(--panel); border-bottom: 1px solid var(--line);
   border-radius: 5px 5px 0 0; font-size: 11px; font-weight: 600; color: var(--accent);
+  cursor: move; flex: 0 0 auto;   /* am Kopf verschiebbar (@dpa 20260720) */
 }
-.special-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; }
+.special-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
 .special-note { font-size: 10.5px; color: var(--muted); line-height: 1.3; }
 .special-open.ctrl-on { border-color: var(--accent); color: var(--accent); }
 
 /* Tab-Sonderfenster als Tabelle (Punkt A): Beschreibung + Zeilen Label | Einstellung | Hilfstext,
    darunter echte Latenz/Samplerate. Kompakt, sanfte Trennlinien (--line), kleine Radien. */
-.special-table { gap: 6px; min-width: 300px; }
-.special-desc { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
+/* Breiter, damit die Hilfstexte in wenige Zeilen umbrechen (@dpa 20260720). */
+.special-table { gap: 6px; min-width: 380px; }
+.special-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
 .special-rows { display: flex; flex-direction: column; }
 .special-row {
-  display: grid; grid-template-columns: 78px minmax(64px, auto) minmax(148px, 1fr);
+  display: grid; grid-template-columns: 80px minmax(60px, auto) minmax(196px, 1fr);
   align-items: center; gap: 8px; padding: 5px 2px; border-top: 1px solid var(--line);
 }
 .special-row:first-child { border-top: 0; }
-.special-cell-label { font-size: 10.5px; color: var(--text); font-weight: 600; }
+.special-cell-label { font-size: 11px; color: var(--text); font-weight: 600; }
 .special-cell-ctrl { display: flex; align-items: center; justify-content: flex-start; }
-.special-cell-hint { font-size: 9.5px; color: var(--muted); line-height: 1.32; }
+/* Hilfstext +20% (@dpa 20260720: „zu klein"), bricht sauber um. */
+.special-cell-hint { font-size: 11.5px; color: var(--muted); line-height: 1.34; overflow-wrap: anywhere; }
 /* In der Tabelle zeigt Spalte 1 den Namen → interne Control-Labels weg, kein Doppel. */
 .special-table .knob-label,
 .special-table .segment-field > span { display: none; }
