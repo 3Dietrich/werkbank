@@ -296,6 +296,9 @@ window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Hake
 // kein Badge über dem Button, das Learning erscheint DARUNTER (mit [↵] bei der Taste).
 keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { self: true });
 keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { self: true });
+// Hints + Config ebenso lernbar (@dpa 20260720: „'Hints' und 'Config' kriegen auch tasten und midi learn").
+keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
+keyMidi.register('hdr:cfgmenu', cfgBtn, '⚙ Config', () => cfgBtn.click(), { self: true });
 // Globale Verteilung: ein belegter Tastendruck löst sein Control aus (nur außerhalb des
 // Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern).
 window.addEventListener('keydown', (e) => keyMidi.dispatchKey(e));
