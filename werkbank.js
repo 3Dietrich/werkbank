@@ -185,6 +185,9 @@ const takt = mountGroups(taktRoot, taktState, taktDefs, {});
 taktEngine.onRunning((on) => takt.setCtrlOn('b:start', on));
 // Die Takt-Anzeige leuchtet auf dem laufenden Beat (zeit-ausgerichtet vom Engine).
 taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
+// BPM-Anzeige folgt dem Anschieben +/− (@dpa 20260720, Punkt): der ±-Schub wird SICHTBAR, ohne
+// den gespeicherten bpm zu ändern. Bias zurück auf 0 → liveBpm == bpm → Anzeige steht wieder original.
+taktEngine.onNudge((liveBpm) => takt.setKnobDisplay('bpm', liveBpm));
 // Debug/Headless-Test-Haken (wie _selftest.html sein __host): Zugriff auf Engine/State/Host.
 window.__takt = { engine: taktEngine, state: taktState, host: takt };
 
