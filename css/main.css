@@ -48,7 +48,7 @@ body {
 }
 .topbar h1 { margin: 0; font-size: 21px; letter-spacing: .04em; }
 .topbar h1 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
-.topbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.topbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; position: relative; }
 
 #app { padding: 16px 18px; padding-right: 64px; display: flex; flex-direction: column; gap: 16px; }
 
@@ -99,6 +99,15 @@ body {
    „aus" das stumme Grau – andersherum würde die Kopfzeile im Alltag dauerleuchten. */
 .hint-btn { color: var(--muted); }
 .hint-btn.on { color: var(--accent); }
+
+/* Config-Menü (Export/Import/Reset) unter dem ⚙-Knopf (@dpa 20260720). Sanfter Rahmen, kompakt. */
+.cfg-pop {
+  position: absolute; z-index: 1500; top: 100%; right: 8px; margin-top: 4px;
+  display: flex; flex-direction: column; gap: 4px; padding: 6px;
+  background: var(--panel2); border: 1px solid var(--sel-line); border-radius: 5px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.55);
+}
+.cfg-pop .pb-btn { justify-content: flex-start; white-space: nowrap; }
 
 /* ── Hilfe-Blase (js/ui/HintBubble.js) ──
    Eigenes Tooltip statt `title`: nur so sind „global aus" und eine einstellbare

@@ -234,6 +234,61 @@ const hintBubble = new HintBubble(hintResolve, { enabled: taktState.get('hintsOn
 const hintsBtn = mkHeaderToggle('hintsedit', '💬 Hints', 'Hilfe-Blasen bei Maus-Hover für alles an/aus',
     (on) => { hintBubble.enable(on); taktState.set('hintsOn', on); });
 if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // Default: an
+
+// ── Config Export/Import (@dpa 20260720): State-Datei(en) sichern/laden — so kann @dpa mir
+// seinen kompletten Werkbank-Zustand (Umbenennungen, Anordnung, Belegungen, Optik) übergeben.
+// Es sind die localStorage-Stände beider MiniStates (Haupt + Takt/Metronom). ──
+const LS_KEYS = ['werkbank_state', 'werkbank_taktmetro'];
+function buildConfig() {
+    const ls = {};
+    for (const k of LS_KEYS) { const v = localStorage.getItem(k); if (v != null) { try { ls[k] = JSON.parse(v); } catch { /* skip */ } } }
+    return { _werkbank: 1, saved: new Date().toISOString(), ls };
+}
+function applyConfig(obj) {
+    const ls = (obj && obj.ls) || obj || {};   // toleriert nacktes { key: data }
+    let n = 0;
+    for (const k of LS_KEYS) if (ls[k] != null) { localStorage.setItem(k, JSON.stringify(ls[k])); n++; }
+    return n;
+}
+function exportConfig() {
+    const blob = new Blob([JSON.stringify(buildConfig(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
+    a.href = url; a.download = 'werkbank-config-' + ts + '.json'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const cfgBtn = document.createElement('button');
+cfgBtn.className = 'pb-btn'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
+cfgBtn.textContent = '⚙ Config'; cfgBtn.title = 'Konfiguration exportieren/importieren (zum Übergeben)';
+document.querySelector('.topbar-right').appendChild(cfgBtn);
+const fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.json,application/json'; fileIn.style.display = 'none';
+document.body.appendChild(fileIn);
+fileIn.addEventListener('change', () => {
+    const f = fileIn.files && fileIn.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => { try { const n = applyConfig(JSON.parse(rd.result)); if (n) location.reload(); else alert('Keine passenden Daten in der Datei.'); } catch (e) { alert('Import fehlgeschlagen: ' + e.message); } };
+    rd.readAsText(f); fileIn.value = '';
+});
+let cfgPop = null;
+const closeCfg = () => { if (cfgPop) { cfgPop.remove(); cfgPop = null; document.removeEventListener('mousedown', cfgOutside, true); cfgBtn.classList.remove('active'); } };
+const cfgOutside = (e) => { if (cfgPop && !cfgPop.contains(e.target) && e.target !== cfgBtn) closeCfg(); };
+cfgBtn.addEventListener('click', () => {
+    if (cfgPop) { closeCfg(); return; }
+    cfgPop = document.createElement('div'); cfgPop.className = 'cfg-pop';
+    const mk = (label, title, fn) => { const b = document.createElement('button'); b.className = 'pb-btn'; b.textContent = label; b.title = title; b.addEventListener('click', () => { fn(); }); return b; };
+    cfgPop.append(
+        mk('⭳ Export', 'Aktuellen Zustand als .json herunterladen', () => { exportConfig(); closeCfg(); }),
+        mk('⭱ Import', 'Zustand aus einer .json laden (Seite lädt neu)', () => { fileIn.click(); }),
+        mk('↺ Reset', 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)', () => {
+            if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) { LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload(); }
+        }),
+    );
+    document.querySelector('.topbar-right').appendChild(cfgPop);
+    cfgBtn.classList.add('active');
+    setTimeout(() => document.addEventListener('mousedown', cfgOutside, true), 0);
+});
+window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
 // Die Haupt-Buttons SELBST tasten-/MIDI-zuweisbar (@dpa 20260719_120425): self-Targets —
 // kein Badge über dem Button, das Learning erscheint DARUNTER (mit [↵] bei der Taste).
 keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { self: true });
