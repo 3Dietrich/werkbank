@@ -167,7 +167,16 @@ const TAKT_LS = 'werkbank_taktmetro';
 const taktState = new MiniState(taktMetroDefs().DEFAULTS, TAKT_LS);
 const taktRoot = document.querySelector('#taktgeber');
 const taktEngine = createTaktEngine(taktState);
-const taktDefs = taktMetroDefs({ onAction: (id, phase) => taktEngine.onAction(id, phase) });
+// audioInfo: echte Latenz/Samplerate fürs Tab-Sonderfenster (Punkt A). ensureAudio() baut den
+// Context (bleibt stumm bis Start) → SR + Basislatenz sind sofort echt, Ausgabelatenz sobald bekannt.
+const taktDefs = taktMetroDefs({
+    onAction: (id, phase) => taktEngine.onAction(id, phase),
+    audioInfo: () => {
+        taktEngine.ensureAudio();
+        const c = taktEngine.context;
+        return c ? { sampleRate: c.sampleRate, baseLatency: c.baseLatency, outputLatency: c.outputLatency, state: c.state } : null;
+    },
+});
 const takt = mountGroups(taktRoot, taktState, taktDefs, {});
 // Der Start-Knopf trägt den ON-Zustand (Metronom läuft) → nutzt die „BG an"-Farbe (Task D).
 taktEngine.onRunning((on) => takt.setCtrlOn('b:start', on));

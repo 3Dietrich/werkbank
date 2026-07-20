@@ -1069,3 +1069,25 @@ body {
 .special-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; }
 .special-note { font-size: 10.5px; color: var(--muted); line-height: 1.3; }
 .special-open.ctrl-on { border-color: var(--accent); color: var(--accent); }
+
+/* Tab-Sonderfenster als Tabelle (Punkt A): Beschreibung + Zeilen Label | Einstellung | Hilfstext,
+   darunter echte Latenz/Samplerate. Kompakt, sanfte Trennlinien (--line), kleine Radien. */
+.special-table { gap: 6px; min-width: 300px; }
+.special-desc { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
+.special-rows { display: flex; flex-direction: column; }
+.special-row {
+  display: grid; grid-template-columns: 78px minmax(64px, auto) minmax(148px, 1fr);
+  align-items: center; gap: 8px; padding: 5px 2px; border-top: 1px solid var(--line);
+}
+.special-row:first-child { border-top: 0; }
+.special-cell-label { font-size: 10.5px; color: var(--text); font-weight: 600; }
+.special-cell-ctrl { display: flex; align-items: center; justify-content: flex-start; }
+.special-cell-hint { font-size: 9.5px; color: var(--muted); line-height: 1.32; }
+/* In der Tabelle zeigt Spalte 1 den Namen → interne Control-Labels weg, kein Doppel. */
+.special-table .knob-label,
+.special-table .segment-field > span { display: none; }
+.special-table .knob-container { margin: 0; gap: 2px; }
+.special-audio {
+  font-size: 9.5px; color: var(--muted); font-variant-numeric: tabular-nums;
+  border-top: 1px solid var(--sel-line); padding-top: 6px; margin-top: 2px; line-height: 1.3;
+}
