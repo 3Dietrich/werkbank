@@ -257,7 +257,7 @@ function exportConfig() {
     const blob = new Blob([JSON.stringify(buildConfig(), null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
+    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);   // YYYYMMDDHHMMSS, ohne den Millisekunden-Punkt
     a.href = url; a.download = 'werkbank-config-' + ts + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
