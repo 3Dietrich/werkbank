@@ -24,20 +24,12 @@ State-Callbacks füllen nur `ctrlBindings` nach — das sind Select/Toggle/Segme
 
 ---
 
-### 2. `metroCutoffOffset` hat keinen Default
+### 2. `metroCutoffOffset` hat keinen Default — ✅ ERLEDIGT (20260720, Punkt B)
 
-**Orte:**  
-- [defs.js:59](lib/taktmetro/defs.js#L59) — Regler definiert
-- [defs.js:31](lib/taktmetro/defs.js#L31) — `DEFAULTS` aber nicht gefüllt
-
-**Problem:**  
-Der Cutoff-Offset-Regler existiert, bekommt aber initial `value: undefined`. Engine rettet sich mit `|| 0` ([engine.js:36](lib/taktmetro/engine.js#L36)), aber Kommentar in [engine.js:16](lib/taktmetro/engine.js#L16) behauptet „aus DEFAULTS 4000" — stimmt nicht.
-
-**Reparatur:**  
-```javascript
-// In defs.js DEFAULTS
-metroCutoffOffset: 4000,  // oder was @dpa hört
-```
+Der Hz-Offset-Regler wurde durch einen **Verhältnis-Faktor** ersetzt (@dpa: „Offbeat im
+Verhältnis zum Onbeat, keine Frequenz-Addition"): neuer Key `metroCutoffRatio`,
+Default `0.5` in `DEFAULTS`, Knob-Range [0.2–4]. Engine: `cut2 = metroCutoff × ratio`.
+Damit gibt es keinen `undefined`-Wert mehr und der alte, falsche „4000"-Kommentar ist weg.
 
 ---
 
@@ -51,6 +43,11 @@ Engine liest `state.get('metro2OnDownbeat')`, aber es gibt weder ein Control noc
 **Reparatur — eine von zwei:**
 - **Option A (aus):** Den State-Key rausnehmen, `metroParts` auf festes `on2Downbeat: false` oder den echten Wert hardcoden
 - **Option B (an):** Toggle in defs TOGGLES + Default in DEFAULTS setzen
+
+**Stand 20260720:** @dpas „metro2OnDownbeat neu"-Notiz meinte in Wahrheit die Offbeat/Onbeat-
+Cutoff-**Relation** (jetzt als `metroCutoffRatio` gebaut, s. #2), nicht diesen Boolean. Der
+Geisterschalter bleibt vorerst inaktiv (`on2Downbeat: undefined` → Teil 2 nur auf Off-Beats).
+Offen: entscheiden, ob er ganz raus soll (Option A) — kein eigener User-Wunsch dafür.
 
 ---
 
