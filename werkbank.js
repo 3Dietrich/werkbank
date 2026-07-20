@@ -223,11 +223,20 @@ keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { 
 // Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern).
 window.addEventListener('keydown', (e) => keyMidi.dispatchKey(e));
 
-// ESC verlässt den MIDI-Learn-Modus (NICHT den Tasten-Modus — @dpa 20260719). Läuft über
-// den Button-Klick, damit dessen .active-Zustand synchron bleibt. Ein aktiver Lern-Vorgang
-// (Banner/Horchen) fängt ESC vorher per capture ab → erst zweites ESC verlässt den Modus.
+// ESC stuft die Funktionsebenen ab (@dpa 20260720, Punkt D): pro ESC eine grobe Ebene, von
+// innen nach außen. Fenster mit eigenem ESC (Settings/Farbwähler) + ein laufender Lern-Vorgang
+// (Horchen/Banner) fangen ESC vorher per capture ab; GroupHost räumt danach Gruppen-Fenster +
+// Auswahl (stopImmediatePropagation). Kommt ESC bis hierher, folgt: (1) Lern-Overlay verlassen
+// — über Button-Klick, damit dessen .active synchron bleibt (früher nur MIDI, jetzt auch Tasten,
+// löst @dpa 20260719 ab) — dann (2) Anordnen-Modus verlassen.
 window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && midiBtn.classList.contains('active')) midiBtn.click();
+    if (e.key !== 'Escape') return;
+    if (keyBtn.classList.contains('active') || midiBtn.classList.contains('active')) {
+        if (midiBtn.classList.contains('active')) midiBtn.click();
+        if (keyBtn.classList.contains('active')) keyBtn.click();
+        e.stopImmediatePropagation(); return;
+    }
+    if (takt.isArranging && takt.isArranging()) { takt.setArranging(false); e.stopImmediatePropagation(); return; }
 });
 
 // ── Übergruppe ein-/ausklappen (@dpa 20260718_203341) ──────────────────────────

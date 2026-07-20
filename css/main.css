@@ -948,7 +948,9 @@ body {
   border-radius: 3px; cursor: pointer; border: none; font-weight: 700;
   background: var(--accent); color: #071018;
 }
-.km-key.km-empty { background: #333a46; color: var(--muted); font-weight: 400; }
+.km-key.km-empty { background: #333a46; color: var(--muted); font-weight: 400; min-width: 18px; }
+/* Radio-Selektion im Lern-Overlay (Punkt D): sanfter Rahmen (--sel-line), kein greller Akzent. */
+.keyedit .km-selected { outline: 2px solid var(--sel-line); outline-offset: 1px; border-radius: 4px; }
 .km-key.km-listen { background: #ffd24a; color: #201800; }
 .km-mid {
   font-size: 11px; line-height: 1; padding: 1px 2px; border-radius: 3px;
