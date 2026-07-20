@@ -1102,8 +1102,9 @@ body {
 
 /* Tab-Sonderfenster als Tabelle (Punkt A): Beschreibung + Zeilen Label | Einstellung | Hilfstext,
    darunter echte Latenz/Samplerate. Kompakt, sanfte Trennlinien (--line), kleine Radien. */
-/* Breiter, damit die Hilfstexte in wenige Zeilen umbrechen (@dpa 20260720). */
-.special-table { gap: 6px; min-width: 380px; }
+/* Feste Fensterbreite 600px, Hilfstexte brechen darin einfach um (@dpa 20260720, image-23). */
+.special-pop-table { width: 600px; max-width: 92vw; }
+.special-table { gap: 6px; min-width: 0; }
 .special-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
 .special-rows { display: flex; flex-direction: column; }
 .special-row {
