@@ -12,6 +12,8 @@ import { ElementSettings } from './lib/ElementSettings.js';
 import { StepSeqUI } from './lib/StepSeqUI.js';
 import { MiniState } from './lib/MiniState.js';
 import { MiniSettings } from './lib/MiniSettings.js';
+import { HintBubble } from './lib/HintBubble.js';
+import { factoryHint } from './lib/hints.js';
 import { targetKind, globalKeyOk, arrowKeyOk } from './lib/keyRoute.js';
 import { mountGroups } from './lib/group/GroupHost.js';
 import { taktMetroDefs } from './lib/taktmetro/defs.js';
@@ -215,6 +217,23 @@ const mkHeaderToggle = (id, label, title, onToggle) => {
 const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => keyMidi.setKeyEdit(on));
 const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => keyMidi.setMidiEdit(on));
 keyBtn._radioPeer = midiBtn; midiBtn._radioPeer = keyBtn;
+
+// ── Help Hints (@dpa 20260720): die (editierten bzw. Auslieferungs-)Hilfetexte als Hover-Blase
+// über allen Controls; ein Header-Knopf „Hints" neben „MIDI" schaltet sie global an/aus. ──
+const hintResolve = (el) => {
+    const c = el.closest && el.closest('[data-ctrl]');
+    if (c) {
+        const id = c.dataset.ctrl;
+        const st = c.closest('#taktgeber') ? taktState : state;   // sichtbares Instrument nutzt taktState
+        const own = (st.get('hintText') || {})[id];
+        return own || factoryHint(id, 'de') || c.dataset.hint || (el.dataset && el.dataset.hint) || '';
+    }
+    return (el.dataset && el.dataset.hint) || '';
+};
+const hintBubble = new HintBubble(hintResolve, { enabled: taktState.get('hintsOn') !== false });
+const hintsBtn = mkHeaderToggle('hintsedit', '💬 Hints', 'Hilfe-Blasen bei Maus-Hover für alles an/aus',
+    (on) => { hintBubble.enable(on); taktState.set('hintsOn', on); });
+if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // Default: an
 // Die Haupt-Buttons SELBST tasten-/MIDI-zuweisbar (@dpa 20260719_120425): self-Targets —
 // kein Badge über dem Button, das Learning erscheint DARUNTER (mit [↵] bei der Taste).
 keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { self: true });
