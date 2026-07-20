@@ -11,6 +11,7 @@ import { KnobMetaEditor } from './lib/KnobMetaEditor.js';
 import { ElementSettings } from './lib/ElementSettings.js';
 import { StepSeqUI } from './lib/StepSeqUI.js';
 import { MiniState } from './lib/MiniState.js';
+import { MiniSettings } from './lib/MiniSettings.js';
 import { targetKind, globalKeyOk, arrowKeyOk } from './lib/keyRoute.js';
 import { mountGroups } from './lib/group/GroupHost.js';
 import { taktMetroDefs } from './lib/taktmetro/defs.js';
@@ -282,6 +283,28 @@ function mountBenchHelp(sectionId) {
     });
 }
 mountBenchHelp('bench-taktgeber');
+
+// ── Instrument-Header Rechtsklick → Settings: BG-Farbe (mit Alpha) (Punkt E, @dpa 20260720) ──
+// Rechtsklick auf die Übergruppen-Headline öffnet ein kleines Settings-Panel (wie die anderen,
+// verschiebbar/ESC/✕) mit einem Farbwähler + Deckkraft. Die Farbe hinterlegt die ganze
+// Instrument-Sektion; Alpha lässt den Seiten-Hintergrund durchscheinen.
+const benchHeaderSettings = new MiniSettings('Instrument');
+const benchHeaderH2 = benchTakt.querySelector('h2');
+const applyBenchBg = () => { benchTakt.style.background = taktState.get('benchBg') || ''; };
+applyBenchBg();
+if (benchHeaderH2) {
+    benchHeaderH2.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const at = { getBoundingClientRect: () => ({ left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 }) };
+        benchHeaderSettings.open(at, ({ colorA }) => {
+            colorA('BG', {
+                get: () => taktState.get('benchBg') || '',
+                set: (v) => { taktState.set('benchBg', v); applyBenchBg(); },
+                fallback: '#232833',
+            });
+        });
+    });
+}
 
 // „Zurücksetzen"-Knopf entfernt (@dpa 20260719_040136). Reset weiterhin über die Konsole:
 //   MiniState.reset(); MiniState.reset('werkbank_taktmetro'); location.reload();
