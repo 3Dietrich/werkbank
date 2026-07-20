@@ -373,17 +373,26 @@ mountBenchHelp('bench-taktgeber');
 // Instrument-Sektion; Alpha lässt den Seiten-Hintergrund durchscheinen.
 const benchHeaderSettings = new MiniSettings('Instrument');
 const benchHeaderH2 = benchTakt.querySelector('h2');
+const benchInner = benchTakt.querySelector('#taktgeber');
 const applyBenchBg = () => { benchTakt.style.background = taktState.get('benchBg') || ''; };
-applyBenchBg();
+// Instrument-Größe (@dpa 20260720): skaliert den Instrument-KÖRPER (#taktgeber), NICHT die
+// Headline — analog zur Gruppen-Größe. 0/100/leer = auto/neutral.
+const applyBenchScale = () => { const s = taktState.get('benchScale'); if (benchInner) benchInner.style.zoom = (s && s !== 100) ? (s / 100) : ''; };
+applyBenchBg(); applyBenchScale();
 if (benchHeaderH2) {
     benchHeaderH2.addEventListener('contextmenu', (e) => {
         e.preventDefault(); e.stopPropagation();
         const at = { getBoundingClientRect: () => ({ left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 }) };
-        benchHeaderSettings.open(at, ({ colorA }) => {
+        benchHeaderSettings.open(at, ({ colorA, num }) => {
             colorA('BG', {
                 get: () => taktState.get('benchBg') || '',
                 set: (v) => { taktState.set('benchBg', v); applyBenchBg(); },
                 fallback: '#232833',
+            });
+            num('Größe %', {
+                min: 50, max: 200, title: 'Instrument-Größe in Prozent (Körper, ohne Headline)',
+                get: () => taktState.get('benchScale') || 100,
+                set: (v) => { taktState.set('benchScale', v); applyBenchScale(); },
             });
         });
     });

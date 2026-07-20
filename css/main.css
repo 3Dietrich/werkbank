@@ -109,6 +109,9 @@ body {
 }
 .cfg-pop .pb-btn { justify-content: flex-start; white-space: nowrap; }
 
+/* Unaufdringlicher Skalierungs-Hinweis in den Gruppen-Settings (@dpa 20260720). */
+.gs-scale-note { font-size: 9.5px; color: var(--muted); line-height: 1.3; padding: 2px 2px 0; opacity: .85; }
+
 /* ── Hilfe-Blase (js/ui/HintBubble.js) ──
    Eigenes Tooltip statt `title`: nur so sind „global aus" und eine einstellbare
    Verzögerung möglich (@dpa 20260716_174111). pointer-events:none ist PFLICHT – die Blase
