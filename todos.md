@@ -28,12 +28,16 @@ Bei 5/6 kein Batchen — eigener Hördurchgang, isoliert testen (Audio-Timing-Co
    Resampler (22.05/24/44.1/48/88.2/96 kHz), kein Dithering. UI-Erweiterung im
    Rec-Format-Panel (Samplerate + Bittiefe, nur bei WAV sichtbar). Headless getestet.
    Commit b1b81c1.
-5. [Sonnet, Hoch] Start/Stop-Sync: Rec bleibt „armed" bis zum nächsten 0C (Downbeat) vom
-   Taktmetro (auch wenn der Takt noch gar nicht läuft), sichtbarer Wartezustand (blinkend).
-   Start UND Stop je am nächsten 0C.
-6. [Opus] Sample-genaues Trimmen nach der Aufnahme: webm→PCM decodieren, auf Takt-Raster
-   (Bar-Länge in Samples) zurechtschneiden, erst danach encodieren (Schritt 3/4). Kernstück,
-   fehleranfällig (Off-by-one, Buffer-Grenzen) — Opus wegen der Sync-Genauigkeit.
+5. [x] Start/Stop-Sync: Rec bleibt „armed" (blinkend) bis zum nächsten 0C vom Taktmetro,
+   auch wenn der Takt noch gar nicht läuft. `checkRecArm()` in engine.js, `setCtrlBlink()`
+   in GroupHost.js. Headless mit deterministischem Taktraster getestet. Commit 74a1190.
+6. [x] Sample-genaues Trimmen: `lib/audio/trimBars.js` (reine Off-by-one-getestete Sample-
+   Arithmetik, ab Sample 0 behalten/am Ende kappen) + `lib/recPostProcess.js`
+   (webm→PCM→Trim→Encode-Orchestrierung), in `engine.js`s `recorder.onstop` verdrahtet.
+   Als [Opus] eingestuft, mit Sonnet umgesetzt + end-to-end gegen Off-by-one abgesichert
+   (@dpa-Entscheidung 20260721). Commit dbcb470.
+
+**Rec-Instrument komplett (Schritte 1-6, Commits 9866a59..dbcb470).**
 
 ## Neues Poly-Synth-Instrument (20260721_144227)
 Größter Strang, DSP-lastig. Kein Batchen — ein Change pro Hördurchgang (wie teslacoil,
