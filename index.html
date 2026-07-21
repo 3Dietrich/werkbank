@@ -94,8 +94,20 @@
         <details class="wb-note">
             <summary>Base-Frq · Audio-Osz — Port aus teslacoil (Schritt 1)</summary>
             Erst die Bausteine (Base-Frq/Audio-Osz-Controls, Oszillator-DSP aus
-            teslacoil), noch OHNE Voice-Engine — die Controls sind da, klingen aber noch
-            nicht (kommt mit der Polyphonie/Voice-Allocation, Poly-Synth-Schritt 2+).
+            teslacoil). Noch OHNE Polyphonie/Voice-Allocation (Poly-Synth-Schritt 2+) —
+            aber der Test-Ton (Base-Frq-Gruppe) macht schon echten Ton.
+        </details>
+    </section>
+
+    <section class="wb-bench" id="bench-rec">
+        <h2>Rec <span class="wb-src">recInstrument/defs.js · group/GroupHost.js</span></h2>
+        <div id="rec"></div>
+        <details class="wb-note">
+            <summary>Eigenes Instrument (@dpa 20260721)</summary>
+            War Teil von Takt+Metronom, ist jetzt eigenständig: nimmt den gemeinsamen
+            Master-Bus ab (lib/audioBus.js) — alle Instrumente zusammen, nicht nur eins.
+            Start/Stop synchronisiert weiterhin auf den nächsten Downbeat des
+            Taktmetro-Instruments.
         </details>
     </section>
 

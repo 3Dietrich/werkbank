@@ -22,6 +22,9 @@ import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
 import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from './lib/wavEncoder.js';
 import { polySynthDefs } from './lib/polysynth/defs.js';
 import { createPolySynthEngine } from './lib/polysynth/engine.js';
+import { recInstrumentDefs } from './lib/recInstrument/defs.js';
+import { createRecEngine } from './lib/recInstrument/engine.js';
+import { getContext as getBusContext, getMaster as getBusMaster } from './lib/audioBus.js';
 
 const state = new MiniState({
     ampSeqLen: 8,
@@ -194,10 +197,6 @@ taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
 // BPM-Anzeige folgt dem Anschieben +/− (@dpa 20260720, Punkt): der ±-Schub wird SICHTBAR, ohne
 // den gespeicherten bpm zu ändern. Bias zurück auf 0 → liveBpm == bpm → Anzeige steht wieder original.
 taktEngine.onNudge((liveBpm) => takt.setKnobDisplay('bpm', liveBpm));
-// Rec-Knopf (Rec-Instrument-TODO 5, @dpa 20260721): ON-Farbe folgt der TATSÄCHLICHEN Aufnahme
-// (nicht dem Klick), Blinken zeigt den „armed, wartet auf nächsten Takt-Downbeat"-Zustand.
-taktEngine.onRecording((on) => takt.setCtrlOn('b:rec', on));
-taktEngine.onRecArmed((armed) => takt.setCtrlBlink('b:rec', !!armed));
 // Debug/Headless-Test-Haken (wie _selftest.html sein __host): Zugriff auf Engine/State/Host.
 window.__takt = { engine: taktEngine, state: taktState, host: takt };
 
@@ -215,6 +214,32 @@ const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefs(), {}
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine };
+
+// ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
+// Instrument") ────────────────────────────────────────────────────────────────────────
+// War Teil von taktmetro/defs.js (Gruppe „Aufnahme") — jetzt eigenständig, weil Rec
+// „alles Hörbare" abnehmen soll (lib/audioBus.js, gemeinsamer Master), nicht an EIN
+// Instrument gebunden. Start/Stop-Sync (Downbeat-Arming) hängt weiterhin am Takt: das
+// Taktmetro-Instrument liefert seine rohen Scheduler-Beats über onClockBeat() nach außen.
+const REC_LS = 'werkbank_rec';
+const recState = new MiniState(recInstrumentDefs().DEFAULTS, REC_LS);
+const recRoot = document.querySelector('#rec');
+const recEngine = createRecEngine(recState, {
+    getBpm: () => taktState.get('bpm'),
+    getBeatsPerBar: () => taktState.get('beatsPerBar'),
+});
+const recDefs = recInstrumentDefs({ onAction: (id, phase) => recEngine.onAction(id, phase) });
+const rec = mountGroups(recRoot, recState, recDefs, {
+    instrumentScaled: () => (recState.get('benchScale') || 100) !== 100,
+});
+taktEngine.onClockBeat((t, beat) => recEngine.handleClockBeat(t, beat));
+// Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
+// den „armed, wartet auf nächsten Takt-Downbeat"-Zustand (Rec-Instrument-TODO 5).
+recEngine.onRecording((on) => rec.setCtrlOn('b:rec', on));
+recEngine.onRecArmed((armed) => rec.setCtrlBlink('b:rec', !!armed));
+window.__rec = { engine: recEngine, state: recState, host: rec };
+// Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
+window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster };
 
 // ── P3: Tasten/MIDI-Overlay-Schalter im Header (K5) ─────────────────────────────
 // Ein Schalter „neben Helphints" (die Werkbank hat keine Helphints, also in der Topbar):
@@ -245,8 +270,8 @@ const mkHeaderToggle = (id, label, title, onToggle) => {
 // Jedes Instrument hat sein EIGENES KeyMidi (eigener mountGroups-Aufruf) — der globale
 // Header-Schalter muss deshalb BEIDE zugleich schalten (Poly-Synth-Instrument Schritt 1,
 // @dpa 20260721: die neuen Base-Frq/Audio-Osz-Controls sollen wie taktgeber lernbar sein).
-const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setKeyEdit(on); polySynth.keyMidi.setKeyEdit(on); });
-const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setMidiEdit(on); polySynth.keyMidi.setMidiEdit(on); });
+const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setKeyEdit(on); polySynth.keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); });
+const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setMidiEdit(on); polySynth.keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); });
 keyBtn._radioPeer = midiBtn; midiBtn._radioPeer = keyBtn;
 
 // ── Help Hints (@dpa 20260720): die (editierten bzw. Auslieferungs-)Hilfetexte als Hover-Blase
@@ -344,7 +369,7 @@ recFmtBtn.addEventListener('click', () => {
     const wrap = document.createElement('label'); wrap.className = 'select-field segment-field';
     const span = document.createElement('span'); span.textContent = 'Format';
     const seg = document.createElement('div'); seg.className = 'segmented';
-    const cur = () => taktState.get('recFormat') || 'webm';
+    const cur = () => recState.get('recFormat') || 'webm';
 
     // MP3-Unterzeilen (Bitrate + Mono/Stereo, Rec-Instrument-TODO 3) — nur sichtbar bei
     // recFormat==='mp3'. Nur CBR (@dpa-Entscheidung 20260721: VBR fehlt lamejs strukturell,
@@ -352,12 +377,12 @@ recFmtBtn.addEventListener('click', () => {
     const mp3Wrap = document.createElement('label'); mp3Wrap.className = 'select-field segment-field';
     const mp3Span = document.createElement('span'); mp3Span.textContent = 'Bitrate';
     const mp3Seg = document.createElement('div'); mp3Seg.className = 'segmented';
-    const curBitrate = () => taktState.get('recMp3Bitrate') || 192;
+    const curBitrate = () => recState.get('recMp3Bitrate') || 192;
     const mp3PaintBitrate = () => { const c = curBitrate(); mp3Btns.forEach((b, i) => b.classList.toggle('seg-on', MP3_CBR_PRESETS[i] === c)); };
     const mp3Btns = MP3_CBR_PRESETS.map((kbps) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
         b.textContent = String(kbps); b.title = kbps + ' kbps (CBR)';
-        b.addEventListener('click', () => { taktState.set('recMp3Bitrate', kbps); mp3PaintBitrate(); });
+        b.addEventListener('click', () => { recState.set('recMp3Bitrate', kbps); mp3PaintBitrate(); });
         mp3Seg.appendChild(b); return b;
     });
     mp3Wrap.appendChild(mp3Span); mp3Wrap.appendChild(mp3Seg);
@@ -366,12 +391,12 @@ recFmtBtn.addEventListener('click', () => {
     const chSpan = document.createElement('span'); chSpan.textContent = 'Kanäle';
     const chSeg = document.createElement('div'); chSeg.className = 'segmented';
     const CH_OPTS = [{ v: false, l: 'Mono' }, { v: true, l: 'Stereo' }];
-    const curStereo = () => taktState.get('recMp3Stereo') !== false;
+    const curStereo = () => recState.get('recMp3Stereo') !== false;
     const chPaint = () => { const c = curStereo(); chBtns.forEach((b, i) => b.classList.toggle('seg-on', CH_OPTS[i].v === c)); };
     const chBtns = CH_OPTS.map((o) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
         b.textContent = o.l;
-        b.addEventListener('click', () => { taktState.set('recMp3Stereo', o.v); chPaint(); });
+        b.addEventListener('click', () => { recState.set('recMp3Stereo', o.v); chPaint(); });
         chSeg.appendChild(b); return b;
     });
     chWrap.appendChild(chSpan); chWrap.appendChild(chSeg);
@@ -381,12 +406,12 @@ recFmtBtn.addEventListener('click', () => {
     const wavRateWrap = document.createElement('label'); wavRateWrap.className = 'select-field segment-field';
     const wavRateSpan = document.createElement('span'); wavRateSpan.textContent = 'Samplerate';
     const wavRateSeg = document.createElement('div'); wavRateSeg.className = 'segmented';
-    const curWavRate = () => taktState.get('recWavSampleRate') || 44100;
+    const curWavRate = () => recState.get('recWavSampleRate') || 44100;
     const wavRatePaint = () => { const c = curWavRate(); wavRateBtns.forEach((b, i) => b.classList.toggle('seg-on', WAV_SAMPLE_RATES[i] === c)); };
     const wavRateBtns = WAV_SAMPLE_RATES.map((rate) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
         b.textContent = String(rate / 1000); b.title = rate + ' Hz';
-        b.addEventListener('click', () => { taktState.set('recWavSampleRate', rate); wavRatePaint(); });
+        b.addEventListener('click', () => { recState.set('recWavSampleRate', rate); wavRatePaint(); });
         wavRateSeg.appendChild(b); return b;
     });
     wavRateWrap.appendChild(wavRateSpan); wavRateWrap.appendChild(wavRateSeg);
@@ -394,12 +419,12 @@ recFmtBtn.addEventListener('click', () => {
     const wavBitWrap = document.createElement('label'); wavBitWrap.className = 'select-field segment-field';
     const wavBitSpan = document.createElement('span'); wavBitSpan.textContent = 'Bittiefe';
     const wavBitSeg = document.createElement('div'); wavBitSeg.className = 'segmented';
-    const curWavBit = () => taktState.get('recWavBitDepth') || 16;
+    const curWavBit = () => recState.get('recWavBitDepth') || 16;
     const wavBitPaint = () => { const c = curWavBit(); wavBitBtns.forEach((b, i) => b.classList.toggle('seg-on', WAV_BIT_DEPTHS[i] === c)); };
     const wavBitBtns = WAV_BIT_DEPTHS.map((bd) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
         b.textContent = bd + ' Bit';
-        b.addEventListener('click', () => { taktState.set('recWavBitDepth', bd); wavBitPaint(); });
+        b.addEventListener('click', () => { recState.set('recWavBitDepth', bd); wavBitPaint(); });
         wavBitSeg.appendChild(b); return b;
     });
     wavBitWrap.appendChild(wavBitSpan); wavBitWrap.appendChild(wavBitSeg);
@@ -414,7 +439,7 @@ recFmtBtn.addEventListener('click', () => {
     const btns = REC_FORMATS.map((o) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
         b.textContent = o.l; b.title = 'Aufnahme als ' + o.l + ' speichern';
-        b.addEventListener('click', () => { taktState.set('recFormat', o.v); paint(); });
+        b.addEventListener('click', () => { recState.set('recFormat', o.v); paint(); });
         seg.appendChild(b); return b;
     });
     mp3PaintBitrate(); chPaint(); wavRatePaint(); wavBitPaint(); paint();
