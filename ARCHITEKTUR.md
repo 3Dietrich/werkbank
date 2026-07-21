@@ -27,6 +27,8 @@
 | Icons | `lib/icons.js` (103 Z.) | `icon(name)`, `ICON_NAMES` |
 | State (get/set/subscribe + localStorage) | `lib/MiniState.js` (50 Z.) | Minimal-Vertrag, s. Nähte |
 | Kompakte Gruppen-Settings | `lib/MiniSettings.js` (136 Z.) | |
+| Instrument-Settings (BG/Größe/Name/Breite/Höhe/Verschieben, `[?]`-Hilfe+Edit) | `lib/InstrumentSettings.js` | `mountInstrumentSettings()`, aufgerufen aus `werkbank.js` |
+| Mini-Markdown (Instrument-Hilfe editierbar) | `lib/miniMarkdown.js` | `mdToHtml()`, `htmlToMdApprox()` |
 | Panels verschiebbar machen | `lib/dragPanel.js` (40 Z.) | `makeDraggable()` |
 | Tastatur-Routing (wann greifen globale Keys) | `lib/keyRoute.js` (53 Z.) | `globalKeyOk`, `arrowKeyOk` |
 | Datei-Export/-Import | `lib/fileIO.js` (64 Z.) | |
@@ -68,6 +70,23 @@
 - **Hilfe/Hints:** Text in `hints.js` (Factory) + `i18n.js` (DE/EN); UI-seitig zeigen
   die Panels sie selbst an. Neuer Control ⇒ Hint-Eintrag nicht vergessen.
 
+## Welche Modul-Sorte ist ein neuer Teil? (@dpa 20260721_203557, Kern-Regel)
+
+„Bitte nichts mehr einfach so dazustellen. Wenn Du nicht weißt, ob Control oder ism, oder…
+frag mich. Aber alles hat hier seine Module." Hauptsatz fürs ganze Projekt: „Eine der
+Hauptaufgaben ist in Werkbank: modulare Synthesizer gebären." Vor jedem neuen Teil zuerst
+klassifizieren — Details + Tabelle in [docs/CONTROLS.md](docs/CONTROLS.md#die-drei-modul-sorten-der-werkbank):
+
+- **Control** — generisch, entsteht aus `defs` (KNOBS/SELECTS/…/DISPLAYS), Rechtsklick-Settings
+  via `registerCtrlStyle()`. Auch freistehende Widgets mit eigenem `mount()` zählen hierher,
+  wenn sie wie ein Bedienelement benutzt werden (Beispiel: `u:playKb`-Keyboard-Control).
+- **Instrument** (ism) — eigener State + `defs.js` + `engine.js` + eigene `.wb-bench`-Sektion +
+  eigene `InstrumentSettings.js`-Instanz. Beispiele: `lib/taktmetro/`, `lib/polysynth/`,
+  `lib/recInstrument/`.
+- **DSP-Baustein** — reine Audio-Mathematik in `audio/`/`dsp/`, kein UI, 1:1 kopierbar.
+
+Unklar? Fragen statt raten — das ist ausdrücklich gewünscht, nicht optional.
+
 ## Arbeitsregeln für die KI (Kurzfassung)
 
 1. ddw.md-Punkt lesen → hier den Bereich nachschlagen → NUR Zieldatei(en) + deren
@@ -79,3 +98,5 @@
    headless per Playwright gegen `index.html` (Hard-Timeout 30–45 s, kein Pollen).
    `lib/group/_selftest.html` existiert für GroupHost.
 5. Originaldateien in `lib/taktgeber/` sind Referenz-Altbestand — dort nichts ändern.
+6. Neuer Teil unklarer Sorte (Control/Instrument/DSP-Baustein)? Erst nachschlagen
+   (s.o.), dann bauen — nicht raten, im Zweifel @dpa fragen.

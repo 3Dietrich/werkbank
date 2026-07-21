@@ -6,6 +6,30 @@
 > in [GroupHost.js](../lib/group/GroupHost.js)). Wer die Architektur-Karte braucht:
 > [ARCHITEKTUR.md](../ARCHITEKTUR.md).
 
+## Die drei Modul-Sorten der Werkbank
+
+Kern-Regel (@dpa 20260721_203557, gilt ab jetzt für ALLES in der Werkbank): „Bitte nichts
+mehr einfach so dazustellen. Wenn Du nicht weißt, ob Control oder ism, oder… frag mich. Aber
+alles hat hier seine Module." Hauptsatz fürs ganze Projekt: „Eine der Hauptaufgaben ist in
+Werkbank: modulare Synthesizer gebären." Bevor ein neues Teil entsteht, MUSS es einer dieser
+drei Sorten zugeordnet sein — geraten wird nicht, nachgeschlagen:
+
+| Sorte | Was | Beispiel | Erkennungsmerkmal |
+|---|---|---|---|
+| **Control** | generisches Bedienelement, entsteht deklarativ aus `defs` (`KNOBS`/`SELECTS`/…), Rechtsklick öffnet seine Settings via `registerCtrlStyle()` | `k:bpm`, `t:kbHold`, `u:playKb` | Trägt ein `data-ctrl`-Präfix (s. Tabelle unten), hat KEINEN eigenen State/keine eigene Engine — sein Wert lebt in EINEM `defs.DEFAULTS`-Key des Instruments, das es mountet |
+| **Instrument** (von @dpa „ism" abgekürzt) | eigenständiger Baustein mit eigenem State + `defs.js` + `engine.js` + eigenem `mountGroups()`-Mount, eigene `.wb-bench`-Sektion in `index.html`, eigene `InstrumentSettings.js`-Instanz | `lib/taktmetro/`, `lib/polysynth/`, `lib/recInstrument/` | Hat eine eigene `MiniState` (eigener localStorage-Key), erscheint als eigener Menüpunkt/eigene Sektion, NICHT nur eine Gruppe innerhalb eines anderen Instruments |
+| **DSP-Baustein** | reine Audio-Mathematik, kein eigenes UI, 1:1 kopierbar zwischen Instrumenten | `lib/polysynth/audio/pulseWave.js`, `lib/polysynth/dsp/holdSlide.js` | Liegt in einem `audio/`- oder `dsp/`-Unterordner, exportiert reine Funktionen/Klassen ohne DOM-Berührung, kennt weder State noch GroupHost |
+
+Freistehende Widgets, die wie ein Instrument AUSSEHEN (eigenes `mount(parent)`, eigener
+State-Zugriff) aber wie ein Control BEDIENT werden sollen (Rechtsklick-Settings, Platz in
+einer GroupHost-Gruppe, Tasten-/MIDI-Overlay) — z.B. ein Keyboard-Widget — sind **Controls**,
+kein Instrument: sie bekommen ein `u:`-Präfix und werden per `registerCtrlStyle()` in eine
+Gruppe eingehängt, s. `lib/polysynth/ui/PlayKeyboard.js` (Poly-Synth-Nacharbeiten,
+@dpa 20260721_203557 — Auslöser für diese Kern-Regel: das Keyboard stand vorher als lose
+DOM-Geschwister neben dem Panel, ohne Settings).
+
+Architektur-weiter Einstieg für „welcher Bereich, welche Datei": [ARCHITEKTUR.md](../ARCHITEKTUR.md).
+
 ## Was alle Controls gemeinsam haben
 
 | | |
