@@ -68,8 +68,10 @@ UI-Arbeit (5/6) wenig Sinn.
 ## Gruppen-UI: Größen-Änderungs-Hinweis (20260721_144227)
 Klein, mit anderen UI-Backlog-Punkten aus ddw.md batchbar.
 
-1. [Sonnet, Niedrig] Control-Header-Hint (lineare Gate-ASR-Anzeige [0.5,2,0.5]s) bei
-   Größenänderung durch Gruppe/Instrument (NICHT bei manuellem Resize). Doppelklick =
-   global „zeig nicht mehr" (ein State-Flag für alle Controls, kein pro-Control-Flag).
+1. [x] Control-Hint (lineare Gate-ASR-Anzeige [0.5,2,0.5]s, `lib/SizeHint.js`) bei
+   Größenänderung durch Gruppe/Instrument, NICHT bei manuellem Resize. Doppelklick =
+   global „zeig nicht mehr" (ein State-Flag `sizeHintDismissed`, kein pro-Control-Flag).
+   Headless getestet. Commit cfed679. Hinweis: bei vielen Controls gleichzeitig
+   überlappen sich die Blasen sichtbar — ggf. auf Sammel-Blase umstellen, @dpas Ohr/Auge.
 
 (Header-Farbe vs. Eingabefarbe aus ddw.md Z.449: kein Bug, war Opazität — erledigt, kein Task.)
