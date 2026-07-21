@@ -805,6 +805,10 @@ body {
    breiten Zeile — nutzt die bestehende 12-Spalten-Grid-CSS unverändert, keine neue
    Spaltenzahl-Logik nötig. column-reverse = tiefste Oktave unten (Piano-Roll-Anmutung). */
 .kb-octaves { display: flex; flex-direction: column-reverse; gap: var(--kb-gap, 2px); margin-top: 8px; }
+/* Umbruch-Toggle (@dpa 20260721_205531, Keyboard Settings „Anordnung"): DOM-Reihenfolge
+   bleibt gleich (tiefste Oktave zuerst) — column-reverse dreht sie fürs Stapeln nach unten,
+   row lässt dieselbe Reihenfolge stattdessen links beginnen = durchgehend aufsteigend. */
+.play-keyboard.kb-horiz .kb-octaves { flex-direction: row; flex-wrap: nowrap; }
 
 /* ── Scopes ── */
 .scopes { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -1080,6 +1084,15 @@ body {
   background: var(--panel2); color: var(--accent); font-size: 10px; font-weight: 700;
 }
 .kme-qbtn:hover { background: var(--sel-bg); }
+/* Anordnung-Icon-Knopf (Keyboard-Settings, @dpa 20260721_205531): zeigt per Symbol die
+   ZIEL-Ansicht eines Klicks (⬌ = wird horizontal, ⬍ = wird wieder gestapelt). */
+.kme-icon-toggle {
+  width: 26px; height: 20px; line-height: 1; padding: 0; text-align: center;
+  border: 1px solid var(--sel-line); border-radius: 3px; cursor: pointer;
+  background: var(--panel2); color: var(--muted); font-size: 12px;
+}
+.kme-icon-toggle:hover { color: var(--text); border-color: var(--line); }
+.kme-icon-toggle-on { color: var(--accent); border-color: var(--accent); }
 /* Das ?-Popover mit Erklärung + Beispielen. */
 .es-help-pop {
   position: fixed; z-index: 1100; max-width: 270px;
