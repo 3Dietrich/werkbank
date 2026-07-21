@@ -153,37 +153,40 @@ Kern-Regel dahinter (unbedingt merken, gilt ab jetzt für ALLES in Werkbank, s. 
 (=Instrument), oder… frag mich. Aber alles hat hier seine Module." Hauptsatz fürs ganze
 Projekt: „Eine der Hauptaufgaben ist in Werkbank: modulare Synthesizer gebären."
 
-1. [ ] [Sonnet] Instrument-Header vereinheitlichen (`lib/InstrumentSettings.js`), Vorbild
-   Takt/Metronom: Name fett/weiß + BG (schon ok) bleiben, die Zeile mit der Datei-Info
-   (z.B. „taktmetro/defs.js · group/GroupHost.js") kommt WEG und wandert stattdessen in
-   das `[?]` oben rechts (das bleibt). Gilt für ALLE drei Instrumente gleich. Neue
-   Settings am Instrument: Name (umbenennbar), Breite/Höhe (0 = auto). Wunsch zusätzlich
-   im `[?]`: ein Edit-Symbol, das die Hilfe direkt als Markdown editierbar macht.
-2. [ ] [Doku] `werkbank/CONTROLS.md` anlegen, Vorbild `teslacoil/docs/CONTROLS.md`
-   (Control-Sorten k:/s:/t:/x:/n:/b:/u: + was jede Sorte an Settings mitbekommt). Zusätzlich
-   ergänzt um Werkbanks eigene Modul-Taxonomie: **Control** (generisches Bedienelement,
-   Rechtsklick-Settings via `registerCtrlStyle()`), **Instrument** (von @dpa „ism"
-   abgekürzt — eigener State+defs+engine+GroupHost-Mount, z.B. `lib/polysynth/`), **DSP-
-   Baustein** (audio/dsp-Ordner, 1:1 kopierbar, kein eigenes UI). Ergänzt die bestehende
-   `ARCHITEKTUR.md`-Karte um genau diese Typ-Frage — Ziel: die Klassifizierung eines neuen
-   Teils muss nachschlagbar sein, nicht geraten werden (s. Kern-Regel oben).
-3. [ ] [Sonnet] Poly-Synth-Keyboard zu einem echten Control nachziehen (aktuell
-   `lib/polysynth/ui/PlayKeyboard.js` ist ein freistehendes Widget OHNE Rechtsklick-
-   Settings — das war der Auslöser für die Kern-Regel oben, muss korrigiert werden):
-   - `u:`-Präfix + `registerCtrlStyle()` wie teslacoils `u:baseKeys`/`u:keyboard`,
-     Settings analog Base-Frq-Keyboard (Größe/Farben je Taste, Tastenabstand).
-   - Gehört strukturell in die GroupHost-Gruppe „Keyboard" (aktuell nur lose als
-     Geschwister-Element neben dem Panel gehängt).
-   - Neuer Control: Oktav-Start (welches C fängt die unterste Taste an — aktuell hart
-     auf C4/MIDI 60 verdrahtet in `PlayKeyboard.js`/`BASE_MIDI`).
-   - Bugfix Hold: bei `kbHold`=an soll ein Klick auf eine bereits klingende (gehaltene)
-     Note sie AUSSCHALTEN (Toggle), nicht retriggern — `_gateOn`/`_gateOff` brauchen dafür
-     eine Fallunterscheidung „ist diese Note gerade durch Hold gehalten?".
-4. [ ] [Sonnet] Base-Frq-Gruppe: Test-Ton-Schalter + Test-Vol-Knob (und die Technik
+1. [x] [Sonnet] Instrument-Header vereinheitlicht (`lib/InstrumentSettings.js`,
+   `index.html`, `werkbank.js`, `css/werkbank.css`, `lib/MiniSettings.js` (neuer `text()`-
+   Feldtyp), `lib/miniMarkdown.js` neu): Datei-Info-Zeile aus allen drei ISM-Headern raus,
+   `mountBenchHelp()` jetzt auch für Poly-Synth/Rec (vorher nur Takt/Metronom); `[?]` hat
+   ein Edit-Icon, das die Hilfe als Markdown editierbar macht (`instrHelpMd` im State,
+   Reload-fest) — Mini-Renderer statt Abhängigkeit. Instrument-Settings um Name (eigener
+   `.wb-instr-name`-Span) + Breite/Höhe (0=auto) ergänzt, analog Gruppen-Settings.
+   Headless per Playwright verifiziert (Header ohne wb-src, [?] öffnet+editiert+speichert
+   für alle drei Instrumente, Settings-Felder vorhanden).
+2. [x] [Doku] `docs/CONTROLS.md` um Modul-Taxonomie ergänzt (Control/Instrument-„ism"/
+   DSP-Baustein, mit Tabelle + Freistehende-Widgets-Klarstellung), `ARCHITEKTUR.md` um
+   dieselbe Typ-Frage samt Kern-Regel-Zitat erweitert (neuer Abschnitt vor den
+   Arbeitsregeln) + Datei-Tabelle um `InstrumentSettings.js`/`miniMarkdown.js` ergänzt.
+3. [x] [Sonnet] Poly-Synth-Keyboard zu echtem `u:playKb`-Control nachgezogen:
+   `GroupHost.js` exportiert jetzt `kbStyle()` (Modulebene, geteilt mit Base-Keyboard-
+   Vorbild) und die `mountGroups()`-Rückgabe bekam `mountInGroup()`/`registerCtrlStyle`,
+   damit ein extern (engine-gebunden) gebautes Widget strukturell in eine Gruppe UND an
+   die Rechtsklick-Settings gehängt werden kann, ohne dass GroupHost Audio anfassen muss.
+   `PlayKeyboard.js` hängt jetzt in der Gruppe „Keyboard" (`werkbank.js`). Neuer Control
+   `kbStart` (Oktav-Start, `defs.js`) ersetzt das hart verdrahtete `BASE_MIDI`. Hold-
+   Toggle-Bugfix: `_toggleOffHeld()` schaltet eine per Hold gehaltene Note bei erneutem
+   Anschlag AUS statt sie zu retriggern (Maus UND Performance-MIDI). Headless per
+   Playwright verifiziert: Control liegt im Gruppen-Body, ElementSettings öffnet mit
+   Keyboard-Feldern, Oktav-Start-Knob da, Klick/Hold/Toggle-Off-Sequenz liefert die
+   erwarteten `heldCount()`-Werte.
+4. [x] [Sonnet] Base-Frq-Gruppe: Test-Ton-Schalter + Test-Vol-Knob (und die Technik
    dahinter, `applyTestOsc`/`refreshTestFreq`/`refreshTestLevel`/`testOsc` in
-   `lib/polysynth/engine.js`, `baseTestOn`/`baseTestLevel` in `defs.js`) komplett entfernen
-   — war die Schritt-1-Übergangslösung („stumm ist nur die Fassade"), jetzt durch die
-   echte Voice-Engine (Schritt 2-5) überflüssig.
+   `lib/polysynth/engine.js`, `baseTestOn`/`baseTestLevel` in `defs.js`) komplett entfernt
+   — war die Schritt-1-Übergangslösung, jetzt durch die echte Voice-Engine überflüssig.
+   Restliche Erwähnungen bereinigt (`lib/hints.js`, Kopf-Kommentare, `index.html`-Hilfetext).
+   Headless verifiziert: kein „Test-Ton" mehr in der Base-Frq-Gruppe, keine Konsolenfehler.
+
+**Alle vier Punkte durchgezogen (nicht gebatcht im Sinne von „ungetestet" — jeder einzeln
+per Playwright headless gegen `index.html` verifiziert, 32/32 Checks grün).**
 
 ## Offen aus ddw.md Z.481-499 (noch nicht angegangen)
 - Maus-Wertänderung horizontal+vertikal (siehe oben, wartet weiter auf @dpas Idee-Details).
