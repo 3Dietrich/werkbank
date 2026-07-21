@@ -1035,6 +1035,11 @@ body {
    die Farbe an→aus (.btn-fade wird nur fürs Ausblenden gesetzt, D-Env-Gefühl). */
 .ctrl-btn.ctrl-on { background: color-mix(in srgb, var(--accent) 22%, transparent); }
 .ctrl-btn.btn-fade { transition: background-color .35s ease-out, color .35s ease-out; }
+/* Blink-Wartezustand (Rec-Instrument-TODO 5, @dpa 20260721): „armed", bis der nächste
+   Takt-Downbeat den Knopf tatsächlich schaltet — wie km-hdr-breathe, nur pro Control. */
+@keyframes ctrl-blink-pulse { 0%, 100% { filter: brightness(.82); } 50% { filter: brightness(1.25); } }
+.ctrl-btn.ctrl-blink { animation: ctrl-blink-pulse .5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .ctrl-btn.ctrl-blink { animation: none; opacity: .6; } }
 
 /* ═══ Select/Segment-Inhalt als Kurzschrift (@dpa 20260718_234247) ════════════════ */
 .es-content-row { flex-direction: column; align-items: stretch; gap: 3px; }

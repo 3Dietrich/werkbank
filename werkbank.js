@@ -190,6 +190,10 @@ taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
 // BPM-Anzeige folgt dem Anschieben +/− (@dpa 20260720, Punkt): der ±-Schub wird SICHTBAR, ohne
 // den gespeicherten bpm zu ändern. Bias zurück auf 0 → liveBpm == bpm → Anzeige steht wieder original.
 taktEngine.onNudge((liveBpm) => takt.setKnobDisplay('bpm', liveBpm));
+// Rec-Knopf (Rec-Instrument-TODO 5, @dpa 20260721): ON-Farbe folgt der TATSÄCHLICHEN Aufnahme
+// (nicht dem Klick), Blinken zeigt den „armed, wartet auf nächsten Takt-Downbeat"-Zustand.
+taktEngine.onRecording((on) => takt.setCtrlOn('b:rec', on));
+taktEngine.onRecArmed((armed) => takt.setCtrlBlink('b:rec', !!armed));
 // Debug/Headless-Test-Haken (wie _selftest.html sein __host): Zugriff auf Engine/State/Host.
 window.__takt = { engine: taktEngine, state: taktState, host: takt };
 
