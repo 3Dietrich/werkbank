@@ -211,7 +211,16 @@ window.__takt = { engine: taktEngine, state: taktState, host: takt };
 const POLYSYNTH_LS = 'werkbank_polysynth';
 const polySynthState = new MiniState(polySynthDefs().DEFAULTS, POLYSYNTH_LS);
 const polySynthRoot = document.querySelector('#polysynth');
-const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefs(), {
+// AkIO/[R] sind latchende Buttons (@dpa 20260722_004312): ihr Klick fährt die Keyboard-
+// Methoden an (polySynthKeyboard wird gleich darunter gebaut — die Closure liest die
+// Bindung erst beim Klick, also nach der Zuweisung, kein TDZ-Problem).
+const polySynthDefsObj = polySynthDefs({
+    onAction: (id) => {
+        if (id === 'akio') polySynthKeyboard.toggleAkio();
+        else if (id === 'akReset') polySynthKeyboard.toggleReset();
+    },
+});
+const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
     instrumentScaled: () => polySynthInstr.scaled(),
 });
 const polySynthEngine = createPolySynthEngine(polySynthState);
@@ -223,6 +232,9 @@ polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' f
 const polySynthKeyboard = new PlayKeyboard(polySynthState, polySynthEngine);
 polySynth.mountInGroup('Keyboard', polySynthKeyboard.element, 'u:playKb');
 polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, kbStyle(polySynthKeyboard.element), 'Keyboard');
+// Ein Speicher-Recall schaltet AkIO an → den b:akio-Button visuell nachführen (wie takt/rec
+// ihren Start/Rec-Knopf über setCtrlOn spiegeln).
+polySynthKeyboard.onAkio((on) => polySynth.setCtrlOn('b:akio', on));
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard };
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
