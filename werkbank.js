@@ -514,7 +514,12 @@ if (benchHeaderH2) {
             num('Größe %', {
                 min: 50, max: 200, title: 'Instrument-Größe in Prozent (Körper, ohne Headline)',
                 get: () => taktState.get('benchScale') || 100,
-                set: (v) => { taktState.set('benchScale', v); applyBenchScale(); },
+                set: (v) => {
+                    taktState.set('benchScale', v); applyBenchScale();
+                    // Größen-Änderungs-Hinweis (@dpa 20260721): Instrument-weite Skalierung,
+                    // analog zum Gruppen-Fall in GroupHost.js (dort direkt am Eingabefeld).
+                    takt.flashSizeHintAll('Größe via Instrument geändert.');
+                },
             });
         });
     });
