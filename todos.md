@@ -70,8 +70,17 @@ UI-Arbeit (5/6) wenig Sinn.
    gleichzeitig held=3 (RMS≈0.36); polyMax=2 stehlen → held=2 (ältestes im Release);
    ignorieren → held=2, 3. noteOn=null; Osc2 aus=1 Node/Voice, an=2 Nodes/Voice, keine
    Konsolenfehler. Commit d809197.
-3. [Opus] BaseFreq-Quantisierung + ein globaler LP-Smooth-Knob in die Oscillator-Pitch-Kette
-   einbauen (Klick-/Zipper-Vermeidung bei BF-Live-Änderungen).
+3. [x] BaseFreq-Quantisierung: gespielte Noten rasten per `harmonizeMix` (0=roh, 1=voll) aufs
+   Harmonie-Raster um die effektive BaseFrq — Überblendung `raw*(1-mix)+harmonicSnap(raw,baseHz)*mix`
+   EXAKT wie teslacoils `quantizeToScale` (kein neuer Toggle: `harmonizeMix=0` IST das A/B-„aus";
+   `harmonizeMix` war schon da, jetzt verdrahtet). `spawnVoice` greift die quantisierte statt der
+   rohen Frequenz. Globaler LP-Smooth gegen Klick/Zipper: ändert sich BaseFrq (`baseSrc`/`baseHz`/
+   `baseBand`/`baseNote`) oder `harmonizeMix` LIVE, zieht `retuneHeld()` alle GEHALTENEN Voices per
+   `setTargetAtTime` weich auf die neue Zielfrequenz nach (Osc2-Verstimmung bleibt) — neuer Knob
+   `pitchSmooth` (Base-Frq-Gruppe, 0–1 s, τ=Wert/3), `0` = harter Sprung. Auslaufende Voices und der
+   initiale Anschlag bleiben unberührt. Headless per Playwright (Osc-`frequency` direkt gemessen):
+   harmonizeMix 0→261.6 Hz roh, 1→275 Hz gerastet; baseHz 55→40 live: `pitchSmooth=0.2` @50ms 277.8 Hz
+   (Rampe), @350ms 280 Hz angekommen; `pitchSmooth=0` @50ms schon 280 Hz (Sprung); keine Fehler. Commit 67612b9.
 4. [Sonnet, Hoch] Amp-Env: ADSR (Attack linear, Decay/Release log), Peak UND Sustain
    proportional Vel-abhängig (gleicher Faktor).
 5. [Sonnet, Hoch] Keyboard-UI: mehrere Oktaven (1-9 einstellbar, Start C), Klick=Gate
