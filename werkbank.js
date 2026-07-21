@@ -21,6 +21,7 @@ import { createTaktEngine } from './lib/taktmetro/engine.js';
 import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
 import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from './lib/wavEncoder.js';
 import { polySynthDefs } from './lib/polysynth/defs.js';
+import { createPolySynthEngine } from './lib/polysynth/engine.js';
 
 const state = new MiniState({
     ampSeqLen: 8,
@@ -199,14 +200,19 @@ taktEngine.onRecArmed((armed) => takt.setCtrlBlink('b:rec', !!armed));
 window.__takt = { engine: taktEngine, state: taktState, host: takt };
 
 // ── Poly-Synth – Base-Frq + Audio-Osz, Port aus teslacoil (Schritt 1, @dpa 20260721) ──
-// Noch OHNE Voice-Engine (wie taktmetro's frühere P1-Stufe): eigener MiniState + eigene
-// deklarative defs-Quelle, gemountet über dieselbe GroupHost-Fabrik. Kein onAction nötig
-// (die defs haben noch keine BUTTONS) — kommt mit der Voice-Engine (Schritt 2/3).
+// Eigener MiniState + eigene deklarative defs-Quelle, gemountet über dieselbe
+// GroupHost-Fabrik. Kein onAction nötig (die defs haben noch keine BUTTONS) — die volle
+// Voice-Engine/Polyphonie kommt erst mit Schritt 2/3. ABER: @dpa 20260721 „das Thema hier
+// ist Audio, stumm ist nur die Fassade — sinnlos" — deshalb macht schon JETZT der
+// Test-Ton (baseTestOn/baseTestLevel) echten Ton (lib/polysynth/engine.js), statt auf
+// die vollständige Engine zu warten.
 const POLYSYNTH_LS = 'werkbank_polysynth';
 const polySynthState = new MiniState(polySynthDefs().DEFAULTS, POLYSYNTH_LS);
 const polySynthRoot = document.querySelector('#polysynth');
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefs(), {});
-window.__polysynth = { state: polySynthState, host: polySynth };
+const polySynthEngine = createPolySynthEngine(polySynthState);
+polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
+window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine };
 
 // ── P3: Tasten/MIDI-Overlay-Schalter im Header (K5) ─────────────────────────────
 // Ein Schalter „neben Helphints" (die Werkbank hat keine Helphints, also in der Topbar):
