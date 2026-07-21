@@ -15,7 +15,7 @@ import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
 import { HintBubble } from './lib/HintBubble.js';
 import { factoryHint } from './lib/hints.js';
 import { targetKind, globalKeyOk, arrowKeyOk } from './lib/keyRoute.js';
-import { mountGroups } from './lib/group/GroupHost.js';
+import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
 import { taktMetroDefs } from './lib/taktmetro/defs.js';
 import { createTaktEngine } from './lib/taktmetro/engine.js';
 import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
@@ -26,6 +26,8 @@ import { PlayKeyboard } from './lib/polysynth/ui/PlayKeyboard.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster } from './lib/audioBus.js';
+import { icon } from './lib/icons.js';
+import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
 
 const state = new MiniState({
     ampSeqLen: 8,
@@ -203,11 +205,9 @@ window.__takt = { engine: taktEngine, state: taktState, host: takt };
 
 // ── Poly-Synth – Base-Frq + Audio-Osz, Port aus teslacoil (Schritt 1, @dpa 20260721) ──
 // Eigener MiniState + eigene deklarative defs-Quelle, gemountet über dieselbe
-// GroupHost-Fabrik. Kein onAction nötig (die defs haben noch keine BUTTONS) — die volle
-// Voice-Engine/Polyphonie kommt erst mit Schritt 2/3. ABER: @dpa 20260721 „das Thema hier
-// ist Audio, stumm ist nur die Fassade — sinnlos" — deshalb macht schon JETZT der
-// Test-Ton (baseTestOn/baseTestLevel) echten Ton (lib/polysynth/engine.js), statt auf
-// die vollständige Engine zu warten.
+// GroupHost-Fabrik. Der anfängliche Test-Ton (Übergangslösung, bevor die Voice-Engine
+// stand) ist wieder entfernt (@dpa 20260721_203557: „durch die echte Voice-Engine jetzt
+// überflüssig") — Base-Frq hört man jetzt direkt über gespielte Noten.
 const POLYSYNTH_LS = 'werkbank_polysynth';
 const polySynthState = new MiniState(polySynthDefs().DEFAULTS, POLYSYNTH_LS);
 const polySynthRoot = document.querySelector('#polysynth');
@@ -216,11 +216,13 @@ const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefs(), {
 });
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
-// Spiel-Tastatur (Poly-Synth-Schritt 5): eigenständiges Widget, kein GroupHost-Control —
-// als weiteres Kind IN #polysynth gehängt, damit sie mit den Gruppen zusammen skaliert/
-// verschoben wird (InstrumentSettings' bodySelector zeigt auf denselben Wurzelknoten).
+// Spiel-Tastatur: echtes u:playKb-Control (@dpa 20260721_203557 — vorher ein loses
+// Geschwister-Element neben dem Panel, ohne Rechtsklick-Settings). Strukturell in die
+// GroupHost-Gruppe "Keyboard" gehängt (mountInGroup), Optik über dieselbe kbStyle-Anwendung
+// wie teslacoils/werkbanks Base-Frq-Keyboard (Größe/Farbe/Tastenabstand).
 const polySynthKeyboard = new PlayKeyboard(polySynthState, polySynthEngine);
-polySynthKeyboard.mount(polySynthRoot);
+polySynth.mountInGroup('Keyboard', polySynthKeyboard.element, 'u:playKb');
+polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, kbStyle(polySynthKeyboard.element), 'Keyboard');
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard };
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
@@ -501,40 +503,82 @@ applyBenchCollapse();
 
 // ── Instrument-Beschreibung: raus aus dem Body → aufklappbares [?] rechts im Header
 //    (@dpa 20260720: „nimmt immer Platz ein"). Die wb-note (summary=Titel + Fließtext)
-//    wandert in ein schwebendes Popover, das ein [?] rechts in der Headline öffnet. ─────
-function mountBenchHelp(sectionId) {
+//    wandert in ein schwebendes Popover, das ein [?] rechts in der Headline öffnet.
+//    @dpa 20260721_203557: „das für alle ISM" (bisher nur Takt+Metronom) + im Popover ein
+//    Edit-Symbol, das die Hilfe als Markdown editierbar macht (`state.instrHelpMd`
+//    überschreibt den mitgelieferten HTML-Text dauerhaft, überlebt den Reload). ─────
+function mountBenchHelp(sectionId, state) {
     const section = document.querySelector('#' + sectionId);
     if (!section) return;
     const note = section.querySelector(':scope > .wb-note');
     const h2 = section.querySelector('h2');
-    if (!note || !h2) return;
-    const summary = note.querySelector('summary');
-    const title = summary ? summary.textContent.trim() : '';
-    const clone = note.cloneNode(true);
-    const s = clone.querySelector('summary'); if (s) s.remove();
-    const bodyHtml = clone.innerHTML.trim();
-    note.remove();
+    if (!h2) return;
+    let title = '', defaultBodyHtml = '';
+    if (note) {
+        const summary = note.querySelector('summary');
+        title = summary ? summary.textContent.trim() : '';
+        const clone = note.cloneNode(true);
+        const s = clone.querySelector('summary'); if (s) s.remove();
+        defaultBodyHtml = clone.innerHTML.trim();
+        note.remove();
+    }
 
     const btn = document.createElement('button');
     btn.className = 'wb-help-btn'; btn.type = 'button'; btn.textContent = '?';
     btn.title = 'Beschreibung anzeigen';
     h2.appendChild(btn);
 
-    let pop = null;
+    let pop = null, editing = false;
     const close = () => {
         if (!pop) return;
-        pop.remove(); pop = null; btn.classList.remove('active');
+        pop.remove(); pop = null; editing = false; btn.classList.remove('active');
         document.removeEventListener('mousedown', onOut, true);
         document.removeEventListener('keydown', onKey, true);
     };
     const onOut = (e) => { if (pop && !pop.contains(e.target) && e.target !== btn) close(); };
-    const onKey = (e) => { if (e.key === 'Escape' && pop) { e.stopPropagation(); close(); } };
+    const onKey = (e) => {
+        if (e.key !== 'Escape' || !pop) return;
+        e.stopPropagation();
+        if (editing) { editing = false; render(); } else close();
+    };
+
+    function render() {
+        pop.innerHTML = '';
+        const head = document.createElement('div'); head.className = 'wb-help-headrow';
+        if (title) { const t = document.createElement('div'); t.className = 'wb-help-title'; t.textContent = title; head.appendChild(t); }
+        const editBtn = document.createElement('button');
+        editBtn.className = 'wb-help-edit'; editBtn.type = 'button';
+        editBtn.title = 'Hilfe als Markdown bearbeiten';
+        editBtn.appendChild(icon('edit', 13));
+        editBtn.addEventListener('click', (e) => { e.stopPropagation(); editing = true; render(); });
+        head.appendChild(editBtn);
+        pop.appendChild(head);
+
+        if (editing) {
+            const ta = document.createElement('textarea'); ta.className = 'wb-help-edit-area';
+            ta.value = state.get('instrHelpMd') || htmlToMdApprox(defaultBodyHtml);
+            pop.appendChild(ta);
+            const foot = document.createElement('div'); foot.className = 'wb-help-foot';
+            const save = document.createElement('button'); save.type = 'button'; save.textContent = 'Speichern';
+            save.addEventListener('click', (e) => { e.stopPropagation(); state.set('instrHelpMd', ta.value.trim()); editing = false; render(); });
+            const cancel = document.createElement('button'); cancel.type = 'button'; cancel.textContent = 'Abbrechen';
+            cancel.addEventListener('click', (e) => { e.stopPropagation(); editing = false; render(); });
+            foot.append(save, cancel); pop.appendChild(foot);
+            ta.focus();
+        } else {
+            const body = document.createElement('div'); body.className = 'wb-help-body';
+            const md = state.get('instrHelpMd');
+            body.innerHTML = md ? mdToHtml(md) : defaultBodyHtml;
+            pop.appendChild(body);
+        }
+    }
+
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (pop) { close(); return; }
         pop = document.createElement('div'); pop.className = 'wb-help-pop';
-        pop.innerHTML = (title ? `<div class="wb-help-title">${title}</div>` : '') + `<div class="wb-help-body">${bodyHtml}</div>`;
         document.body.appendChild(pop);
+        render();
         btn.classList.add('active');
         const r = btn.getBoundingClientRect();
         pop.style.left = Math.max(8, Math.min(r.right - pop.offsetWidth, window.innerWidth - pop.offsetWidth - 8)) + 'px';
@@ -542,7 +586,9 @@ function mountBenchHelp(sectionId) {
         setTimeout(() => { document.addEventListener('mousedown', onOut, true); document.addEventListener('keydown', onKey, true); }, 0);
     });
 }
-mountBenchHelp('bench-taktgeber');
+mountBenchHelp('bench-taktgeber', taktState);
+mountBenchHelp('bench-polysynth', polySynthState);
+mountBenchHelp('bench-rec', recState);
 
 // ── Instrument-Settings, generalisiert (@dpa 20260721: „Instrument allgemein: mit eigen
 // Einstellungen, erstmal gleich wie Gruppen") + Verschieben via Header ──────────────────

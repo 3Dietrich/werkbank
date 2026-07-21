@@ -74,7 +74,7 @@
         <!-- Ein-/Ausklapp-Icon LINKS an der Übergruppen-Headline (@dpa 20260718_203341).
              Eingeklappt = Hauptbildschirm leer (ausdrücklich okay). Die Headline bleibt
              (Instrumentenname), eigene Settings potentiell später. -->
-        <h2><button class="wb-collapse" id="taktCollapse" type="button" title="Ein-/Ausklappen">▾</button> Takt + Metronom <span class="wb-src">taktmetro/defs.js · group/GroupHost.js</span></h2>
+        <h2><button class="wb-collapse" id="taktCollapse" type="button" title="Ein-/Ausklappen">▾</button> <span class="wb-instr-name">Takt + Metronom</span></h2>
         <div id="taktgeber"></div>
         <details class="wb-note">
             <summary>Transport / Tempo · Takt / Metronom — Neu-Port (P1–P4)</summary>
@@ -89,18 +89,18 @@
     </section>
 
     <section class="wb-bench wb-wide" id="bench-polysynth">
-        <h2>Poly-Synth <span class="wb-src">polysynth/defs.js · group/GroupHost.js</span></h2>
+        <h2><span class="wb-instr-name">Poly-Synth</span></h2>
         <div id="polysynth"></div>
         <details class="wb-note">
-            <summary>Base-Frq · Audio-Osz — Port aus teslacoil (Schritt 1)</summary>
-            Erst die Bausteine (Base-Frq/Audio-Osz-Controls, Oszillator-DSP aus
-            teslacoil). Noch OHNE Polyphonie/Voice-Allocation (Poly-Synth-Schritt 2+) —
-            aber der Test-Ton (Base-Frq-Gruppe) macht schon echten Ton.
+            <summary>Base-Frq · Audio-Osz · Keyboard — Port aus teslacoil</summary>
+            Polyphone Voice-Engine (Poly, Stealing, Osc2/Detune), BaseFrq-Quantisierung
+            mit Pitch-Glide, echtes ADSR pro Stimme und eine Spiel-Tastatur (Maus + MIDI,
+            Hold-Toggle). Gespielt wird direkt über die Tastatur — kein separater Test-Ton mehr.
         </details>
     </section>
 
     <section class="wb-bench" id="bench-rec">
-        <h2>Rec <span class="wb-src">recInstrument/defs.js · group/GroupHost.js</span></h2>
+        <h2><span class="wb-instr-name">Rec</span></h2>
         <div id="rec"></div>
         <details class="wb-note">
             <summary>Eigenes Instrument (@dpa 20260721)</summary>

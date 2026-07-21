@@ -35,12 +35,15 @@
   margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .02em;
   display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
 }
-/* Herkunft immer mit dranschreiben: die Werkbank ist eine Sammlung zum Rüberkopieren –
-   man muss sofort sehen, WELCHE Datei man mitnimmt. */
+/* Herkunft immer mit dranschreiben (nur noch die Demo-Bänke oben auf der Seite, NICHT die
+   ISM-Header — die Datei-Info wanderte dort ins [?], @dpa 20260721_203557). */
 .wb-src {
   color: var(--muted); font-size: 10.5px; font-weight: 400;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+/* Instrument-Name im Header: eigener Span statt loser Text, damit InstrumentSettings.js
+   ihn gezielt umbenennen kann (@dpa 20260721_203557), ohne Collapse-Button/[?] anzufassen. */
+.wb-instr-name { }
 /* [?] rechts in der Instrument-Headline: öffnet die Beschreibung als Popover, damit sie
    nicht dauerhaft Platz im Body frisst (@dpa 20260720). Kleiner Radius, sanfter Rahmen. */
 .wb-help-btn {
@@ -58,12 +61,34 @@
   box-shadow: 0 8px 28px rgba(0,0,0,.5); padding: 10px 12px;
   font-size: 12px; color: var(--muted); line-height: 1.5;
 }
-.wb-help-title { color: var(--text); font-weight: 600; margin-bottom: 5px; }
+.wb-help-headrow { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+.wb-help-title { color: var(--text); font-weight: 600; }
 .wb-help-body b { color: var(--text); }
 .wb-help-body code {
   background: var(--bg); border: 1px solid var(--line); border-radius: 2px;
   padding: 0 3px; font-size: 11px;
 }
+/* Edit-Symbol (@dpa 20260721_203557: „Hilfe in Markdown editieren"). Klein, dezent,
+   rutscht neben den Titel — erst bei Hover/Fokus deutlicher, wie die anderen Icon-Knöpfe. */
+.wb-help-edit {
+  margin-left: auto; align-self: center; flex: none;
+  width: 16px; height: 16px; border-radius: 3px; padding: 1px;
+  background: none; border: 1px solid transparent; color: var(--muted); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.wb-help-edit:hover { color: var(--text); border-color: var(--line); }
+.wb-help-edit-area {
+  width: 100%; min-height: 120px; box-sizing: border-box; resize: vertical;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 4px;
+  color: var(--text); font-size: 12px; line-height: 1.5; padding: 6px 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.wb-help-foot { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
+.wb-help-foot button {
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 3px;
+  color: var(--text); font-size: 11.5px; padding: 3px 10px; cursor: pointer;
+}
+.wb-help-foot button:hover { border-color: var(--sel-line); }
 
 /* Der Bench, in den die zwei Takt/Metronom-Gruppen mounten, muss die absolut positionierten
    Gruppen umschließen — das GroupHost-Panel ist selbst position:relative und misst sich. */
