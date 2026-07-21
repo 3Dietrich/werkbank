@@ -22,6 +22,7 @@ import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
 import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from './lib/wavEncoder.js';
 import { polySynthDefs } from './lib/polysynth/defs.js';
 import { createPolySynthEngine } from './lib/polysynth/engine.js';
+import { PlayKeyboard } from './lib/polysynth/ui/PlayKeyboard.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster } from './lib/audioBus.js';
@@ -215,7 +216,12 @@ const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefs(), {
 });
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
-window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine };
+// Spiel-Tastatur (Poly-Synth-Schritt 5): eigenständiges Widget, kein GroupHost-Control —
+// als weiteres Kind IN #polysynth gehängt, damit sie mit den Gruppen zusammen skaliert/
+// verschoben wird (InstrumentSettings' bodySelector zeigt auf denselben Wurzelknoten).
+const polySynthKeyboard = new PlayKeyboard(polySynthState, polySynthEngine);
+polySynthKeyboard.mount(polySynthRoot);
+window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard };
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
 // Instrument") ────────────────────────────────────────────────────────────────────────

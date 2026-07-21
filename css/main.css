@@ -800,6 +800,12 @@ body {
 .base-keyboard.kb-readonly .kb-key { cursor: default; }
 .base-keyboard.kb-readonly { opacity: .85; }
 
+/* ── Play-Keyboard (Poly-Synth-Instrument, Schritt 5) ──
+   Mehrere .kb-keys-Zeilen (je eine Oktave, 12 Tasten) übereinander gestapelt statt EINER
+   breiten Zeile — nutzt die bestehende 12-Spalten-Grid-CSS unverändert, keine neue
+   Spaltenzahl-Logik nötig. column-reverse = tiefste Oktave unten (Piano-Roll-Anmutung). */
+.kb-octaves { display: flex; flex-direction: column-reverse; gap: var(--kb-gap, 2px); margin-top: 8px; }
+
 /* ── Scopes ── */
 .scopes { display: flex; gap: 12px; flex-wrap: wrap; }
 .scope-box { flex: 1 1 320px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
