@@ -16,6 +16,9 @@
   align-content: start;
   gap: 12px;
   padding: 12px 14px;
+  /* Bezugspunkt fürs Verschieben eines Instruments per Header (lib/InstrumentSettings.js,
+     @dpa 20260721) — ein frei gezogenes .wb-bench positioniert sich relativ zu #app. */
+  position: relative;
 }
 
 /* Knapper Bedien-Hinweis in der Kopfzeile statt als eigener Absatz (spart eine Zeile). */

@@ -11,7 +11,7 @@ import { KnobMetaEditor } from './lib/KnobMetaEditor.js';
 import { ElementSettings } from './lib/ElementSettings.js';
 import { StepSeqUI } from './lib/StepSeqUI.js';
 import { MiniState } from './lib/MiniState.js';
-import { MiniSettings } from './lib/MiniSettings.js';
+import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
 import { HintBubble } from './lib/HintBubble.js';
 import { factoryHint } from './lib/hints.js';
 import { targetKind, globalKeyOk, arrowKeyOk } from './lib/keyRoute.js';
@@ -188,7 +188,7 @@ const taktDefs = taktMetroDefs({
     },
 });
 const takt = mountGroups(taktRoot, taktState, taktDefs, {
-    instrumentScaled: () => (taktState.get('benchScale') || 100) !== 100,
+    instrumentScaled: () => taktInstr.scaled(),
 });
 // Der Start-Knopf trägt den ON-Zustand (Metronom läuft) → nutzt die „BG an"-Farbe (Task D).
 taktEngine.onRunning((on) => takt.setCtrlOn('b:start', on));
@@ -210,7 +210,9 @@ window.__takt = { engine: taktEngine, state: taktState, host: takt };
 const POLYSYNTH_LS = 'werkbank_polysynth';
 const polySynthState = new MiniState(polySynthDefs().DEFAULTS, POLYSYNTH_LS);
 const polySynthRoot = document.querySelector('#polysynth');
-const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefs(), {});
+const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefs(), {
+    instrumentScaled: () => polySynthInstr.scaled(),
+});
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine };
@@ -230,7 +232,7 @@ const recEngine = createRecEngine(recState, {
 });
 const recDefs = recInstrumentDefs({ onAction: (id, phase) => recEngine.onAction(id, phase) });
 const rec = mountGroups(recRoot, recState, recDefs, {
-    instrumentScaled: () => (recState.get('benchScale') || 100) !== 100,
+    instrumentScaled: () => recInstr.scaled(),
 });
 taktEngine.onClockBeat((t, beat) => recEngine.handleClockBeat(t, beat));
 // Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
@@ -536,41 +538,13 @@ function mountBenchHelp(sectionId) {
 }
 mountBenchHelp('bench-taktgeber');
 
-// ── Instrument-Header Rechtsklick → Settings: BG-Farbe (mit Alpha) (Punkt E, @dpa 20260720) ──
-// Rechtsklick auf die Übergruppen-Headline öffnet ein kleines Settings-Panel (wie die anderen,
-// verschiebbar/ESC/✕) mit einem Farbwähler + Deckkraft. Die Farbe hinterlegt die ganze
-// Instrument-Sektion; Alpha lässt den Seiten-Hintergrund durchscheinen.
-const benchHeaderSettings = new MiniSettings('Instrument');
-const benchHeaderH2 = benchTakt.querySelector('h2');
-const benchInner = benchTakt.querySelector('#taktgeber');
-const applyBenchBg = () => { benchTakt.style.background = taktState.get('benchBg') || ''; };
-// Instrument-Größe (@dpa 20260720): skaliert den Instrument-KÖRPER (#taktgeber), NICHT die
-// Headline — analog zur Gruppen-Größe. 0/100/leer = auto/neutral.
-const applyBenchScale = () => { const s = taktState.get('benchScale'); if (benchInner) benchInner.style.zoom = (s && s !== 100) ? (s / 100) : ''; };
-applyBenchBg(); applyBenchScale();
-if (benchHeaderH2) {
-    benchHeaderH2.addEventListener('contextmenu', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        const at = { getBoundingClientRect: () => ({ left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 }) };
-        benchHeaderSettings.open(at, ({ colorA, num }) => {
-            colorA('BG', {
-                get: () => taktState.get('benchBg') || '',
-                set: (v) => { taktState.set('benchBg', v); applyBenchBg(); },
-                fallback: '#232833',
-            });
-            num('Größe %', {
-                min: 50, max: 200, title: 'Instrument-Größe in Prozent (Körper, ohne Headline)',
-                get: () => taktState.get('benchScale') || 100,
-                set: (v) => {
-                    taktState.set('benchScale', v); applyBenchScale();
-                    // Größen-Änderungs-Hinweis (@dpa 20260721): Instrument-weite Skalierung,
-                    // analog zum Gruppen-Fall in GroupHost.js (dort direkt am Eingabefeld).
-                    takt.flashSizeHintAll('Größe via Instrument geändert.');
-                },
-            });
-        });
-    });
-}
+// ── Instrument-Settings, generalisiert (@dpa 20260721: „Instrument allgemein: mit eigen
+// Einstellungen, erstmal gleich wie Gruppen") + Verschieben via Header ──────────────────
+// lib/InstrumentSettings.js ersetzt den früheren Einzelbau (nur für taktgeber): BG-Farbe +
+// Größe % wie bei Gruppen, dazu Drag am Header. Jedes Instrument bekommt das jetzt gleich.
+const taktInstr = mountInstrumentSettings(benchTakt, taktState, { bodySelector: '#taktgeber' });
+const polySynthInstr = mountInstrumentSettings(document.querySelector('#bench-polysynth'), polySynthState, { bodySelector: '#polysynth' });
+const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), recState, { bodySelector: '#rec' });
 
 // „Zurücksetzen"-Knopf entfernt (@dpa 20260719_040136). Reset weiterhin über die Konsole:
 //   MiniState.reset(); MiniState.reset('werkbank_taktmetro'); location.reload();
