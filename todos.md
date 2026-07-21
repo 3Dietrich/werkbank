@@ -56,9 +56,20 @@ UI-Arbeit (5/6) wenig Sinn.
    [[feedback_nicht_zu_frueh_stoppen]]). Nachgezogen: `lib/polysynth/engine.js` macht
    den Test-Ton (baseTestOn/baseTestLevel) zu echtem, hörbarem Sinus auf der effektiven
    BaseFreq — headless per AnalyserNode verifiziert (RMS>0, echtes Signal). Commit d80799d.
-2. [Opus] Voice-Engine: Polyphonie (einstellbar), Voice-Allocation inkl. Stealing-Toggle
-   (ältestes-stehlen / ignorieren, Default später @dpa), 2 Oscs/Voice mit symmetrischem
-   Detune (0-99 Cent, nur bei aktivem Osc2 — sonst Osc1 exakt).
+2. [x] Voice-Engine (`lib/polysynth/engine.js`): `noteOn(note,velocity)`/`noteOff(note)`
+   (note = MIDI-Nr., natürlich für die spätere Tastatur/MIDI-Anbindung in Schritt 5) mit
+   Map note→Voice, sodass noteOff GENAU die eigene Voice freigibt. Einstellbare Polyphonie
+   (`polyMax`) + Voice-Stealing-Toggle (`voiceSteal`: AN = ältestes sanft stehlen, AUS =
+   neue Note ignorieren; Default „stehlen" = bisheriges SquareOsc-Verhalten, finaler
+   Default noch @dpa nach dem Hören). 1 Osc EXAKT auf der Note, ODER (Toggle `osc2On`) 2
+   Oszillatoren symmetrisch ±detune/2 Cent verstimmt (`detune` 0-99 ct) — bei Osc2=aus
+   wirklich nur EIN Node. Gate-Amp-Env (Anti-Klick-Attack → Sustain bis noteOff → kurzes
+   Release), bewusst KEIN volles ADSR (das ist Schritt 4). Wellenform gebacken mit denselben
+   Bausteinen wie SquareOsc (`audio/pulseWave.js`). Neue Controls in `defs.js` (Audio-Osz).
+   Headless per Playwright/AnalyserNode verifiziert: noteOn RMS≈0.20 → noteOff→0; 3 Noten
+   gleichzeitig held=3 (RMS≈0.36); polyMax=2 stehlen → held=2 (ältestes im Release);
+   ignorieren → held=2, 3. noteOn=null; Osc2 aus=1 Node/Voice, an=2 Nodes/Voice, keine
+   Konsolenfehler. Commit d809197.
 3. [Opus] BaseFreq-Quantisierung + ein globaler LP-Smooth-Knob in die Oscillator-Pitch-Kette
    einbauen (Klick-/Zipper-Vermeidung bei BF-Live-Änderungen).
 4. [Sonnet, Hoch] Amp-Env: ADSR (Attack linear, Decay/Release log), Peak UND Sustain
