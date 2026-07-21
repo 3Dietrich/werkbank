@@ -19,6 +19,7 @@ import { mountGroups } from './lib/group/GroupHost.js';
 import { taktMetroDefs } from './lib/taktmetro/defs.js';
 import { createTaktEngine } from './lib/taktmetro/engine.js';
 import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
+import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from './lib/wavEncoder.js';
 
 const state = new MiniState({
     ampSeqLen: 8,
@@ -349,20 +350,54 @@ recFmtBtn.addEventListener('click', () => {
     });
     chWrap.appendChild(chSpan); chWrap.appendChild(chSeg);
 
-    const updateMp3Visibility = () => { const show = cur() === 'mp3'; mp3Wrap.style.display = show ? '' : 'none'; chWrap.style.display = show ? '' : 'none'; };
+    // WAV-Unterzeilen (Samplerate + Bittiefe, Rec-Instrument-TODO 4) — nur sichtbar bei
+    // recFormat==='wav'. Resampling linear, kein Dithering (siehe lib/wavEncoder.js).
+    const wavRateWrap = document.createElement('label'); wavRateWrap.className = 'select-field segment-field';
+    const wavRateSpan = document.createElement('span'); wavRateSpan.textContent = 'Samplerate';
+    const wavRateSeg = document.createElement('div'); wavRateSeg.className = 'segmented';
+    const curWavRate = () => taktState.get('recWavSampleRate') || 44100;
+    const wavRatePaint = () => { const c = curWavRate(); wavRateBtns.forEach((b, i) => b.classList.toggle('seg-on', WAV_SAMPLE_RATES[i] === c)); };
+    const wavRateBtns = WAV_SAMPLE_RATES.map((rate) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
+        b.textContent = String(rate / 1000); b.title = rate + ' Hz';
+        b.addEventListener('click', () => { taktState.set('recWavSampleRate', rate); wavRatePaint(); });
+        wavRateSeg.appendChild(b); return b;
+    });
+    wavRateWrap.appendChild(wavRateSpan); wavRateWrap.appendChild(wavRateSeg);
 
-    const paint = () => { const c = cur(); btns.forEach((b, i) => b.classList.toggle('seg-on', REC_FORMATS[i].v === c)); updateMp3Visibility(); };
+    const wavBitWrap = document.createElement('label'); wavBitWrap.className = 'select-field segment-field';
+    const wavBitSpan = document.createElement('span'); wavBitSpan.textContent = 'Bittiefe';
+    const wavBitSeg = document.createElement('div'); wavBitSeg.className = 'segmented';
+    const curWavBit = () => taktState.get('recWavBitDepth') || 16;
+    const wavBitPaint = () => { const c = curWavBit(); wavBitBtns.forEach((b, i) => b.classList.toggle('seg-on', WAV_BIT_DEPTHS[i] === c)); };
+    const wavBitBtns = WAV_BIT_DEPTHS.map((bd) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
+        b.textContent = bd + ' Bit';
+        b.addEventListener('click', () => { taktState.set('recWavBitDepth', bd); wavBitPaint(); });
+        wavBitSeg.appendChild(b); return b;
+    });
+    wavBitWrap.appendChild(wavBitSpan); wavBitWrap.appendChild(wavBitSeg);
+
+    const updateFormatVisibility = () => {
+        const c = cur();
+        const showMp3 = c === 'mp3'; mp3Wrap.style.display = showMp3 ? '' : 'none'; chWrap.style.display = showMp3 ? '' : 'none';
+        const showWav = c === 'wav'; wavRateWrap.style.display = showWav ? '' : 'none'; wavBitWrap.style.display = showWav ? '' : 'none';
+    };
+
+    const paint = () => { const c = cur(); btns.forEach((b, i) => b.classList.toggle('seg-on', REC_FORMATS[i].v === c)); updateFormatVisibility(); };
     const btns = REC_FORMATS.map((o) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
         b.textContent = o.l; b.title = 'Aufnahme als ' + o.l + ' speichern';
         b.addEventListener('click', () => { taktState.set('recFormat', o.v); paint(); });
         seg.appendChild(b); return b;
     });
-    mp3PaintBitrate(); chPaint(); paint();
+    mp3PaintBitrate(); chPaint(); wavRatePaint(); wavBitPaint(); paint();
     wrap.appendChild(span); wrap.appendChild(seg);
     recFmtPop.appendChild(wrap);
     recFmtPop.appendChild(mp3Wrap);
     recFmtPop.appendChild(chWrap);
+    recFmtPop.appendChild(wavRateWrap);
+    recFmtPop.appendChild(wavBitWrap);
     document.querySelector('.topbar-right').appendChild(recFmtPop);
     recFmtBtn.classList.add('active');
     setTimeout(() => document.addEventListener('mousedown', recFmtOutside, true), 0);
