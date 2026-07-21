@@ -92,8 +92,21 @@ UI-Arbeit (5/6) wenig Sinn.
    0.242), Decay landet nahe Sustain-Anteil (0.127 ≈ 0.242·0.5), Release fällt exponentiell
    (0.0076 bei 33 % der Release-Zeit, deckt sich mit der Rechnung) und endet bei 0; heldCount
    nach noteOff = 0; keine Konsolenfehler.
-5. [Sonnet, Hoch] Keyboard-UI: mehrere Oktaven (1-9 einstellbar, Start C), Klick=Gate
-   Vel127, Hold-Toggle (NoteOffs erst beim Ausschalten), MIDI-Eingabe Hold-bewusst.
+5. [x] Keyboard-UI (`lib/polysynth/ui/PlayKeyboard.js`, neue Gruppe „Keyboard"): eigenständiges
+   Widget (kein GroupHost-Control, wie BaseKeyboard — als weiteres Kind in `#polysynth`
+   gehängt, skaliert/bewegt sich mit den Gruppen). `kbOctaves` (1-9, Start C4=MIDI 60
+   aufwärts, Zeilen gestapelt statt einer 12×N-breiten Zeile — nutzt die 12-Spalten-Grid-CSS
+   unverändert). Klick = Gate mit fester Velocity 127. `kbHold`-Toggle: `_gateOff()` hält
+   `engine.noteOff()` zurück, solange Hold an ist (Note klingt weiter) — läuft erst nach,
+   wenn Hold wieder ausgeht (`_onHoldChange`). Rohe Performance-MIDI (eigener, von
+   `keymidi/Midi.js` unabhängiger `requestMIDIAccess()`) läuft durch DIESELBEN
+   `_gateOn`/`_gateOff` → Hold-bewusst für Maus UND MIDI gleichermaßen. Globaler
+   `window`-mouseup fängt das Loslassen auch außerhalb der Taste (Drag-Release).
+   Headless per Playwright: 36/60 Tasten bei kbOctaves 3/5; mousedown→heldCount 1 +
+   `kb-active`; globales mouseup→heldCount 0; bei Hold AN bleibt heldCount nach Loslassen
+   bei 1 (klingt weiter); Hold AUS→heldCount 0, `kb-active` weg; keine Konsolenfehler.
+   MIDI-Hardware-Eingang selbst ist headless nicht simulierbar (wie beim bestehenden
+   Control-Learn) — Code-Pfad ist aber identisch zum verifizierten Maus-Gate.
 6. [Sonnet, Mittel] Vel-Bereich (ausklappbar, 0=off/1-127=on) als **gemeinsame
    Zustandsquelle** mit der Tastatur (Drag ändert Note, Tastenklick setzt den Balken).
 7. [Sonnet, Mittel] Dyn-Knob: `seqDyn()`-Formel aus teslacoil (`js/dsp/stepSeq.js`) 1:1 auf
