@@ -146,5 +146,44 @@ UI-Arbeit (5/6) wenig Sinn.
 
 (Header-Farbe vs. Eingabefarbe aus ddw.md Z.449: kein Bug, war Opazität — erledigt, kein Task.)
 
+## Instrumente vereinheitlichen + Poly-Synth-Nacharbeiten (@dpa 20260721_203557)
+Reihenfolge unten einhalten (1+2 legen die Regeln/Doku fest, auf denen 3 aufbaut).
+Kern-Regel dahinter (unbedingt merken, gilt ab jetzt für ALLES in Werkbank, s. ddw.md):
+„Bitte nichts mehr einfach so dazustellen. Wenn Du nicht weißt, ob Control oder ism
+(=Instrument), oder… frag mich. Aber alles hat hier seine Module." Hauptsatz fürs ganze
+Projekt: „Eine der Hauptaufgaben ist in Werkbank: modulare Synthesizer gebären."
+
+1. [ ] [Sonnet] Instrument-Header vereinheitlichen (`lib/InstrumentSettings.js`), Vorbild
+   Takt/Metronom: Name fett/weiß + BG (schon ok) bleiben, die Zeile mit der Datei-Info
+   (z.B. „taktmetro/defs.js · group/GroupHost.js") kommt WEG und wandert stattdessen in
+   das `[?]` oben rechts (das bleibt). Gilt für ALLE drei Instrumente gleich. Neue
+   Settings am Instrument: Name (umbenennbar), Breite/Höhe (0 = auto). Wunsch zusätzlich
+   im `[?]`: ein Edit-Symbol, das die Hilfe direkt als Markdown editierbar macht.
+2. [ ] [Doku] `werkbank/CONTROLS.md` anlegen, Vorbild `teslacoil/docs/CONTROLS.md`
+   (Control-Sorten k:/s:/t:/x:/n:/b:/u: + was jede Sorte an Settings mitbekommt). Zusätzlich
+   ergänzt um Werkbanks eigene Modul-Taxonomie: **Control** (generisches Bedienelement,
+   Rechtsklick-Settings via `registerCtrlStyle()`), **Instrument** (von @dpa „ism"
+   abgekürzt — eigener State+defs+engine+GroupHost-Mount, z.B. `lib/polysynth/`), **DSP-
+   Baustein** (audio/dsp-Ordner, 1:1 kopierbar, kein eigenes UI). Ergänzt die bestehende
+   `ARCHITEKTUR.md`-Karte um genau diese Typ-Frage — Ziel: die Klassifizierung eines neuen
+   Teils muss nachschlagbar sein, nicht geraten werden (s. Kern-Regel oben).
+3. [ ] [Sonnet] Poly-Synth-Keyboard zu einem echten Control nachziehen (aktuell
+   `lib/polysynth/ui/PlayKeyboard.js` ist ein freistehendes Widget OHNE Rechtsklick-
+   Settings — das war der Auslöser für die Kern-Regel oben, muss korrigiert werden):
+   - `u:`-Präfix + `registerCtrlStyle()` wie teslacoils `u:baseKeys`/`u:keyboard`,
+     Settings analog Base-Frq-Keyboard (Größe/Farben je Taste, Tastenabstand).
+   - Gehört strukturell in die GroupHost-Gruppe „Keyboard" (aktuell nur lose als
+     Geschwister-Element neben dem Panel gehängt).
+   - Neuer Control: Oktav-Start (welches C fängt die unterste Taste an — aktuell hart
+     auf C4/MIDI 60 verdrahtet in `PlayKeyboard.js`/`BASE_MIDI`).
+   - Bugfix Hold: bei `kbHold`=an soll ein Klick auf eine bereits klingende (gehaltene)
+     Note sie AUSSCHALTEN (Toggle), nicht retriggern — `_gateOn`/`_gateOff` brauchen dafür
+     eine Fallunterscheidung „ist diese Note gerade durch Hold gehalten?".
+4. [ ] [Sonnet] Base-Frq-Gruppe: Test-Ton-Schalter + Test-Vol-Knob (und die Technik
+   dahinter, `applyTestOsc`/`refreshTestFreq`/`refreshTestLevel`/`testOsc` in
+   `lib/polysynth/engine.js`, `baseTestOn`/`baseTestLevel` in `defs.js`) komplett entfernen
+   — war die Schritt-1-Übergangslösung („stumm ist nur die Fassade"), jetzt durch die
+   echte Voice-Engine (Schritt 2-5) überflüssig.
+
 ## Offen aus ddw.md Z.481-499 (noch nicht angegangen)
 - Maus-Wertänderung horizontal+vertikal (siehe oben, wartet weiter auf @dpas Idee-Details).
