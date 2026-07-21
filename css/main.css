@@ -810,6 +810,27 @@ body {
    row lässt dieselbe Reihenfolge stattdessen links beginnen = durchgehend aufsteigend. */
 .play-keyboard.kb-horiz .kb-octaves { flex-direction: row; flex-wrap: nowrap; }
 
+/* Akkord-Speicher-Raster (@dpa 20260722, ddw.md Z.466–468): kompaktes Slot-Grid unter den
+   Tasten. Kleine Radien + kontrastarme Rahmen (wie @dpa mag). Belegte Slots färben sich per
+   Hue aus dem tiefsten Ton (--slot-hue), zeigen die Notenzahl; leere bleiben blank/gedämpft. */
+.kb-mem { display: grid; grid-template-columns: repeat(var(--kb-mem-cols, 3), 1fr); gap: 3px; margin-top: 8px; }
+.kb-mem:empty { display: none; }
+.kb-mem-slot {
+  min-width: 20px; height: 20px; padding: 0; border-radius: 3px; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); color: var(--muted);
+  font-size: 10px; font-variant-numeric: tabular-nums; line-height: 1;
+  transition: background .1s, box-shadow .1s, border-color .1s;
+}
+.kb-mem-slot:hover { border-color: var(--accent); }
+.kb-mem-slot:focus { outline: none; }
+.kb-mem-slot:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.kb-mem-slot.filled {
+  background: hsla(var(--slot-hue, 200), 55%, 45%, .28);
+  border-color: hsla(var(--slot-hue, 200), 55%, 60%, .55);
+  color: #e8ecf2; font-weight: 600;
+}
+.kb-mem-slot.filled:hover { background: hsla(var(--slot-hue, 200), 60%, 50%, .42); }
+
 /* ── Scopes ── */
 .scopes { display: flex; gap: 12px; flex-wrap: wrap; }
 .scope-box { flex: 1 1 320px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
