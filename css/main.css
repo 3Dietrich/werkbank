@@ -1116,7 +1116,10 @@ body {
 .kme-icon-toggle-on { color: var(--accent); border-color: var(--accent); }
 /* Das ?-Popover mit Erklärung + Beispielen. */
 .es-help-pop {
-  position: fixed; z-index: 1100; max-width: 270px;
+  /* MUSS über dem Settings-Panel (.knob-meta-editor z 1300) liegen (@dpa 20260722_004312:
+     „Das Fenster ist hinter den Settings, man kann also gar nichts lesen") — sonst
+     verschwindet das ?-Popover dahinter und ist unlesbar. */
+  position: fixed; z-index: 1400; max-width: 270px;
   background: var(--panel2); border: 1px solid var(--sel-line); border-radius: 4px;
   box-shadow: 0 8px 32px rgba(0,0,0,.6); padding: 8px 10px; font-size: 11px; color: var(--text);
 }
