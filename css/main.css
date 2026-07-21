@@ -112,21 +112,20 @@ body {
 /* Unaufdringlicher Skalierungs-Hinweis in den Gruppen-Settings (@dpa 20260720). */
 .gs-scale-note { font-size: 9.5px; color: var(--muted); line-height: 1.3; padding: 2px 2px 0; opacity: .85; }
 
-/* Größen-Änderungs-Hinweis (lib/SizeHint.js, @dpa 20260721): flüchtige Blase am Control,
-   wenn dessen Größe durch Gruppen-/Instrument-Skalierung geändert wird. Lineare Gate-ASR
-   [0.5, 2, 0.5]s. pointer-events:auto (anders als .hint-bubble) — der Doppelklick zum
-   dauerhaften Ausblenden muss ankommen. */
+/* Größen-Änderungs-Hinweis (lib/SizeHint.js, @dpa 20260721, korrigiert 20260721_162648):
+   NICHT mehr schwebend am Control — steht IM Control-Settings-Panel (Singleton, wird bei
+   jedem open() ans Ende gehängt), erscheint bei JEDEM Öffnen erneut, solange die
+   Größe via Gruppe/Instrument beeinflusst ist. Lineare Gate-ASR [0.5, 2, 0.5]s
+   (Timing @dpa bestätigt „super", nur der Ort war falsch). */
 @keyframes size-hint-asr { 0% { opacity: 0; } 16.6% { opacity: 1; } 83.3% { opacity: 1; } 100% { opacity: 0; } }
-.size-hint-bubble {
-  position: fixed; z-index: 2000; pointer-events: auto; cursor: default;
-  max-width: 260px; padding: 4px 8px;
+.size-hint-inline {
+  cursor: default; margin: 6px 2px 2px; padding: 4px 8px;
   background: var(--panel2); color: var(--text);
   border: 1px solid var(--sel-line); border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.45);
   font-size: 10.5px; line-height: 1.35;
   animation: size-hint-asr 3s linear forwards;
 }
-@media (prefers-reduced-motion: reduce) { .size-hint-bubble { animation: none; opacity: .9; } }
+@media (prefers-reduced-motion: reduce) { .size-hint-inline { animation: none; opacity: .9; } }
 
 /* ── Hilfe-Blase (js/ui/HintBubble.js) ──
    Eigenes Tooltip statt `title`: nur so sind „global aus" und eine einstellbare

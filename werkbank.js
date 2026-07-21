@@ -184,7 +184,9 @@ const taktDefs = taktMetroDefs({
         return c ? { sampleRate: c.sampleRate, baseLatency: c.baseLatency, outputLatency: c.outputLatency, state: c.state } : null;
     },
 });
-const takt = mountGroups(taktRoot, taktState, taktDefs, {});
+const takt = mountGroups(taktRoot, taktState, taktDefs, {
+    instrumentScaled: () => (taktState.get('benchScale') || 100) !== 100,
+});
 // Der Start-Knopf trägt den ON-Zustand (Metronom läuft) → nutzt die „BG an"-Farbe (Task D).
 taktEngine.onRunning((on) => takt.setCtrlOn('b:start', on));
 // Die Takt-Anzeige leuchtet auf dem laufenden Beat (zeit-ausgerichtet vom Engine).
