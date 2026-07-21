@@ -48,11 +48,14 @@ UI-Arbeit (5/6) wenig Sinn.
    portiert (dsp/fft+holdSlide, audio/pulseWave+SquareOsc unverändert; pitch/Scaler
    getrimmt auf reine BaseFreq-Funktionen; ui/BaseKeyboard portiert, noch nicht
    gemountet — braucht die Voice-Engine). `polysynth/defs.js` + neue Instrument-Sektion
-   `#bench-polysynth`, noch ohne Engine/Ton (wie taktmetro's frühere P1-Stufe).
-   Portierte Mathematik headless gegen bekannte Werte getestet, Mount per Playwright
-   geprüft (Controls, State-Bindung, Reload-Persistenz, Header-Tasten/MIDI-Schalter).
-   Commit 4cae0a5. **Ab hier eigener Hördurchgang mit @dpa nötig — nicht mehr
-   durchgezogen.**
+   `#bench-polysynth`. Portierte Mathematik headless gegen bekannte Werte getestet,
+   Mount per Playwright geprüft (Controls, State-Bindung, Reload-Persistenz,
+   Header-Tasten/MIDI-Schalter). Commit 4cae0a5.
+   **Korrektur @dpa 20260721 (ddw.md Z.481-499):** „das Thema hier ist Audio, stumm ist
+   nur die Fassade — sinnlos" — Chat-Stopp direkt danach war falsch (s.
+   [[feedback_nicht_zu_frueh_stoppen]]). Nachgezogen: `lib/polysynth/engine.js` macht
+   den Test-Ton (baseTestOn/baseTestLevel) zu echtem, hörbarem Sinus auf der effektiven
+   BaseFreq — headless per AnalyserNode verifiziert (RMS>0, echtes Signal). Commit d80799d.
 2. [Opus] Voice-Engine: Polyphonie (einstellbar), Voice-Allocation inkl. Stealing-Toggle
    (ältestes-stehlen / ignorieren, Default später @dpa), 2 Oscs/Voice mit symmetrischem
    Detune (0-99 Cent, nur bei aktivem Osc2 — sonst Osc1 exakt).
@@ -72,13 +75,34 @@ UI-Arbeit (5/6) wenig Sinn.
    (rötlich eingefärbt) + Rechtsklick zum Speichern, Klick zum Abrufen (kurz NoteOffs +
    neue NoteOns beim Wechsel). Interaktion nach Bau mit @dpa ausprobieren/justieren.
 
-## Gruppen-UI: Größen-Änderungs-Hinweis (20260721_144227)
-Klein, mit anderen UI-Backlog-Punkten aus ddw.md batchbar.
+## Gruppen-UI: Größen-Änderungs-Hinweis (20260721_144227, korrigiert 20260721_162648)
+1. [x] Erster Versuch (Commit cfed679, flüchtige Blase AM Control bei der Skalierungs-
+   ÄNDERUNG) war **falsch** — @dpa: „Der Hinweis soll in den control settings
+   erscheinen, und zwar immer wenn man control settings aufruft (bis man es global
+   dismissed hat)." ASR-Timing [0.5,2,0.5]s war schon richtig, nur der Ort/Auslöser
+   nicht. Korrigiert: Hinweis erscheint jetzt IM Settings-Panel (KnobMetaEditor/
+   ElementSettings), bei JEDEM Öffnen erneut, solange Gruppe ODER Instrument skaliert
+   ist (`opts.instrumentScaled()`). Doppelklick = global „zeig nicht mehr"
+   (`sizeHintDismissed`). Headless getestet (kein Hinweis ohne Skalierung, Hinweis bei
+   jedem erneuten Öffnen, nicht bei unbetroffenen Controls, Dismiss dauerhaft+Reload-fest).
+   Commit 6aec5b3.
 
-1. [x] Control-Hint (lineare Gate-ASR-Anzeige [0.5,2,0.5]s, `lib/SizeHint.js`) bei
-   Größenänderung durch Gruppe/Instrument, NICHT bei manuellem Resize. Doppelklick =
-   global „zeig nicht mehr" (ein State-Flag `sizeHintDismissed`, kein pro-Control-Flag).
-   Headless getestet. Commit cfed679. Hinweis: bei vielen Controls gleichzeitig
-   überlappen sich die Blasen sichtbar — ggf. auf Sammel-Blase umstellen, @dpas Ohr/Auge.
+## Instrumente allgemein (@dpa 20260721_162648)
+1. [x] Instrument-Settings generalisiert: BG-Farbe + Größe % wie bei Gruppen
+   (`lib/InstrumentSettings.js`, ersetzt den taktgeber-Einzelbau), für alle drei
+   Instrumente (Takt/Metronom, Poly-Synth, Rec). Commit 4680648.
+2. [x] Verschieben via Header: erster Drag hebt das Instrument aus dem Grid-Fluss in
+   position:absolute (an der aktuellen Stelle, kein Sprung), Position überlebt den
+   Reload. Gleicher Commit (4680648).
+3. [x] Rec ist jetzt ein EIGENES Instrument, nicht Teil von Poly-Synth oder
+   Takt/Metronom (`lib/recInstrument/`) — Grund: Rec soll „alles Hörbare" aufnehmen,
+   nicht nur ein Instrument. Dafür neuer gemeinsamer Audio-Bus (`lib/audioBus.js`,
+   EIN AudioContext für alle Instrumente statt je einem eigenen). Start/Stop-Sync
+   hängt weiterhin am Takt (`taktEngine.onClockBeat()` nach außen gereicht). Headless
+   verifiziert: alle Instrumente teilen denselben Context/Master (Identitätsvergleich),
+   Rec-Zyklus (webm+MP3) funktioniert nach der Extraktion unverändert. Commit b39a57a.
 
 (Header-Farbe vs. Eingabefarbe aus ddw.md Z.449: kein Bug, war Opazität — erledigt, kein Task.)
+
+## Offen aus ddw.md Z.481-499 (noch nicht angegangen)
+- Maus-Wertänderung horizontal+vertikal (siehe oben, wartet weiter auf @dpas Idee-Details).
