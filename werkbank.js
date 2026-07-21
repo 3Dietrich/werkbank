@@ -20,6 +20,7 @@ import { taktMetroDefs } from './lib/taktmetro/defs.js';
 import { createTaktEngine } from './lib/taktmetro/engine.js';
 import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
 import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from './lib/wavEncoder.js';
+import { polySynthDefs } from './lib/polysynth/defs.js';
 
 const state = new MiniState({
     ampSeqLen: 8,
@@ -197,6 +198,16 @@ taktEngine.onRecArmed((armed) => takt.setCtrlBlink('b:rec', !!armed));
 // Debug/Headless-Test-Haken (wie _selftest.html sein __host): Zugriff auf Engine/State/Host.
 window.__takt = { engine: taktEngine, state: taktState, host: takt };
 
+// ── Poly-Synth – Base-Frq + Audio-Osz, Port aus teslacoil (Schritt 1, @dpa 20260721) ──
+// Noch OHNE Voice-Engine (wie taktmetro's frühere P1-Stufe): eigener MiniState + eigene
+// deklarative defs-Quelle, gemountet über dieselbe GroupHost-Fabrik. Kein onAction nötig
+// (die defs haben noch keine BUTTONS) — kommt mit der Voice-Engine (Schritt 2/3).
+const POLYSYNTH_LS = 'werkbank_polysynth';
+const polySynthState = new MiniState(polySynthDefs().DEFAULTS, POLYSYNTH_LS);
+const polySynthRoot = document.querySelector('#polysynth');
+const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefs(), {});
+window.__polysynth = { state: polySynthState, host: polySynth };
+
 // ── P3: Tasten/MIDI-Overlay-Schalter im Header (K5) ─────────────────────────────
 // Ein Schalter „neben Helphints" (die Werkbank hat keine Helphints, also in der Topbar):
 // an → alles dunkler, über jedem Control seine Tastenbelegung + 🎹, an Ort und Stelle
@@ -223,8 +234,11 @@ const mkHeaderToggle = (id, label, title, onToggle) => {
     document.querySelector('.topbar-right').appendChild(btn);
     return btn;
 };
-const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => keyMidi.setKeyEdit(on));
-const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => keyMidi.setMidiEdit(on));
+// Jedes Instrument hat sein EIGENES KeyMidi (eigener mountGroups-Aufruf) — der globale
+// Header-Schalter muss deshalb BEIDE zugleich schalten (Poly-Synth-Instrument Schritt 1,
+// @dpa 20260721: die neuen Base-Frq/Audio-Osz-Controls sollen wie taktgeber lernbar sein).
+const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setKeyEdit(on); polySynth.keyMidi.setKeyEdit(on); });
+const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setMidiEdit(on); polySynth.keyMidi.setMidiEdit(on); });
 keyBtn._radioPeer = midiBtn; midiBtn._radioPeer = keyBtn;
 
 // ── Help Hints (@dpa 20260720): die (editierten bzw. Auslieferungs-)Hilfetexte als Hover-Blase
