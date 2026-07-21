@@ -18,6 +18,7 @@ import { targetKind, globalKeyOk, arrowKeyOk } from './lib/keyRoute.js';
 import { mountGroups } from './lib/group/GroupHost.js';
 import { taktMetroDefs } from './lib/taktmetro/defs.js';
 import { createTaktEngine } from './lib/taktmetro/engine.js';
+import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
 
 const state = new MiniState({
     ampSeqLen: 8,
@@ -317,16 +318,51 @@ recFmtBtn.addEventListener('click', () => {
     const span = document.createElement('span'); span.textContent = 'Format';
     const seg = document.createElement('div'); seg.className = 'segmented';
     const cur = () => taktState.get('recFormat') || 'webm';
-    const paint = () => { const c = cur(); btns.forEach((b, i) => b.classList.toggle('seg-on', REC_FORMATS[i].v === c)); };
+
+    // MP3-Unterzeilen (Bitrate + Mono/Stereo, Rec-Instrument-TODO 3) — nur sichtbar bei
+    // recFormat==='mp3'. Nur CBR (@dpa-Entscheidung 20260721: VBR fehlt lamejs strukturell,
+    // siehe lib/vendor/lame.js); Qualität fest auf 3, kein UI-Feld dafür.
+    const mp3Wrap = document.createElement('label'); mp3Wrap.className = 'select-field segment-field';
+    const mp3Span = document.createElement('span'); mp3Span.textContent = 'Bitrate';
+    const mp3Seg = document.createElement('div'); mp3Seg.className = 'segmented';
+    const curBitrate = () => taktState.get('recMp3Bitrate') || 192;
+    const mp3PaintBitrate = () => { const c = curBitrate(); mp3Btns.forEach((b, i) => b.classList.toggle('seg-on', MP3_CBR_PRESETS[i] === c)); };
+    const mp3Btns = MP3_CBR_PRESETS.map((kbps) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
+        b.textContent = String(kbps); b.title = kbps + ' kbps (CBR)';
+        b.addEventListener('click', () => { taktState.set('recMp3Bitrate', kbps); mp3PaintBitrate(); });
+        mp3Seg.appendChild(b); return b;
+    });
+    mp3Wrap.appendChild(mp3Span); mp3Wrap.appendChild(mp3Seg);
+
+    const chWrap = document.createElement('label'); chWrap.className = 'select-field segment-field';
+    const chSpan = document.createElement('span'); chSpan.textContent = 'Kanäle';
+    const chSeg = document.createElement('div'); chSeg.className = 'segmented';
+    const CH_OPTS = [{ v: false, l: 'Mono' }, { v: true, l: 'Stereo' }];
+    const curStereo = () => taktState.get('recMp3Stereo') !== false;
+    const chPaint = () => { const c = curStereo(); chBtns.forEach((b, i) => b.classList.toggle('seg-on', CH_OPTS[i].v === c)); };
+    const chBtns = CH_OPTS.map((o) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
+        b.textContent = o.l;
+        b.addEventListener('click', () => { taktState.set('recMp3Stereo', o.v); chPaint(); });
+        chSeg.appendChild(b); return b;
+    });
+    chWrap.appendChild(chSpan); chWrap.appendChild(chSeg);
+
+    const updateMp3Visibility = () => { const show = cur() === 'mp3'; mp3Wrap.style.display = show ? '' : 'none'; chWrap.style.display = show ? '' : 'none'; };
+
+    const paint = () => { const c = cur(); btns.forEach((b, i) => b.classList.toggle('seg-on', REC_FORMATS[i].v === c)); updateMp3Visibility(); };
     const btns = REC_FORMATS.map((o) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
         b.textContent = o.l; b.title = 'Aufnahme als ' + o.l + ' speichern';
         b.addEventListener('click', () => { taktState.set('recFormat', o.v); paint(); });
         seg.appendChild(b); return b;
     });
-    paint();
+    mp3PaintBitrate(); chPaint(); paint();
     wrap.appendChild(span); wrap.appendChild(seg);
     recFmtPop.appendChild(wrap);
+    recFmtPop.appendChild(mp3Wrap);
+    recFmtPop.appendChild(chWrap);
     document.querySelector('.topbar-right').appendChild(recFmtPop);
     recFmtBtn.classList.add('active');
     setTimeout(() => document.addEventListener('mousedown', recFmtOutside, true), 0);
