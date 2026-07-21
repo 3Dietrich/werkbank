@@ -44,8 +44,15 @@ Größter Strang, DSP-lastig. Kein Batchen — ein Change pro Hördurchgang (wie
 [[feedback_teslacoil_arbeitsweise]]). Reihenfolge unten: 2+3 sind das Herzstück, davor macht
 UI-Arbeit (5/6) wenig Sinn.
 
-1. [Sonnet, Mittel] BaseFreq-Gruppe + Osc-Baustein aus teslacoil nach werkbank/lib/
-   portieren (Pfade umschreiben, onApply(knob)-Naht, wie bisheriges Sync-Muster).
+1. [x] BaseFreq-Gruppe + Osc-Baustein aus teslacoil nach `werkbank/lib/polysynth/`
+   portiert (dsp/fft+holdSlide, audio/pulseWave+SquareOsc unverändert; pitch/Scaler
+   getrimmt auf reine BaseFreq-Funktionen; ui/BaseKeyboard portiert, noch nicht
+   gemountet — braucht die Voice-Engine). `polysynth/defs.js` + neue Instrument-Sektion
+   `#bench-polysynth`, noch ohne Engine/Ton (wie taktmetro's frühere P1-Stufe).
+   Portierte Mathematik headless gegen bekannte Werte getestet, Mount per Playwright
+   geprüft (Controls, State-Bindung, Reload-Persistenz, Header-Tasten/MIDI-Schalter).
+   Commit 4cae0a5. **Ab hier eigener Hördurchgang mit @dpa nötig — nicht mehr
+   durchgezogen.**
 2. [Opus] Voice-Engine: Polyphonie (einstellbar), Voice-Allocation inkl. Stealing-Toggle
    (ältestes-stehlen / ignorieren, Default später @dpa), 2 Oscs/Voice mit symmetrischem
    Detune (0-99 Cent, nur bei aktivem Osc2 — sonst Osc1 exakt).
