@@ -23,6 +23,7 @@ import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from './lib/wavEncoder.js';
 import { polySynthDefs } from './lib/polysynth/defs.js';
 import { createPolySynthEngine } from './lib/polysynth/engine.js';
 import { PlayKeyboard } from './lib/polysynth/ui/PlayKeyboard.js';
+import { ChordMemory } from './lib/polysynth/ui/ChordMemory.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster } from './lib/audioBus.js';
@@ -217,7 +218,7 @@ const polySynthRoot = document.querySelector('#polysynth');
 const polySynthDefsObj = polySynthDefs({
     onAction: (id) => {
         if (id === 'akio') polySynthKeyboard.toggleAkio();
-        else if (id === 'akReset') polySynthKeyboard.toggleReset();
+        else if (id === 'akReset') chordMemory.toggleReset();   // [R] lebt jetzt im Speicher-Control
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
@@ -235,7 +236,12 @@ polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, k
 // Ein Speicher-Recall schaltet AkIO an → den b:akio-Button visuell nachführen (wie takt/rec
 // ihren Start/Rec-Knopf über setCtrlOn spiegeln).
 polySynthKeyboard.onAkio((on) => polySynth.setCtrlOn('b:akio', on));
-window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard };
+// Akkord-Speicher: autarker Control NEBEN dem Keyboard (@dpa 20260722_004312) — kommt über
+// snapshotChord/recallChord/onChordChange an den gespielten Akkord, eigene Settings (u:speicher).
+const chordMemory = new ChordMemory(polySynthState, polySynthKeyboard);
+polySynth.mountInGroup('Keyboard', chordMemory.element, 'u:speicher');
+polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) => chordMemory.applyStyle(s), 'Speicher');
+window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard, memory: chordMemory };
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
 // Instrument") ────────────────────────────────────────────────────────────────────────
