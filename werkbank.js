@@ -292,6 +292,46 @@ cfgBtn.addEventListener('click', () => {
     setTimeout(() => document.addEventListener('mousedown', cfgOutside, true), 0);
 });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
+
+// ── Aufnahme-Format (Rec-Instrument-TODO 2, @dpa 20260721): globaler App-Default fürs
+// Rec-Ausgabeformat — EIN Wert für alle Aufnahmen, keine Pro-Instanz-Einstellung. Die
+// eigentlichen Encoder für MP3 (lamejs) und WAV (PCM-Writer) sind eigene Folge-Schritte
+// (TODO 3/4); bis die stehen, speichert dieser Schalter nur die Auswahl in taktState —
+// recStart() (engine.js) nimmt bis dahin unverändert immer webm/opus auf. ──
+const REC_FORMATS = [
+    { v: 'webm', l: 'WebM/Opus' },
+    { v: 'mp3', l: 'MP3' },
+    { v: 'wav', l: 'WAV' },
+];
+const recFmtBtn = document.createElement('button');
+recFmtBtn.className = 'pb-btn'; recFmtBtn.id = 'recfmtmenu'; recFmtBtn.type = 'button';
+recFmtBtn.textContent = '⚙ Rec-Format'; recFmtBtn.title = 'Aufnahme-Ausgabeformat (global, für alle Aufnahmen)';
+document.querySelector('.topbar-right').appendChild(recFmtBtn);
+let recFmtPop = null;
+const closeRecFmt = () => { if (recFmtPop) { recFmtPop.remove(); recFmtPop = null; document.removeEventListener('mousedown', recFmtOutside, true); recFmtBtn.classList.remove('active'); } };
+const recFmtOutside = (e) => { if (recFmtPop && !recFmtPop.contains(e.target) && e.target !== recFmtBtn) closeRecFmt(); };
+recFmtBtn.addEventListener('click', () => {
+    if (recFmtPop) { closeRecFmt(); return; }
+    recFmtPop = document.createElement('div'); recFmtPop.className = 'cfg-pop';
+    const wrap = document.createElement('label'); wrap.className = 'select-field segment-field';
+    const span = document.createElement('span'); span.textContent = 'Format';
+    const seg = document.createElement('div'); seg.className = 'segmented';
+    const cur = () => taktState.get('recFormat') || 'webm';
+    const paint = () => { const c = cur(); btns.forEach((b, i) => b.classList.toggle('seg-on', REC_FORMATS[i].v === c)); };
+    const btns = REC_FORMATS.map((o) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
+        b.textContent = o.l; b.title = 'Aufnahme als ' + o.l + ' speichern';
+        b.addEventListener('click', () => { taktState.set('recFormat', o.v); paint(); });
+        seg.appendChild(b); return b;
+    });
+    paint();
+    wrap.appendChild(span); wrap.appendChild(seg);
+    recFmtPop.appendChild(wrap);
+    document.querySelector('.topbar-right').appendChild(recFmtPop);
+    recFmtBtn.classList.add('active');
+    setTimeout(() => document.addEventListener('mousedown', recFmtOutside, true), 0);
+});
+
 // Die Haupt-Buttons SELBST tasten-/MIDI-zuweisbar (@dpa 20260719_120425): self-Targets —
 // kein Badge über dem Button, das Learning erscheint DARUNTER (mit [↵] bei der Taste).
 keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { self: true });
@@ -299,6 +339,7 @@ keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { 
 // Hints + Config ebenso lernbar (@dpa 20260720: „'Hints' und 'Config' kriegen auch tasten und midi learn").
 keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
 keyMidi.register('hdr:cfgmenu', cfgBtn, '⚙ Config', () => cfgBtn.click(), { self: true });
+keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.click(), { self: true });
 // Globale Verteilung: ein belegter Tastendruck löst sein Control aus (nur außerhalb des
 // Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern).
 window.addEventListener('keydown', (e) => keyMidi.dispatchKey(e));
