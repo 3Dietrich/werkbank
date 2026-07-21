@@ -24,8 +24,10 @@ Bei 5/6 kein Batchen — eigener Hördurchgang, isoliert testen (Audio-Timing-Co
    UI-Erweiterung im Rec-Format-Panel (Bitrate + Kanäle, nur bei MP3 sichtbar).
    Headless mit synthetischem Sinuston getestet (alle 5×2 Presets). Commit da1aea4.
    Encoder ist noch NICHT an recStart/recStop angeschlossen — folgt mit Schritt 6.
-4. [ ] [Sonnet, Mittel] WAV-Encoder: PCM-Writer (16/32 Bit), einfacher linearer Resampler
-   (22/24/44/48/88/96kHz), kein Dithering.
+4. [x] WAV-Encoder: `lib/wavEncoder.js::encodeWav()` — PCM-Writer (16/32 Bit), linearer
+   Resampler (22.05/24/44.1/48/88.2/96 kHz), kein Dithering. UI-Erweiterung im
+   Rec-Format-Panel (Samplerate + Bittiefe, nur bei WAV sichtbar). Headless getestet.
+   Commit b1b81c1.
 5. [Sonnet, Hoch] Start/Stop-Sync: Rec bleibt „armed" bis zum nächsten 0C (Downbeat) vom
    Taktmetro (auch wenn der Takt noch gar nicht läuft), sichtbarer Wartezustand (blinkend).
    Start UND Stop je am nächsten 0C.
