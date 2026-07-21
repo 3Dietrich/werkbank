@@ -81,8 +81,17 @@ UI-Arbeit (5/6) wenig Sinn.
    initiale Anschlag bleiben unberührt. Headless per Playwright (Osc-`frequency` direkt gemessen):
    harmonizeMix 0→261.6 Hz roh, 1→275 Hz gerastet; baseHz 55→40 live: `pitchSmooth=0.2` @50ms 277.8 Hz
    (Rampe), @350ms 280 Hz angekommen; `pitchSmooth=0` @50ms schon 280 Hz (Sprung); keine Fehler. Commit 67612b9.
-4. [Sonnet, Hoch] Amp-Env: ADSR (Attack linear, Decay/Release log), Peak UND Sustain
-   proportional Vel-abhängig (gleicher Faktor).
+4. [x] Amp-Env: echtes ADSR pro Voice (`ampAttack`/`ampDecay`/`ampSustain`/`ampRelease`, neue
+   Gruppe „Amp-Env") statt der alten festen Anti-Klick-Rampe. Attack linear (0→Peak), Decay/
+   Release log/exponentiell (`exponentialRampToValueAtTime`, wie SquareOsc-Release/teslacoil-ASR).
+   `releaseVoice` greift per `cancelAndHoldAtTime` den AKTUELLEN Gain-Wert ab (egal ob noch im
+   Attack/Decay oder schon im Sustain) und rampt von dort — kein Sprung. Peak UND Sustain-Level
+   hängen an DERSELBEN Velocity-Skalierung (`velScale`), kein zweiter Vel-Bezug für Sustain.
+   Defaults (0.01/0.15/0.7/0.3) ein plausibler Startpunkt, @dpa stellt nach dem Hören ein.
+   Headless per Playwright (AnalyserNode-RMS über die ADSR-Phasen): Attack steigt (RMS 0→0.087→
+   0.242), Decay landet nahe Sustain-Anteil (0.127 ≈ 0.242·0.5), Release fällt exponentiell
+   (0.0076 bei 33 % der Release-Zeit, deckt sich mit der Rechnung) und endet bei 0; heldCount
+   nach noteOff = 0; keine Konsolenfehler.
 5. [Sonnet, Hoch] Keyboard-UI: mehrere Oktaven (1-9 einstellbar, Start C), Klick=Gate
    Vel127, Hold-Toggle (NoteOffs erst beim Ausschalten), MIDI-Eingabe Hold-bewusst.
 6. [Sonnet, Mittel] Vel-Bereich (ausklappbar, 0=off/1-127=on) als **gemeinsame
