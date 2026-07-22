@@ -68,6 +68,16 @@
   background: var(--bg); border: 1px solid var(--line); border-radius: 2px;
   padding: 0 3px; font-size: 11px;
 }
+/* Überschriften (@dpa 20260722_013727, miniMarkdown.js #-Syntax): Browser-Default (h1 ~2em)
+   würde das schmale Popover sprengen — kleine, klar gestufte Größen statt großer Buchstaben. */
+.wb-help-body h1, .wb-help-body h2, .wb-help-body h3,
+.wb-help-body h4, .wb-help-body h5, .wb-help-body h6 {
+  color: var(--text); margin: 8px 0 3px; font-weight: 600; line-height: 1.3;
+}
+.wb-help-body h1 { font-size: 14px; }
+.wb-help-body h2 { font-size: 13px; }
+.wb-help-body h3, .wb-help-body h4, .wb-help-body h5, .wb-help-body h6 { font-size: 12px; }
+.wb-help-body > :first-child { margin-top: 0; }
 /* Edit-Symbol (@dpa 20260721_203557: „Hilfe in Markdown editieren"). Klein, dezent,
    rutscht neben den Titel — erst bei Hover/Fokus deutlicher, wie die anderen Icon-Knöpfe. */
 .wb-help-edit {
