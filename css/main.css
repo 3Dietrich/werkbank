@@ -848,6 +848,9 @@ body {
    und die Base-Frq-Gruppe ist schmal. Per Rechtsklick (Taste ↔ / ↕) jederzeit größer. */
 .base-keyboard { padding: 6px; --kb-key-w: 18px; --kb-key-h: 30px; }
 .base-keyboard .kb-id { font-size: 8px; }
+/* @dpa 20260722_172315: Oktave nur bei C (JS, PlayKeyboard._build) macht die Labels kürzer —
+   trotzdem noch "wenige px zu groß", darum eigens (nicht die geteilte .kb-id-Basis) -2px. */
+.play-keyboard .kb-id { font-size: 7px; }
 .base-keyboard.kb-readonly .kb-key { cursor: default; }
 .base-keyboard.kb-readonly { opacity: .85; }
 
