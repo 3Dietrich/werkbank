@@ -106,7 +106,15 @@
   font-size: 12px; color: var(--muted); line-height: 1.5;
 }
 .wb-help-headrow { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
-.wb-help-title { color: var(--text); font-weight: 600; }
+/* Titel = der Instrumenten-Name, direkt im Popover editierbar (@dpa 20260722_130710: „es
+   braucht keine extra Überschrift" — ersetzt die frühere statische .wb-help-title-Caption).
+   Sieht wie reiner Text aus, bis man reinklickt (kontrastarmer Rahmen, s. Memory). */
+.wb-help-title-input {
+  background: none; border: 1px solid transparent; border-radius: 3px;
+  color: var(--text); font-weight: 600; font-size: 12px; padding: 1px 4px; margin: -1px -4px;
+  min-width: 0; flex: 1 1 auto;
+}
+.wb-help-title-input:hover, .wb-help-title-input:focus { border-color: var(--line); outline: none; }
 .wb-help-body b { color: var(--text); }
 .wb-help-body code {
   background: var(--bg); border: 1px solid var(--line); border-radius: 2px;

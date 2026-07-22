@@ -671,15 +671,23 @@ function mountBenchHelp(sectionId, state) {
     const note = section.querySelector(':scope > .wb-note');
     const h2 = section.querySelector('h2');
     if (!h2) return;
-    let title = '', defaultBodyHtml = '';
+    let defaultBodyHtml = '';
     if (note) {
-        const summary = note.querySelector('summary');
-        title = summary ? summary.textContent.trim() : '';
         const clone = note.cloneNode(true);
         const s = clone.querySelector('summary'); if (s) s.remove();
         defaultBodyHtml = clone.innerHTML.trim();
         note.remove();
     }
+    // Titel im Popover = der Instrumenten-Name selbst, direkt editierbar (@dpa 20260722_130710:
+    // „auch den Titel editierbar machen … beides, es braucht keine extra Überschrift") — die
+    // alte separate <summary>-Überschrift ist raus, statt zwei Titeln (Popover-Caption +
+    // Instrumenten-Name) gibt es jetzt nur noch EINEN. Teilt sich den `instrName`-State-Key mit
+    // lib/InstrumentSettings.js (Rechtsklick-Kopfzeile → „Name"), also dieselbe Naht, kein
+    // zweiter Persistenz-Pfad — hier zusätzlich noch das `.wb-instr-name`-Span direkt
+    // nachgezogen, weil InstrumentSettings' eigenes applyName() an dieser Stelle noch nicht
+    // gemountet ist (Aufruf-Reihenfolge in werkbank.js: mountBenchHelp vor mountInstrumentSettings).
+    const instrNameEl = h2.querySelector('.wb-instr-name');
+    const defaultInstrName = instrNameEl ? instrNameEl.textContent.trim() : '';
 
     const btn = document.createElement('button');
     btn.className = 'wb-help-btn'; btn.type = 'button'; btn.textContent = '?';
@@ -703,7 +711,20 @@ function mountBenchHelp(sectionId, state) {
     function render() {
         pop.innerHTML = '';
         const head = document.createElement('div'); head.className = 'wb-help-headrow';
-        if (title) { const t = document.createElement('div'); t.className = 'wb-help-title'; t.textContent = title; head.appendChild(t); }
+        const titleIn = document.createElement('input');
+        titleIn.type = 'text'; titleIn.className = 'wb-help-title-input';
+        titleIn.value = state.get('instrName') || defaultInstrName;
+        titleIn.placeholder = defaultInstrName;
+        titleIn.title = 'Instrumenten-Name (überall im Header sichtbar)';
+        // Klick in Werteingaben selektiert immer den gesamten Inhalt (Music-weit, s. Memory).
+        titleIn.addEventListener('focus', () => titleIn.select());
+        titleIn.addEventListener('mousedown', (e) => e.stopPropagation());
+        titleIn.addEventListener('input', () => {
+            state.set('instrName', titleIn.value);
+            if (instrNameEl) instrNameEl.textContent = titleIn.value || defaultInstrName;
+        });
+        titleIn.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') titleIn.blur(); });
+        head.appendChild(titleIn);
         const editBtn = document.createElement('button');
         editBtn.className = 'wb-help-edit'; editBtn.type = 'button';
         editBtn.title = 'Hilfe als Markdown bearbeiten';
