@@ -216,7 +216,11 @@ body {
 .pm-name.pm-none { color: var(--muted); }   /* nichts geladen */
 .pm-caret { flex: 0 0 auto; color: var(--muted); display: flex; --ico: 11px; }
 .pm-pop {
-  position: fixed; z-index: 1200; min-width: 200px; max-width: 320px;
+  /* MUSS über .knob-meta-editor/.elem-settings (z 1300) liegen (@dpa 20260722_013727,
+     beim Design-Speicher gefunden): ein PickMenu wird oft AUS so einem Settings-Panel
+     heraus geöffnet (Farb-/Design-Speicher) — mit niedrigerem z-index blockierte das
+     Panel selbst die Klicks auf die eigene Fußzeile („Neu…" reagierte nicht). */
+  position: fixed; z-index: 1400; min-width: 200px; max-width: 320px;
   background: var(--panel2); border: 1px solid var(--sel-line); border-radius: 6px;
   box-shadow: 0 10px 34px rgba(0,0,0,.6); overflow: hidden;
   display: flex; flex-direction: column;
@@ -730,6 +734,12 @@ body {
    es füllt den Rest der Zeile neben den Farbwählern. */
 .kme-color-menu { flex: 1 1 auto; min-width: 0; }
 .kme-color-menu .pm-btn { width: 100%; min-width: 0; }
+/* Design-Speicher (@dpa 20260722_013727, ElementSettings.js): dieselbe Optik wie der
+   Farb-Speicher, volle Zeilenbreite. */
+.es-design-menu { flex: 1 1 auto; min-width: 0; }
+.es-design-menu .pm-btn { width: 100%; min-width: 0; }
+.kme-design-menu { flex: 1 1 auto; min-width: 0; }
+.kme-design-menu .pm-btn { width: 100%; min-width: 0; }
 /* Kurven-Vorschau: kleiner und RECHTS, der Hinweistext links daneben (@dpa
    20260716_132014). Der Graph trägt denselben feinen Rahmen wie ein ausgewähltes
    Control – er ist die Ansicht zu den Kurvenfeldern, kein eigenes Kästchen. */
