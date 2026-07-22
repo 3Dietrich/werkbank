@@ -251,6 +251,13 @@ polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, k
 const chordMemory = new ChordMemory(polySynthState, polySynthKeyboard, polySynth.keyMidi);
 polySynth.mountInGroup('Keyboard', chordMemory.element, 'u:speicher');
 polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) => chordMemory.applyStyle(s), 'Speicher');
+// Positions-Nachzügler (@dpa 20260722_013727: „packt nach dem Reload die Tastatur ganz links
+// hin, ein kurzer Gang in e-Mode bereinigt das"): applyCtrlPos() lief beim Seitenaufbau schon
+// VOR diesen beiden mountInGroup()-Aufrufen (die Gruppe „Keyboard" war zu dem Zeitpunkt also
+// schon "freeGroups"-eingefroren, ohne dass playKb/speicher überhaupt existierten) — genau das
+// holt ein e-Mode-Besuch nach, weil er freezeGroup() für JEDE Gruppe erneut aufruft. refresh()
+// tut exakt das, ohne dass @dpa dafür erst in e-Mode wechseln muss.
+polySynth.refresh();
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard, memory: chordMemory };
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
