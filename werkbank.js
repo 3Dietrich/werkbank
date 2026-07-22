@@ -250,9 +250,6 @@ const polySynthDefsObj = polySynthDefs({
         // — TDZ-sicher wie chordMemory, die Closure liest erst beim Klick).
         else if (id === 'chordUp') polySynthKeyboard.transposeActive(1);
         else if (id === 'chordDown') polySynthKeyboard.transposeActive(-1);
-        // BaseKeyboard-MIDI-Lernen (@dpa 20260722_155726): baseKeyboard wird weiter unten
-        // gebaut — TDZ-sicher wie chordMemory/polySynthKeyboard, die Closure liest erst beim Klick.
-        else if (id === 'baseMidiLearn') baseKeyboard.armMidiLearn();
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
@@ -278,6 +275,33 @@ taktState.subscribe((k) => { if (k === 'bpm' || k === '*') polySynthEngine.notif
 const baseKeyboard = new BaseKeyboard(polySynthState, () => polySynthEngine.baseFreq());
 polySynth.mountInGroup('Base-Frq', baseKeyboard.element, 'u:baseKb');
 polySynth.registerCtrlStyle('u:baseKb', 'keyboard', baseKeyboard.element, kbStyle(baseKeyboard.element), 'Ton-Wahl');
+// „Besonderer" MIDI-Learn genau wie bei u:playKb (@dpa 20260722_203201: „genauso wie in
+// Keyboard/Keyboard" — kein eigener „MIDI lernen"-Button im Panel mehr): im normalen Tasten-/
+// MIDI-Overlay auf das Ton-Wahl-Control gelernt, die EINE gelernte Note kalibriert die
+// baseMidiOctave (s. BaseKeyboard.calibrateMidiOctave). midiOnly: kein ⌨-Tastenfeld, nur 🎹.
+// customBanner: „Bereich" (baseMidiRange) lebt im Lern-Banner statt als eigener Panel-Toggle.
+const baseKbBanner = () => {
+    const wrap = document.createElement('span'); wrap.className = 'km-b-kbcal';
+    const rangeLabel = document.createElement('label'); rangeLabel.className = 'km-b-kbcal-range';
+    const range = document.createElement('input'); range.type = 'checkbox';
+    range.checked = !!polySynthState.get('baseMidiRange');
+    range.addEventListener('change', () => polySynthState.set('baseMidiRange', range.checked));
+    rangeLabel.append(range, 'Bereich');
+    wrap.append(rangeLabel);
+    return wrap;
+};
+polySynth.keyMidi.register('u:baseKb', baseKeyboard.element, 'Ton-Wahl', () => {}, { midiOnly: true, customBanner: baseKbBanner });
+// „Nur eine Note, kein zweiter Druck" — dieselbe Naht wie bei u:playKb (s.u.): die frisch
+// gelernte Bindung wird direkt zur Kalibrierung genutzt und sofort wieder gelöscht.
+polySynthState.subscribe((k) => {
+    if (k !== 'midiBindings') return;
+    const b = (polySynthState.get('midiBindings') || {})['u:baseKb'];
+    if (!b || b.type !== 'note') return;
+    baseKeyboard.calibrateMidiOctave(b.data1);
+    const rest = { ...polySynthState.get('midiBindings') };
+    delete rest['u:baseKb'];
+    polySynthState.set('midiBindings', rest);
+});
 // Freq-Anzeige (@dpa 20260722_013727: „die Freq Anzeige fehlt auch... geteilt in mehrere
 // Control readout und texts: 'Tone', Freq") — zwei eigenständige, einzeln verschiebbare
 // Readouts (Control-Sorte `readout`, s. Readout.js) statt einer kombinierten Anzeige.
