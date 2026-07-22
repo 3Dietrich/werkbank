@@ -29,6 +29,9 @@ import { ChordMemory } from './lib/polysynth/ui/ChordMemory.js';
 import { BaseKeyboard } from './lib/polysynth/ui/BaseKeyboard.js';
 import { Readout } from './lib/polysynth/ui/Readout.js';
 import { midiToName, freqToMidi } from './lib/polysynth/pitch/Scaler.js';
+import { stepSeqDefs } from './lib/stepseq/defs.js';
+import { StepSeqEngine } from './lib/stepseq/StepSeqEngine.js';
+import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from './lib/audioBus.js';
@@ -418,6 +421,39 @@ window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynth
 // SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber
 // erst weiter unten gebaut wird (s. Kommentar dort, gleiches Muster wie oben bei baseKeyboard).
 
+// ── Stepsequenzer – eigenes ISM (@dpa 20260722_203201, ddw.md: „neues ISM Stepsequenzer:
+// Stepsequenzer, Basisclock (n*BaseFreq) mit Teiler (Clock/n) als trigger source. Erstmal
+// aus teslacoil 'rüberkopieren' und technisch einbinden. er kriegt ein Output selector - die
+// kriegen im Moment AmpEnv mit OSZ") ─────────────────────────────────────────────────────
+// Eigener MiniState/eigene Gruppe wie Rec/Takt+Metronom — die Basisclock liest Poly-Synths
+// BaseFreq nur LESEND (getBaseFreq-Closure), keine harte Kopplung an dessen State.
+const STEPSEQ_LS = 'werkbank_stepseq';
+const stepSeqDefsObj = stepSeqDefs();
+const stepSeqState = new MiniState(stepSeqDefsObj.DEFAULTS, STEPSEQ_LS);
+const stepSeqRoot = document.querySelector('#stepseq');
+const stepSeq = mountGroups(stepSeqRoot, stepSeqState, stepSeqDefsObj, {
+    instrumentScaled: () => stepSeqInstr.scaled(),
+});
+// Output-Routing (@dpa: „Output selector — die kriegen im Moment AmpEnv mit OSZ"): EINE
+// funktionierende Quelle bislang, bewusst über den Selector geführt statt fest verdrahtet,
+// damit ein späteres zweites Ziel nur eine neue Option + ein neuer Zweig hier braucht.
+// Dieselbe Note bleibt „gehalten", bis sich die BaseFreq-Tonklasse ändert (dann erst ein
+// echter noteOff auf die ALTE Note) — sonst häuften sich Voices auf `held`, falls BaseFreq
+// zwischen zwei Triggern wechselt (baseSrc='Ton'/'Tempo' live gespielt).
+let _seqHeldNote = null;
+const stepSeqEngine = new StepSeqEngine(stepSeqState, () => polySynthEngine.baseFreq(), (envHeight) => {
+    if (stepSeqState.get('seqOutput') !== 'AmpEnv+OSZ') return;   // andere Optionen: noch kein Ziel verdrahtet
+    const note = Math.round(freqToMidi(polySynthEngine.baseFreq()));
+    if (_seqHeldNote !== null && _seqHeldNote !== note) polySynthEngine.noteOff(_seqHeldNote);
+    polySynthEngine.noteOn(note, Math.max(1, Math.min(127, Math.round(envHeight * 127))));
+    _seqHeldNote = note;
+});
+const stepSeqGrid = new StepSeqGrid(stepSeqState, stepSeqEngine);
+stepSeq.mountInGroup('Stepsequenzer', stepSeqGrid.element, 'u:seqGrid');
+stepSeq.registerCtrlStyle('u:seqGrid', 'stepseq', stepSeqGrid.element, (s) => stepSeqGrid.applyStyle(s), 'Steps');
+stepSeq.refresh();
+window.__stepseq = { state: stepSeqState, host: stepSeq, engine: stepSeqEngine, grid: stepSeqGrid };
+
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
 // Instrument") ────────────────────────────────────────────────────────────────────────
 // War Teil von taktmetro/defs.js (Gruppe „Aufnahme") — jetzt eigenständig, weil Rec
@@ -466,10 +502,11 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: lev
 
 // Render-Loop: seqUI-Abspielkopf, Base-Frq-Anzeigen (baseKeyboard/Tone-/Freq-Readout) UND
 // LevelMeter zeichnen sich nicht von allein — tickt wie in teslacoil.
-(function tick() {
+(function tick(nowMs) {
     seqUI.tick();
     baseKeyboard.tick(); toneReadout.tick(); freqReadout.tick();
     levelMeter.tick();
+    stepSeqEngine.tick(nowMs); stepSeqGrid.tick();
     requestAnimationFrame(tick);
 })();
 
@@ -868,6 +905,7 @@ mountBenchHelp('bench-rec', recState);
 // Größe % wie bei Gruppen, dazu Drag am Header. Jedes Instrument bekommt das jetzt gleich.
 const taktInstr = mountInstrumentSettings(benchTakt, taktState, { bodySelector: '#taktgeber' });
 const polySynthInstr = mountInstrumentSettings(document.querySelector('#bench-polysynth'), polySynthState, { bodySelector: '#polysynth' });
+const stepSeqInstr = mountInstrumentSettings(document.querySelector('#bench-stepseq'), stepSeqState, { bodySelector: '#stepseq' });
 const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), recState, { bodySelector: '#rec' });
 
 // „Zurücksetzen"-Knopf entfernt (@dpa 20260719_040136). Reset weiterhin über die Konsole:

@@ -104,6 +104,18 @@
         </details>
     </section>
 
+    <section class="wb-bench wb-wide" id="bench-stepseq">
+        <h2><span class="wb-instr-name">Stepsequenzer</span></h2>
+        <div id="stepseq"></div>
+        <details class="wb-note">
+            <summary>Basisclock (BaseFreq × Multiplikator ÷ Teiler) — Port aus teslacoil</summary>
+            Eigener Trigger-Takt, an die Poly-Synth Base-Frq gekoppelt (nicht ans Metronom-BPM):
+            Basisclock = BaseFreq × Multiplikator, geteilt durch den Teiler ergibt die Schritt-Rate.
+            Die Output-Wahl bestimmt, wohin ein aktiver Step feuert — aktuell nur „AmpEnv+OSZ"
+            (löst einen Anschlag auf dem Poly-Synth aus, mit dessen Amp-Hüllkurve/Oszillator).
+        </details>
+    </section>
+
     <section class="wb-bench" id="bench-rec">
         <h2><span class="wb-instr-name">Rec</span></h2>
         <div id="rec"></div>
