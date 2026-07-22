@@ -13,6 +13,7 @@ import { StepSeqUI } from './lib/StepSeqUI.js';
 import { MiniState } from './lib/MiniState.js';
 import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
 import { HintBubble } from './lib/HintBubble.js';
+import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js';
 import { factoryHint } from './lib/hints.js';
 import { targetKind, globalKeyOk, arrowKeyOk } from './lib/keyRoute.js';
 import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
@@ -41,6 +42,17 @@ const state = new MiniState({
 
 const metaEditor = new KnobMetaEditor(state);
 const elemSettings = new ElementSettings(state);
+
+// ── Master Volume (@dpa 20260722, ddw.md „wir brauchen einen Master Volume") ──────────
+// Header-Fader, eigener State (nicht an ein Instrument gebunden — wirkt auf lib/audioBus.js,
+// den GEMEINSAMEN Master-Bus aller Instrumente). Muss vor den Instrumenten stehen: sie rufen
+// beim ersten Ton audioBus.ensureAudio() auf, createMasterVolume() legt die Volume/Limiter-
+// Kette mit den GESPEICHERTEN Werten an (statt später mit hart verdrahteten Defaults).
+const MASTER_LS = 'werkbank_master';
+const masterState = new MiniState(masterVolumeDefaults, MASTER_LS);
+const masterVolume = createMasterVolume(masterState);
+document.querySelector('#master-vol').appendChild(masterVolume.element);
+window.__master = { state: masterState, volume: masterVolume };
 
 // ── Knobs / Fader ──────────────────────────────────────────────────────────────
 // Absichtlich EINE Definition pro Gestalt aus derselben Klasse – das ist die Aussage

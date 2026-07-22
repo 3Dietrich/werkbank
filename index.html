@@ -9,9 +9,14 @@
 </head>
 <body>
 <div class="topbar">
-    <h1>Werkbank <small>Bausteine aus teslacoil – bearbeiten, verfeinern, rüberkopieren</small></h1>
+    <h1>Werkbank</h1>
     <div class="topbar-right">
-        <span class="wb-tip"><b>Rechtsklick</b> = Settings · Regler ziehen/Doppelklick · alles überlebt den Reload</span>
+        <!-- Untertitel + Dauertext raus (@dpa 20260722_013727: „sollte nicht den Header
+             vollmachen"): dieselbe Info steckt jetzt in der Hilfe-Blase des ⓘ-Icons — nutzt
+             das ohnehin vorhandene Hint-System (Header-Knopf „Hints"), statt permanent Platz
+             zu belegen. -->
+        <span class="wb-tip-ico" data-hint="Bausteine aus teslacoil – bearbeiten, verfeinern, rüberkopieren. Rechtsklick = Settings · Regler ziehen/Doppelklick · alles überlebt den Reload.">ⓘ</span>
+        <div id="master-vol"></div>
         <!-- „Zurücksetzen" entfernt (@dpa 20260719_040136: „wie eine Bombe die man nicht berühren
              sollte"). Reset gibt es weiter über MiniState.reset()/localStorage, nur nicht als Knopf. -->
     </div>

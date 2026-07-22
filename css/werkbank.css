@@ -21,9 +21,32 @@
   position: relative;
 }
 
-/* Knapper Bedien-Hinweis in der Kopfzeile statt als eigener Absatz (spart eine Zeile). */
-.wb-tip { color: var(--muted); font-size: 11.5px; margin-right: 4px; }
-.wb-tip b { color: var(--text); }
+/* Bedien-Hinweis als Hover-Icon statt Dauertext (@dpa 20260722_013727: „sollte nicht den
+   Header vollmachen") – dieselbe Hilfe-Blase wie überall sonst (data-hint), keine eigene
+   Anzeige-Logik nötig. */
+.wb-tip-ico {
+  color: var(--muted); font-size: 15px; cursor: default; flex: none;
+  width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); border-radius: 50%;
+}
+.wb-tip-ico:hover { color: var(--text); border-color: var(--sel-line); }
+
+/* Master-Fader im Header (@dpa 20260722, MasterVolume.js). */
+.mv-wrap { display: flex; align-items: center; gap: 6px; }
+.mv-lim { padding: 4px 8px; font-size: 11px; }
+.mv-lim-pop {
+  position: fixed; z-index: 3000; display: flex; flex-direction: column; gap: 6px;
+  padding: 8px 10px; border-radius: 4px;
+  background: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.2)), var(--panel2);
+  border: 1px solid var(--sel-line); box-shadow: 0 8px 28px rgba(0,0,0,.5);
+  font-size: 12px; color: var(--muted);
+}
+.mv-lim-row { display: flex; align-items: center; gap: 6px; }
+.mv-lim-row label { width: 46px; }
+.mv-lim-row input {
+  width: 60px; background: #1a1e26; color: var(--text); border: 1px solid var(--line);
+  border-radius: 3px; padding: 2px 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
 
 /* Eine „Werkbank-Platte“ pro Baustein: klar abgesetzt, aber kompakt. */
 .wb-bench {
