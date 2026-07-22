@@ -62,17 +62,23 @@
 #levelmeter .group { background: none; border: none; padding: 0; }
 #levelmeter .group-title-bar { display: none; }
 .level-meter { border-radius: 2px; display: block; }
-/* BUGFIX (@dpa 20260722_130710, ddw.md): „das Instrument [Meter] hat sich über alles hinweg
-   gebreitet … der Hintergrund von dem Instrument von Meter macht nur Probleme" — GroupHosts
-   free-canvas-Mechanik lässt den Gruppen-Body bewusst mitwachsen, wenn man ein Control weit
-   zieht (sizeFreeGroup setzt body.style.width/height auf die Control-Position — für normale,
-   sichtbare Gruppen ist das gewollt: man SIEHT die Fläche mitwachsen). Bei Meter ist genau
-   diese Fläche unsichtbar (kein Header/BG, s.o.) — die gewachsene, aber unsichtbare Panel-
-   Box lag dann als Klick-Falle über allem darunter (Rechtsklick traf immer nur den Meter-
-   Hintergrund, nichts anderes ließ sich mehr selektieren/verschieben). Fix: die Fläche
-   (Panel/Gruppe/Body) nimmt keine Zeigerereignisse mehr an, NUR der Meter-Balken selbst
-   (`[data-ctrl]`) bleibt klickbar/ziehbar — unsichtbar bleibt jetzt auch wirklich unsichtbar
-   für die Maus, unabhängig davon, wie weit er gezogen wurde. */
+/* BUGFIX (@dpa 20260722_130710 + 20260722_155726, ddw.md): „das Instrument [Meter] hat sich
+   über alles hinweg gebreitet" / „hat immernoch ein festsitzendes ISM an der Backe … breitet
+   sich wild aus, wenn ich Meter (Gruppe) verschiebe". GroupHosts free-canvas-Mechanik lässt
+   den Gruppen-Body bewusst mitwachsen, wenn man ein Control weit zieht (sizeFreeGroup setzt
+   body.style.width/height auf die Control-Position) — bei normalen, sichtbaren Gruppen ist
+   das gewollt. Bei Meter ist diese Fläche unsichtbar (kein Header/BG), saß aber noch immer im
+   #app-Kachel-Grid: die wachsende, unsichtbare Panel-Box dehnte die Grid-Zeile/-Spalte mit
+   auf (Layout-Sprung) und blieb dabei selbst UNVERSCHIEBBAR (kein Header wie bei den anderen
+   Instrumenten, s. InstrumentSettings.js). pointer-events:none allein loste nur die Klick-
+   Falle, nicht das Layout. Fix: die ganze Bench wird ein Viewport-Overlay (position:fixed,
+   aus dem Grid-Fluss heraus) — sie kann beliebig „wachsen", ohne irgendetwas zu verschieben;
+   sichtbar/klickbar bleibt einzig der Meter-Balken selbst (`[data-ctrl]`), der sich jetzt wie
+   teslacoils Hauptdisplay-Anzeige frei über die ganze Fläche ziehen lässt. */
+#bench-levelmeter {
+  position: fixed; inset: 0; padding: 60px 20px 20px 0;
+  pointer-events: none; z-index: 20; align-items: flex-end;
+}
 #levelmeter .panel, #levelmeter .group, #levelmeter .group-body { pointer-events: none; }
 #levelmeter [data-ctrl] { pointer-events: auto; }
 .wb-bench h2 {
