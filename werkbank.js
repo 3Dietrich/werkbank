@@ -258,6 +258,9 @@ const polySynthDefsObj = polySynthDefs({
         // — TDZ-sicher wie chordMemory, die Closure liest erst beim Klick).
         else if (id === 'chordUp') polySynthKeyboard.transposeActive(1);
         else if (id === 'chordDown') polySynthKeyboard.transposeActive(-1);
+        // BaseKeyboard-MIDI-Lernen (@dpa 20260722_155726): baseKeyboard wird weiter unten
+        // gebaut — TDZ-sicher wie chordMemory/polySynthKeyboard, die Closure liest erst beim Klick.
+        else if (id === 'baseMidiLearn') baseKeyboard.armMidiLearn();
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
@@ -349,7 +352,7 @@ polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) =
 // holt ein e-Mode-Besuch nach, weil er freezeGroup() für JEDE Gruppe erneut aufruft. refresh()
 // tut exakt das, ohne dass @dpa dafür erst in e-Mode wechseln muss.
 polySynth.refresh();
-window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard, memory: chordMemory };
+window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard, memory: chordMemory, baseKeyboard };
 // Render-Loop steht GANZ UNTEN in dieser Datei (nach LevelMeter) — ruft sich beim ersten Mal
 // SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber
 // erst weiter unten gebaut wird (s. Kommentar dort, gleiches Muster wie oben bei baseKeyboard).
