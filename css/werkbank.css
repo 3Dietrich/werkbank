@@ -130,6 +130,9 @@
 .wb-help-body h2 { font-size: 13px; }
 .wb-help-body h3, .wb-help-body h4, .wb-help-body h5, .wb-help-body h6 { font-size: 12px; }
 .wb-help-body > :first-child { margin-top: 0; }
+/* Jetzt auch in der Hint-Bubble genutzt (@dpa 20260722_152438, Markdown-Rollout) — die
+   meisten Hints sind EIN Satz, ohne :last-child bliebe unten der volle <p>-Browserabstand. */
+.wb-help-body > :last-child { margin-bottom: 0; }
 /* Edit-Symbol (@dpa 20260721_203557: „Hilfe in Markdown editieren"). Klein, dezent,
    rutscht neben den Titel — erst bei Hover/Fokus deutlicher, wie die anderen Icon-Knöpfe. */
 .wb-help-edit {
