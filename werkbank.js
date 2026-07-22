@@ -212,13 +212,12 @@ window.__takt = { engine: taktEngine, state: taktState, host: takt };
 const POLYSYNTH_LS = 'werkbank_polysynth';
 const polySynthState = new MiniState(polySynthDefs().DEFAULTS, POLYSYNTH_LS);
 const polySynthRoot = document.querySelector('#polysynth');
-// AkIO/[R] sind latchende Buttons (@dpa 20260722_004312): ihr Klick fährt die Keyboard-
-// Methoden an (polySynthKeyboard wird gleich darunter gebaut — die Closure liest die
-// Bindung erst beim Klick, also nach der Zuweisung, kein TDZ-Problem).
+// [R] ist ein latchender Button (@dpa 20260722_004312): sein Klick fährt die ChordMemory-
+// Methode an (chordMemory wird gleich darunter gebaut — die Closure liest die Bindung erst
+// beim Klick, also nach der Zuweisung, kein TDZ-Problem).
 const polySynthDefsObj = polySynthDefs({
     onAction: (id) => {
-        if (id === 'akio') polySynthKeyboard.toggleAkio();
-        else if (id === 'akReset') chordMemory.toggleReset();   // [R] lebt jetzt im Speicher-Control
+        if (id === 'akReset') chordMemory.toggleReset();   // [R] lebt im Speicher-Control
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
@@ -233,11 +232,9 @@ polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' f
 const polySynthKeyboard = new PlayKeyboard(polySynthState, polySynthEngine);
 polySynth.mountInGroup('Keyboard', polySynthKeyboard.element, 'u:playKb');
 polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, kbStyle(polySynthKeyboard.element), 'Keyboard');
-// Ein Speicher-Recall schaltet AkIO an → den b:akio-Button visuell nachführen (wie takt/rec
-// ihren Start/Rec-Knopf über setCtrlOn spiegeln).
-polySynthKeyboard.onAkio((on) => polySynth.setCtrlOn('b:akio', on));
 // Akkord-Speicher: autarker Control NEBEN dem Keyboard (@dpa 20260722_004312) — kommt über
-// snapshotChord/recallChord/onChordChange an den gespielten Akkord, eigene Settings (u:speicher).
+// snapshotChord/gateChordOn/releaseChordGate/onChordChange an den gespielten Akkord, eigene
+// Settings (u:speicher).
 const chordMemory = new ChordMemory(polySynthState, polySynthKeyboard);
 polySynth.mountInGroup('Keyboard', chordMemory.element, 'u:speicher');
 polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) => chordMemory.applyStyle(s), 'Speicher');
@@ -308,7 +305,13 @@ const hintResolve = (el) => {
     const c = el.closest && el.closest('[data-ctrl]');
     if (c) {
         const id = c.dataset.ctrl;
-        const st = c.closest('#taktgeber') ? taktState : state;   // sichtbares Instrument nutzt taktState
+        // Jedes Instrument hat sein EIGENES hintText im eigenen State (@dpa 20260722_013727:
+        // Bugfix — vorher fiel Poly-Synth/Rec immer auf das globale `state` zurück, darum
+        // tauchten dort editierte Hilfe-Texte nie als Hover-Blase auf).
+        const st = c.closest('#taktgeber') ? taktState
+                 : c.closest('#polysynth') ? polySynthState
+                 : c.closest('#rec') ? recState
+                 : state;
         const own = (st.get('hintText') || {})[id];
         return own || factoryHint(id, 'de') || c.dataset.hint || (el.dataset && el.dataset.hint) || '';
     }
