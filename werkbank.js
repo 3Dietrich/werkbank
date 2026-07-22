@@ -24,6 +24,9 @@ import { polySynthDefs } from './lib/polysynth/defs.js';
 import { createPolySynthEngine } from './lib/polysynth/engine.js';
 import { PlayKeyboard } from './lib/polysynth/ui/PlayKeyboard.js';
 import { ChordMemory } from './lib/polysynth/ui/ChordMemory.js';
+import { BaseKeyboard } from './lib/polysynth/ui/BaseKeyboard.js';
+import { Readout } from './lib/polysynth/ui/Readout.js';
+import { midiToName, freqToMidi } from './lib/polysynth/pitch/Scaler.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster } from './lib/audioBus.js';
@@ -150,8 +153,10 @@ const fakeEngine = {
 };
 const seqUI = new StepSeqUI(state, fakeEngine, 'amp');
 document.querySelector('#seq').appendChild(seqUI.element);
-// Der Abspielkopf zeichnet sich nicht von allein – in teslacoil tickt ihn der Render-Loop.
-(function tick() { seqUI.tick(); requestAnimationFrame(tick); })();
+// Der Render-Loop selbst steht GANZ UNTEN in dieser Datei (nach der Poly-Synth-Initialisierung):
+// er ruft sich beim ersten Mal SYNCHRON selbst auf (IIFE), bräuchte also baseKeyboard/
+// toneReadout/freqReadout schon an dieser Stelle — die werden aber erst weiter unten gebaut
+// (TDZ-Fehler „Cannot access before initialization").
 
 // ── Tasten-Regel: live zeigen, wem die Taste gehört ────────────────────────────
 // Der Baustein selbst entscheidet nichts über die Tasten – er BEANTWORTET nur die Frage.
@@ -225,6 +230,36 @@ const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
 });
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
+// Basis-Tonklassen-Brett (@dpa 20260722_013727: „Quelle Ton: das KB fehlt!") — bei Quelle
+// „Ton" bedienbar (wählt baseNote), sonst reine Anzeige, wo die klingende BaseFrq liegt.
+// War schon fertig gebaut (BaseKeyboard.js), nur nie gemountet — tickt im selben Render-Loop
+// wie seqUI (s. unten).
+const baseKeyboard = new BaseKeyboard(polySynthState, () => polySynthEngine.baseFreq());
+polySynth.mountInGroup('Base-Frq', baseKeyboard.element, 'u:baseKb');
+polySynth.registerCtrlStyle('u:baseKb', 'keyboard', baseKeyboard.element, kbStyle(baseKeyboard.element), 'Ton-Wahl');
+// Freq-Anzeige (@dpa 20260722_013727: „die Freq Anzeige fehlt auch... geteilt in mehrere
+// Control readout und texts: 'Tone', Freq") — zwei eigenständige, einzeln verschiebbare
+// Readouts (Control-Sorte `readout`, s. Readout.js) statt einer kombinierten Anzeige.
+const toneReadout = new Readout(
+    () => midiToName(freqToMidi(polySynthEngine.baseFreq())),
+    'Tonklasse + Oktave der aktuell klingenden Base-Frq (z.B. „C-1").',
+);
+const freqReadout = new Readout(
+    () => polySynthEngine.baseFreq().toFixed(1) + ' Hz',
+    'Die aktuell klingende Base-Frq in Hz.',
+);
+polySynth.mountInGroup('Base-Frq', toneReadout.element, 'u:toneReadout');
+polySynth.mountInGroup('Base-Frq', freqReadout.element, 'u:freqReadout');
+polySynth.registerCtrlStyle('u:toneReadout', 'readout', toneReadout.element, (s) => {
+    toneReadout.element.style.fontSize = s.fontSize ? s.fontSize + 'px' : '';
+    toneReadout.element.style.width = s.boxSize ? s.boxSize + 'px' : '';
+    toneReadout.element.style.color = s.fg || '';
+}, 'Tone');
+polySynth.registerCtrlStyle('u:freqReadout', 'readout', freqReadout.element, (s) => {
+    freqReadout.element.style.fontSize = s.fontSize ? s.fontSize + 'px' : '';
+    freqReadout.element.style.width = s.boxSize ? s.boxSize + 'px' : '';
+    freqReadout.element.style.color = s.fg || '';
+}, 'Freq');
 // Osz-Knobs passend zur Engine ein-/ausblenden (@dpa 20260722_013727): Sine-FM zeigt FM, verbirgt
 // PW — Square-PW umgekehrt. Die eigentliche Klangfarben-Nachführung gehaltener Töne lebt in
 // engine.js (retimbreHeld).
@@ -259,6 +294,13 @@ polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) =
 // tut exakt das, ohne dass @dpa dafür erst in e-Mode wechseln muss.
 polySynth.refresh();
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard, memory: chordMemory };
+// Render-Loop: seqUI-Abspielkopf UND Base-Frq-Anzeigen (baseKeyboard-Hervorhebung, Tone-/
+// Freq-Readout) zeichnen sich nicht von allein — tickt wie in teslacoil.
+(function tick() {
+    seqUI.tick();
+    baseKeyboard.tick(); toneReadout.tick(); freqReadout.tick();
+    requestAnimationFrame(tick);
+})();
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
 // Instrument") ────────────────────────────────────────────────────────────────────────
