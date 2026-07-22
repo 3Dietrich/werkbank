@@ -225,6 +225,18 @@ const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
 });
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
+// Osz-Knobs passend zur Engine ein-/ausblenden (@dpa 20260722_013727): Sine-FM zeigt FM, verbirgt
+// PW — Square-PW umgekehrt. Die eigentliche Klangfarben-Nachführung gehaltener Töne lebt in
+// engine.js (retimbreHeld).
+const dutyEl = polySynthRoot.querySelector('[data-ctrl="k:duty"]');
+const fmEl = polySynthRoot.querySelector('[data-ctrl="k:fmFeedback"]');
+const syncOscKnobVisibility = () => {
+    const sine = polySynthState.get('oscEngine') === 'Sine-FM';
+    if (dutyEl) dutyEl.style.display = sine ? 'none' : '';
+    if (fmEl) fmEl.style.display = sine ? '' : 'none';
+};
+syncOscKnobVisibility();
+polySynthState.subscribe((k) => { if (k === 'oscEngine' || k === '*') syncOscKnobVisibility(); });
 // Spiel-Tastatur: echtes u:playKb-Control (@dpa 20260721_203557 — vorher ein loses
 // Geschwister-Element neben dem Panel, ohne Rechtsklick-Settings). Strukturell in die
 // GroupHost-Gruppe "Keyboard" gehängt (mountInGroup), Optik über dieselbe kbStyle-Anwendung
