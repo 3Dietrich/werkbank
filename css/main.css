@@ -559,6 +559,17 @@ body {
 .knob-size-none .knob-value { font-size: 10px; margin-top: 0; }
 /* Ohne Dial gibt es keinen Leerraum davor → der Wert braucht seinen Margin nicht. */
 .knob-size-none .knob-value, .knob-hide-value + .knob-label { margin-top: 0; }
+/* BUGFIX (@dpa 20260722_130710, image-18): die Value-Anzeige soll die GESAMTE Breite des
+   Reglers erhalten (vorher schrumpfte sie auf ihren Text, mit Luft rechts/links davon) —
+   UND: „wenn Gestalt=ohne ist, soll BG den BG der Value-Anzeige [sein]". Grund: --knob-bg
+   färbt sonst nur .knob-track/.knob-center im SVG-Dial (s.o.) — in „Ohne" ist das SVG per
+   `display:none` unsichtbar, die BG-Einstellung wirkte hier also bisher NIRGENDS. Die
+   knob-has-bg-Klasse existierte dafür schon (wird in Knob.js gesetzt), hatte aber noch gar
+   keine Regel. Jetzt trägt die Value-Box die BG-Farbe, über die volle Reglerbreite. */
+.knob-size-none .knob-value {
+  width: 100%; box-sizing: border-box; text-align: center; border-radius: 4px;
+}
+.knob-size-none.knob-has-bg .knob-value { background: var(--knob-bg); padding: 4px 6px; }
 /* Zahlen-Anzeige weg (Dial+Label bleiben) – spart rechts Platz, z.B. Opaque-Regler in Popups. */
 .knob-hide-value .knob-value { display: none; }
 /* Beschriftung: Farbe und Größe kommen global (@dpa 20260716_204921: „Da sie m.M.nach alle
