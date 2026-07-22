@@ -343,6 +343,27 @@ polySynthState.subscribe((k) => { if (k === 'oscEngine' || k === '*') syncOscKno
 const polySynthKeyboard = new PlayKeyboard(polySynthState, polySynthEngine);
 polySynth.mountInGroup('Keyboard', polySynthKeyboard.element, 'u:playKb');
 polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, kbStyle(polySynthKeyboard.element), 'Keyboard');
+// „Besonderer" MIDI-Learn (@dpa 20260722_155726: „nur eine Note eingegeben werden muss,
+// statt jede Taste einzeln … im MIDI-learn mode, nicht als extra Button"): im normalen
+// Tasten-/MIDI-Overlay (⌨/🎹-Header) auf das Keyboard-Control selbst gelernt — die EINE
+// gelernte Note kalibriert kbMidiOffset (s. PlayKeyboard.calibrateMidiOffset), keine
+// Notendauer-Auslösung. Ein Tasten-Druck (kein MIDI-Event) tut bewusst nichts.
+polySynth.keyMidi.register('u:playKb', polySynthKeyboard.element, 'Keyboard', () => {});
+// „Nur eine Note, kein zweiter Druck": Midi.js braucht die ERSTE Note zum Lernen der
+// Bindung selbst (die löst noch KEIN activate() aus, s. Midi._handle) — ein zweiter Druck
+// bräuchte es sonst erst zum tatsächlichen Auslösen. Wir hören stattdessen direkt auf die
+// frisch gelernte Bindung (midiBindings-State) und entfernen sie SOFORT wieder, damit keine
+// dauerhafte Notenbindung liegen bleibt — rein optisch bleibt der offene Lern-Banner (kann
+// mit ✕ geschlossen werden).
+polySynthState.subscribe((k) => {
+    if (k !== 'midiBindings') return;
+    const b = (polySynthState.get('midiBindings') || {})['u:playKb'];
+    if (!b || b.type !== 'note') return;
+    polySynthKeyboard.calibrateMidiOffset(b.data1);
+    const rest = { ...polySynthState.get('midiBindings') };
+    delete rest['u:playKb'];
+    polySynthState.set('midiBindings', rest);
+});
 // Akkord-Speicher: autarker Control NEBEN dem Keyboard (@dpa 20260722_004312) — kommt über
 // snapshotChord/gateChordOn/releaseChordGate/onChordChange an den gespielten Akkord, eigene
 // Settings (u:speicher). keyMidi mitgegeben (@dpa 20260722_033950): jeder Slot meldet sich
