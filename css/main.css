@@ -149,8 +149,6 @@ body {
 .fx-showall-btn { --ico: 18px; padding: 3px; min-width: 26px; }
 .arrange-btn.on { background: #26333a; border-color: var(--accent); color: var(--accent); }
 
-/* Ausgangs-Pegelmeter: fest an der rechten Kante, hoch & schmal, mit dB-Skala */
-.level-meter { position: fixed; right: 8px; top: 64px; z-index: 400; border-radius: 2px; }
 /* Flacher, vertikal zentrierter Preset-Cluster (Snapshot / Skala / Optik – gleiche Höhe) */
 .pb-cluster {
   display: flex; align-items: center; gap: 5px;
