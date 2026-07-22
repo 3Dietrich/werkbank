@@ -808,8 +808,12 @@ body {
 .kb-id { height: 50%; display: flex; justify-content: center; align-items: center; font-size: 9px; font-weight: 600; }
 .kb-white .kb-id { background: #cdd3dc; color: #2a2f3a; }
 .kb-black .kb-id { background: #2b313c; color: #aeb6c2; }
-/* gerade klingende Note – inset-Rahmen + weicher Halo (gewollter Effekt). */
-.kb-key.kb-active { box-shadow: inset 0 0 0 2px var(--accent), 0 0 8px rgba(90,209,255,.55); z-index: 1; }
+/* gerade klingende Note (@dpa 20260722, ddw.md: „nicht die Rahmen der Tasten sondern die
+   Tasten selbst") — die Taste FÜLLT sich, statt nur einen Rahmen zu bekommen. Bewusst nur
+   .kb-key (PlayKeyboard, s. Kopf-Kommentar) — Skala-Maske/Anker nutzen andere Klassen. */
+.kb-key.kb-active { z-index: 1; }
+.kb-key.kb-active .kb-ind,
+.kb-key.kb-active .kb-id { background: var(--accent); color: #0b0e14; }
 /* skal2: aktiver Slot – Name hervorgehoben (heller/farbig), bleibt s/w erkennbar */
 .keyboard.kb-skal2 .kb-slot-active .kb-id { box-shadow: inset 0 0 0 2px var(--accent2); font-weight: 800; }
 .keyboard.kb-skal2 .kb-white.kb-slot-active .kb-id { background: #ffd9b0; color: #3a2412; }
@@ -856,15 +860,24 @@ body {
 .spk-slot:hover { border-color: var(--accent); }
 .spk-slot:focus { outline: none; }
 .spk-slot:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Tasten-/MIDI-Learn-Badge sichtbar machen (@dpa 20260722, ddw.md: „hast Du für jeden
+   Speicher zur Verfügung gestellt? Das sehe ich nicht"): war längst verdrahtet
+   (ChordMemory._build → keyMidi.register je Slot), aber .km-badge sitzt mit negativen
+   Offsets (top:-7px/right:-6px) knapp AUSSERHALB des 22px-Slots — .spk-slots
+   overflow:hidden hat es darum unsichtbar weggeschnitten. Nur im Lern-Overlay lockern,
+   damit die normale Slot-Optik (rund geclipptes Kürzel) sonst unverändert bleibt. */
+.group-panel.keyedit .spk-slot { overflow: visible; }
+/* Rahmen bewusst kontrastarm (@dpa 20260722, ddw.md: „Die Rahmen weniger kontrastreich") —
+   die FLÄCHE (background) trägt den Zustand, der Rahmen bleibt nur eine leise Kante, wie
+   überall sonst (var(--line)-Niveau statt kräftig eingefärbt). */
 .spk-slot.filled {
   background: var(--spk-vg2, rgba(90,209,255,.22));
-  border-color: var(--spk-vg2, rgba(90,209,255,.5)); color: #e8ecf2; font-weight: 600;
+  border-color: rgba(90,209,255,.22); color: #e8ecf2; font-weight: 600;
 }
 /* Aktiver (zuletzt abgerufener) Slot — VG3 (@dpa 20260722: „aktiver/abgerufener Slot"). */
 .spk-slot.active {
   background: var(--spk-vg3, rgba(255,159,90,.32));
-  border-color: var(--spk-vg3, rgba(255,159,90,.8));
-  box-shadow: inset 0 0 0 1px var(--spk-vg3, rgba(255,159,90,.8)); color: #fff;
+  border-color: rgba(255,159,90,.4); color: #fff;
 }
 
 /* ── Scopes ── */

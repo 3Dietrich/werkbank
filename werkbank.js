@@ -233,17 +233,36 @@ window.__takt = { engine: taktEngine, state: taktState, host: takt };
 const POLYSYNTH_LS = 'werkbank_polysynth';
 const polySynthState = new MiniState(polySynthDefs().DEFAULTS, POLYSYNTH_LS);
 const polySynthRoot = document.querySelector('#polysynth');
-// [R] ist ein latchender Button (@dpa 20260722_004312): sein Klick fährt die ChordMemory-
-// Methode an (chordMemory wird gleich darunter gebaut — die Closure liest die Bindung erst
-// beim Klick, also nach der Zuweisung, kein TDZ-Problem).
+// [R] ist ein durchschaltbarer Button (@dpa 20260722_004312, Zyklus @dpa 20260722 ddw.md):
+// sein Klick fährt die ChordMemory-Methode an (chordMemory wird gleich darunter gebaut — die
+// Closure liest die Bindung erst beim Klick, also nach der Zuweisung, kein TDZ-Problem).
 const polySynthDefsObj = polySynthDefs({
     onAction: (id) => {
-        if (id === 'akReset') chordMemory.toggleReset();   // [R] lebt im Speicher-Control
+        // [R]-Zyklus 'off'→'rename'→'reset'→'off' (@dpa: „den R Button durchschaltbar").
+        // GroupHost-Buttons liefern von sich aus nur EIN Bit (isOn) — für den dritten Zustand
+        // malen wir isOn+blink hier explizit passend zum ChordMemory-Modus nach:
+        // off=beides aus, rename=beides an (pulsierend = „wartet auf Klick"), reset=nur isOn
+        // (genau die alte, unveränderte Reset-Optik).
+        if (id === 'akReset') {
+            const m = chordMemory.cycleMode();
+            polySynth.setCtrlOn('b:akReset', m !== 'off');
+            polySynth.setCtrlBlink('b:akReset', m === 'rename');
+        }
+        // Hold ist jetzt ein Button statt einer Checkbox (@dpa 20260722, ddw.md), der
+        // Zustand bleibt aber weiterhin der echte polySynthState-Key (kbHold), damit
+        // PlayKeyboard/Config-Snapshot unverändert bleiben — nur der Klick flippt ihn hier.
+        else if (id === 'kbHold') polySynthState.set('kbHold', !polySynthState.get('kbHold'));
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
     instrumentScaled: () => polySynthInstr.scaled(),
 });
+// BUTTONS hängen (anders als TOGGLES) nicht automatisch am State — b:kbHold muss seinen
+// isOn-Zustand explizit nachgezogen bekommen, auch wenn kbHold NICHT per Klick, sondern
+// z.B. per Config-/Snapshot-Restore verändert wird.
+const syncHoldButton = () => polySynth.setCtrlOn('b:kbHold', !!polySynthState.get('kbHold'));
+syncHoldButton();
+polySynthState.subscribe((k) => { if (k === 'kbHold' || k === '*') syncHoldButton(); });
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
 // Basis-Tonklassen-Brett (@dpa 20260722_013727: „Quelle Ton: das KB fehlt!") — bei Quelle
