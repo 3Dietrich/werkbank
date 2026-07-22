@@ -263,6 +263,21 @@ polySynth.registerCtrlStyle('u:freqReadout', 'readout', freqReadout.element, (s)
     freqReadout.element.style.width = s.boxSize ? s.boxSize + 'px' : '';
     freqReadout.element.style.color = s.fg || '';
 }, 'Freq');
+// Base-Frq-Sichtbarkeit je Quelle (@dpa 20260722_042020, ddw.md): Harmonize/Pitchglide/
+// Anzeigen sind IMMER sichtbar; Quelle „Ton" ist die einzige, zu der KB+Kammerton gehören
+// (Freq/Tempo blenden beide aus); Base-Freq-Knob gehört umgekehrt nur zu Quelle „Freq"
+// (Ton nimmt die Note vom KB, Tempo das Tempo — der Knob wäre dort wirkungslos).
+const baseHzEl = polySynthRoot.querySelector('[data-ctrl="k:baseHz"]');
+const kammertonEl = polySynthRoot.querySelector('[data-ctrl="k:kammerton"]');
+const syncBaseFreqVisibility = () => {
+    const src = polySynthState.get('baseSrc');
+    if (baseHzEl) baseHzEl.style.display = src === 'Freq' ? '' : 'none';
+    const tonOnly = src === 'Ton' ? '' : 'none';
+    if (kammertonEl) kammertonEl.style.display = tonOnly;
+    baseKeyboard.element.style.display = tonOnly;
+};
+syncBaseFreqVisibility();
+polySynthState.subscribe((k) => { if (k === 'baseSrc' || k === '*') syncBaseFreqVisibility(); });
 // Osz-Knobs passend zur Engine ein-/ausblenden (@dpa 20260722_013727): Sine-FM zeigt FM, verbirgt
 // PW — Square-PW umgekehrt. Die eigentliche Klangfarben-Nachführung gehaltener Töne lebt in
 // engine.js (retimbreHeld).
