@@ -677,23 +677,39 @@ body {
    macht ihn nur kleiner und dunkler, als er ist. */
 .kme-color-row input[type="color"] { border: none; border-radius: 2px; height: 18px; }
 
-/* ═══ Eigener kompakter Farbwähler (colorPick.js, @dpa 20260719_120425) ═══
-   Ersetzt den nativen Chrome-Picker: Mischfeld flach (2/3 kleiner), Hue-Leiste so hoch
-   wie der runde Farbpunkt, Hex statt RGB, Copy-Knopf links. Sanfter Rahmen (wie die
-   Settings-Fenster), kleine Radien. */
+/* ═══ Eigener Farbwähler (colorPick.js, @dpa 20260719_120425, Umbau 20260722_042020) ═══
+   Ersetzt den nativen Chrome-Picker. Fließendes Hue×Helligkeit-Feld (Vorbild: System-
+   Spektrum-Picker) + breiter Sättigungsregler daneben, Swatch + draggable H/S/L-Zahlen,
+   darunter Hex/RGB/HSL-Textfeld + Copy + Pipette. Sanfter Rahmen (wie die Settings-
+   Fenster), kleine Radien. Größe bewusst nicht minimal (@dpa: „muss auch nicht minimal
+   sein"). */
 .cp-pop {
-  position: fixed; z-index: 3000; width: 200px;
-  display: flex; flex-direction: column; gap: 5px;
-  padding: 7px; border-radius: 4px;
+  position: fixed; z-index: 3000; width: 250px;
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 8px; border-radius: 4px;
   /* leichter Kontrast (#0003) zu den übrigen Settings-Fenstern (@dpa 20260719) */
   background: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.2)), var(--panel2);
   border: 1px solid var(--line);
   box-shadow: 0 8px 28px rgba(0,0,0,.5);
 }
-.cp-sv { width: 100%; height: 56px; border-radius: 3px; cursor: crosshair; }
-.cp-hue-row { display: flex; align-items: center; gap: 6px; }
-.cp-dot { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); flex: none; }
-.cp-hue { flex: 1; min-width: 0; height: 16px; border-radius: 3px; cursor: crosshair; }
+.cp-field-row { display: flex; gap: 6px; }
+.cp-field { width: 200px; height: 200px; border-radius: 3px; cursor: crosshair; flex: none; }
+.cp-sat { width: 28px; height: 200px; border-radius: 3px; cursor: ns-resize; flex: none; }
+.cp-swatch-row { display: flex; align-items: center; gap: 8px; }
+.cp-swatch {
+  width: 34px; height: 34px; border-radius: 4px; flex: none;
+  border: 1px solid var(--line);
+}
+.cp-hsl-nums { flex: 1; display: flex; gap: 8px; }
+.cp-num-field { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.cp-num {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+  color: var(--text); background: #1a1e26; border: 1px solid var(--line); border-radius: 3px;
+  padding: 3px 0; width: 100%; text-align: center; box-sizing: border-box;
+  user-select: none;
+}
+.cp-num:focus { outline: none; border-color: var(--sel-line); }
+.cp-num-field label { font-size: 9px; color: var(--muted); letter-spacing: .04em; }
 .cp-hex-row { display: flex; align-items: center; gap: 5px; }
 .cp-copy, .cp-fmt, .cp-eye {
   background: none; border: 1px solid var(--line); border-radius: 3px;
