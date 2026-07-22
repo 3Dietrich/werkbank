@@ -797,6 +797,10 @@ body {
 .keyboard.kb-transpose-mode .kb-readout-hint:hover { background: rgba(255,159,90,.14); box-shadow: inset 0 0 0 1px rgba(255,159,90,.5); }
 /* Skala-Anker im Transponier-Modus – leuchtet wie eine selektierte Frequenz */
 .kb-key.kb-anchor { box-shadow: inset 0 0 0 2px var(--accent2), 0 0 8px rgba(255,159,90,.6); z-index: 2; }
+/* Speicher-Mouseover (@dpa 20260722_155726, ddw.md): NUR der Rahmen der zum Slot gehörenden
+   Tasten, keine Füllung — sonst nicht von tatsächlich klingenden (.kb-active) Tasten zu
+   unterscheiden. lib/polysynth/ui/PlayKeyboard.js#previewNotes/clearPreview setzen die Klasse. */
+.kb-key.kb-mem-preview { box-shadow: inset 0 0 0 2px var(--accent, #5ad1ff); z-index: 2; }
 /* Größe/Farben sind Optik-Variablen (@dpa 20260716_031100: „man muss die Größe und
    Farben ändern können") – die Element-Settings setzen sie am .keyboard, die Defaults
    hier bleiben die Auslieferungsoptik. */
