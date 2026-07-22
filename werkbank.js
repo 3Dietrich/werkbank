@@ -15,6 +15,7 @@ import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
 import { HintBubble } from './lib/HintBubble.js';
 import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js';
 import { factoryHint } from './lib/hints.js';
+import { hint } from './lib/i18n.js';
 import { targetKind, globalKeyOk, arrowKeyOk } from './lib/keyRoute.js';
 import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
 import { taktMetroDefs } from './lib/taktmetro/defs.js';
@@ -689,10 +690,25 @@ function mountBenchHelp(sectionId, state) {
     const instrNameEl = h2.querySelector('.wb-instr-name');
     const defaultInstrName = instrNameEl ? instrNameEl.textContent.trim() : '';
 
+    // @dpa 20260722_130710 (ddw.md, image-16/17): das Icon soll wie ein „i"-Info-Kreis
+    // aussehen statt ein reines "?"-Zeichen (lib/icons.js: 'info'), UND bei Hover die
+    // ECHTE Beschreibung zeigen — nicht den generischen title="Beschreibung anzeigen"
+    // ("sinnloser Hint"). updateBtnHint() (unten in render()) hält den Hover-Text mit dem
+    // jeweils aktuellen Beschreibungstext synchron (auch nach dem Markdown-Editieren).
     const btn = document.createElement('button');
-    btn.className = 'wb-help-btn'; btn.type = 'button'; btn.textContent = '?';
-    btn.title = 'Beschreibung anzeigen';
+    btn.className = 'wb-help-btn'; btn.type = 'button';
+    btn.appendChild(icon('info', 14));
     h2.appendChild(btn);
+    /** Hover-Hint des [?]-Buttons auf den AKTUELLEN Beschreibungstext ziehen (Klartext, kein
+     *  Markdown/HTML — die Blase zeigt textContent, s. HintBubble.js). */
+    function updateBtnHint() {
+        const md = state.get('instrHelpMd');
+        const html = md ? mdToHtml(md) : defaultBodyHtml;
+        const tmp = document.createElement('div'); tmp.innerHTML = html;
+        const plain = tmp.textContent.trim().replace(/\s+/g, ' ');
+        hint(btn, plain || 'Beschreibung');
+    }
+    updateBtnHint();
 
     let pop = null, editing = false;
     const close = () => {
@@ -739,7 +755,7 @@ function mountBenchHelp(sectionId, state) {
             pop.appendChild(ta);
             const foot = document.createElement('div'); foot.className = 'wb-help-foot';
             const save = document.createElement('button'); save.type = 'button'; save.textContent = 'Speichern';
-            save.addEventListener('click', (e) => { e.stopPropagation(); state.set('instrHelpMd', ta.value.trim()); editing = false; render(); });
+            save.addEventListener('click', (e) => { e.stopPropagation(); state.set('instrHelpMd', ta.value.trim()); editing = false; render(); updateBtnHint(); });
             const cancel = document.createElement('button'); cancel.type = 'button'; cancel.textContent = 'Abbrechen';
             cancel.addEventListener('click', (e) => { e.stopPropagation(); editing = false; render(); });
             foot.append(save, cancel); pop.appendChild(foot);
