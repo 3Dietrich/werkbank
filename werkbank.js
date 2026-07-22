@@ -637,8 +637,13 @@ keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click()
 keyMidi.register('hdr:cfgmenu', cfgBtn, '⚙ Config', () => cfgBtn.click(), { self: true });
 keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.click(), { self: true });
 // Globale Verteilung: ein belegter Tastendruck löst sein Control aus (nur außerhalb des
-// Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern).
+// Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern). Jedes Instrument hat
+// sein EIGENES KeyMidi (eigener mountGroups-Aufruf, s.o.) — bisher wurde nur takt.keyMidi
+// verteilt, darum feuerten gelernte Tasten auf Poly-Synth-/Rec-Controls (z.B. Akkord-Speicher-
+// Slots) nie (@dpa 20260722_155726: "die gesetzten shortcuts funktionieren nicht").
 window.addEventListener('keydown', (e) => keyMidi.dispatchKey(e));
+window.addEventListener('keydown', (e) => polySynth.keyMidi.dispatchKey(e));
+window.addEventListener('keydown', (e) => rec.keyMidi.dispatchKey(e));
 
 // ESC stuft die Funktionsebenen ab (@dpa 20260720, Punkt D): pro ESC eine grobe Ebene, von
 // innen nach außen. Fenster mit eigenem ESC (Settings/Farbwähler) + ein laufender Lern-Vorgang
