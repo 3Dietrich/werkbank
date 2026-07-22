@@ -1219,6 +1219,23 @@ body {
 }
 .es-optsep { width: 1px; align-self: stretch; background: var(--line); }
 
+/* ═══ Wechsel-Button-Tabelle (@dpa 20260722_194404) ════════════════════════════════
+   Eine Zeile pro Stufe: ▲▼ zum Umsortieren, Caption/Farbe/Kurzbeschreibung editierbar. */
+.es-wechsel-row { flex-direction: column; align-items: stretch; gap: 4px; }
+.es-wechsel-row > label { display: flex; align-items: center; gap: 6px; }
+.es-wechsel-n { width: 44px; }
+.es-wechsel-rows { display: flex; flex-direction: column; gap: 3px; }
+.es-wechsel-line { display: flex; align-items: center; gap: 4px; }
+.es-wechsel-order { display: flex; flex-direction: column; }
+.es-wechsel-order button {
+  background: none; border: none; color: var(--muted); cursor: pointer; font-size: 9px; line-height: 1; padding: 1px 3px;
+}
+.es-wechsel-order button:hover { color: var(--accent2); }
+.es-wechsel-caption { width: 70px; font-size: 11px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 3px; padding: 3px 5px; }
+.es-wechsel-desc { flex: 1 1 auto; min-width: 80px; font-size: 11px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 3px; padding: 3px 5px; }
+.es-wechsel-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; }
+.es-wechsel-remove:hover { color: #ff5a5a; }
+
 /* ═══ Sonderfenster (unikat-Opener, @dpa 20260719_033654) ═════════════════════════
    Ein Knopf öffnet ein schwebendes Panel mit echten Controls (Tab/Tempo + Latenz).
    Kompakt, kleiner Radius. */

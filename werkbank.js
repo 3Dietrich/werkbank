@@ -239,20 +239,12 @@ const polySynthRoot = document.querySelector('#polysynth');
 // Closure liest die Bindung erst beim Klick, also nach der Zuweisung, kein TDZ-Problem).
 const polySynthDefsObj = polySynthDefs({
     onAction: (id) => {
-        // [R]-Zyklus 'off'→'rename'→'reset'→'off' (@dpa: „den R Button durchschaltbar").
-        // GroupHost-Buttons liefern von sich aus nur EIN Bit (isOn) — für den dritten Zustand
-        // malen wir isOn+blink hier explizit passend zum ChordMemory-Modus nach:
-        // off=beides aus, rename=beides an (pulsierend = „wartet auf Klick"), reset=nur isOn
-        // (genau die alte, unveränderte Reset-Optik).
-        if (id === 'akReset') {
-            const m = chordMemory.cycleMode();
-            polySynth.setCtrlOn('b:akReset', m !== 'off');
-            polySynth.setCtrlBlink('b:akReset', m === 'rename');
-        }
         // Hold ist jetzt ein Button statt einer Checkbox (@dpa 20260722, ddw.md), der
         // Zustand bleibt aber weiterhin der echte polySynthState-Key (kbHold), damit
         // PlayKeyboard/Config-Snapshot unverändert bleiben — nur der Klick flippt ihn hier.
-        else if (id === 'kbHold') polySynthState.set('kbHold', !polySynthState.get('kbHold'));
+        // ([R]/akReset ist seit @dpa 20260722_194404 ein generischer wechselButton mit
+        // eigenem State-Key — braucht keine onAction-Verdrahtung mehr, s. defs.js WECHSEL.)
+        if (id === 'kbHold') polySynthState.set('kbHold', !polySynthState.get('kbHold'));
         // Akkord-Transponieren (@dpa 20260722_152438, ddw.md): +/- verschieben den GERADE
         // klingenden Akkord live um einen Halbton (polySynthKeyboard wird weiter unten gebaut
         // — TDZ-sicher wie chordMemory, die Closure liest erst beim Klick).
