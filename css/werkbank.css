@@ -54,6 +54,14 @@
   padding: 8px 10px 10px;
   display: flex; flex-direction: column; gap: 6px;
 }
+/* LevelMeter (@dpa 20260722): "kein Header besitzen und keinen extra BG" — die Platte UND
+   die einzelne GroupHost-Gruppe darin (die sonst ihre eigene Titelleiste+BG mitbringt)
+   werden unsichtbar; übrig bleibt nur der Balken selbst, weiterhin ein echtes, im e-Mode
+   verschiebbares Control. */
+.wb-bare { background: none; border: none; padding: 0; align-items: flex-start; }
+#levelmeter .group { background: none; border: none; padding: 0; }
+#levelmeter .group-title-bar { display: none; }
+.level-meter { border-radius: 2px; display: block; }
 .wb-bench h2 {
   margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .02em;
   display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;

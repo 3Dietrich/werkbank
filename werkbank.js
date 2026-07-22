@@ -30,7 +30,8 @@ import { Readout } from './lib/polysynth/ui/Readout.js';
 import { midiToName, freqToMidi } from './lib/polysynth/pitch/Scaler.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
-import { getContext as getBusContext, getMaster as getBusMaster } from './lib/audioBus.js';
+import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from './lib/audioBus.js';
+import { LevelMeter } from './lib/LevelMeter.js';
 import { icon } from './lib/icons.js';
 import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
 
@@ -324,13 +325,9 @@ polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) =
 // tut exakt das, ohne dass @dpa dafür erst in e-Mode wechseln muss.
 polySynth.refresh();
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard, memory: chordMemory };
-// Render-Loop: seqUI-Abspielkopf UND Base-Frq-Anzeigen (baseKeyboard-Hervorhebung, Tone-/
-// Freq-Readout) zeichnen sich nicht von allein — tickt wie in teslacoil.
-(function tick() {
-    seqUI.tick();
-    baseKeyboard.tick(); toneReadout.tick(); freqReadout.tick();
-    requestAnimationFrame(tick);
-})();
+// Render-Loop steht GANZ UNTEN in dieser Datei (nach LevelMeter) — ruft sich beim ersten Mal
+// SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber
+// erst weiter unten gebaut wird (s. Kommentar dort, gleiches Muster wie oben bei baseKeyboard).
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
 // Instrument") ────────────────────────────────────────────────────────────────────────
@@ -361,7 +358,31 @@ recEngine.onRecording((on) => rec.setCtrlOn('b:rec', on));
 recEngine.onRecArmed((armed) => rec.setCtrlBlink('b:rec', !!armed));
 window.__rec = { engine: recEngine, state: recState, host: rec };
 // Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
-window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster };
+window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser };
+
+// ── LevelMeter – eigenes Instrument (ISM), @dpa 20260722 (ddw.md) ──────────────────────
+// "soll dem Level ISM angehören, aber kein Header besitzen und keinen extra BG" — trotzdem
+// ein ECHTES GroupHost-Control (mountGroups mit genau einer, leeren Gruppe), damit es wie
+// jedes andere Control im e-Mode verschiebbar ist und Rechtsklick-Settings bekommt; Kopf-
+// zeile/Hintergrund sind nur weggestylt (css/werkbank.css #levelmeter/.wb-bare).
+const LEVELMETER_LS = 'werkbank_levelmeter';
+const levelMeterState = new MiniState({}, LEVELMETER_LS);
+const levelMeterRoot = document.querySelector('#levelmeter');
+const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, { GROUPS: [{ name: 'Meter' }] });
+const levelMeter = new LevelMeter(() => getBusAnalyser());
+levelMeterHost.mountInGroup('Meter', levelMeter.element, 'u:meter');
+levelMeterHost.registerCtrlStyle('u:meter', 'levelmeter', levelMeter.element, (s) => levelMeter.applyStyle(s), 'Level');
+levelMeterHost.refresh();
+window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter };
+
+// Render-Loop: seqUI-Abspielkopf, Base-Frq-Anzeigen (baseKeyboard/Tone-/Freq-Readout) UND
+// LevelMeter zeichnen sich nicht von allein — tickt wie in teslacoil.
+(function tick() {
+    seqUI.tick();
+    baseKeyboard.tick(); toneReadout.tick(); freqReadout.tick();
+    levelMeter.tick();
+    requestAnimationFrame(tick);
+})();
 
 // ── P3: Tasten/MIDI-Overlay-Schalter im Header (K5) ─────────────────────────────
 // Ein Schalter „neben Helphints" (die Werkbank hat keine Helphints, also in der Topbar):
