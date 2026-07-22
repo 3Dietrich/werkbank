@@ -349,7 +349,25 @@ polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, k
 // gelernte Note kalibriert kbMidiOffset (s. PlayKeyboard.calibrateMidiOffset), keine
 // Notendauer-Auslösung. midiOnly (@dpa 20260722_172315: „Controls die mehr als ein On/Off
 // haben bitte aus Tasten learn ausschließen"): kein ⌨-Tastenfeld, nur der 🎹-Teil.
-polySynth.keyMidi.register('u:playKb', polySynthKeyboard.element, 'Keyboard', () => {}, { midiOnly: true });
+// customBanner (@dpa 20260722_194404: „Midi-Offset/Bereich … sollen in (den speziellen)
+// Midilearn fenster"): Offset-Zahl + Bereich-Haken leben jetzt IM Lern-Banner statt als
+// eigene Knobs im Keyboard-Panel (defs.js GROUPS.Keyboard hat sie darum nicht mehr).
+const playKbBanner = () => {
+    const wrap = document.createElement('span'); wrap.className = 'km-b-kbcal';
+    const offLabel = document.createElement('span'); offLabel.textContent = 'Offset';
+    const off = document.createElement('input');
+    off.type = 'number'; off.min = -4; off.max = 4; off.step = 1;
+    off.value = polySynthState.get('kbMidiOffset') || 0;
+    off.addEventListener('change', () => polySynthState.set('kbMidiOffset', Math.max(-4, Math.min(4, off.valueAsNumber | 0))));
+    const rangeLabel = document.createElement('label'); rangeLabel.className = 'km-b-kbcal-range';
+    const range = document.createElement('input'); range.type = 'checkbox';
+    range.checked = !!polySynthState.get('kbMidiRange');
+    range.addEventListener('change', () => polySynthState.set('kbMidiRange', range.checked));
+    rangeLabel.append(range, 'Bereich');
+    wrap.append(offLabel, off, rangeLabel);
+    return wrap;
+};
+polySynth.keyMidi.register('u:playKb', polySynthKeyboard.element, 'Keyboard', () => {}, { midiOnly: true, customBanner: playKbBanner });
 // „Nur eine Note, kein zweiter Druck": Midi.js braucht die ERSTE Note zum Lernen der
 // Bindung selbst (die löst noch KEIN activate() aus, s. Midi._handle) — ein zweiter Druck
 // bräuchte es sonst erst zum tatsächlichen Auslösen. Wir hören stattdessen direkt auf die

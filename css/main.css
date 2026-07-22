@@ -1111,6 +1111,11 @@ body {
 .km-b-btn { background: #2a3140; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-size: 11px; }
 .km-b-x { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; }
 .km-b-x:hover { color: var(--accent2); }
+/* Keyboard-Ein-Noten-Kalibrierung im Lern-Banner (@dpa 20260722_194404, werkbank.js
+   playKbBanner()): Offset-Zahl + Bereich-Haken statt eigener Knobs im Gruppen-Panel. */
+.km-b-kbcal { display: flex; align-items: center; gap: 5px; }
+.km-b-kbcal input[type="number"] { width: 40px; background: #1a1e26; color: var(--text); border: 1px solid var(--line); border-radius: 3px; padding: 1px 4px; font-size: 11px; }
+.km-b-kbcal-range { display: flex; align-items: center; gap: 3px; cursor: pointer; }
 /* Der gerade gelernte Control auffällig markiert (@dpa 20260719): kräftige Akzent-Umrandung
    + Tönung, ohne die eigene BG-Farbe des Controls zu überschreiben (inset box-shadow). */
 .km-learning { border-radius: 4px; box-shadow: 0 0 0 2px var(--accent), inset 0 0 0 999px rgba(90,209,255,.14); }
