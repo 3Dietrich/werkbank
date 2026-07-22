@@ -274,6 +274,11 @@ syncHoldButton();
 polySynthState.subscribe((k) => { if (k === 'kbHold' || k === '*') syncHoldButton(); });
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
+// Ändert sich das Takt-BPM, während baseSrc='Tempo' läuft, müssen bereits GEHALTENE Voices
+// live nachgezogen werden (@dpa 20260722_155726) — die Anzeige folgt sowieso über den
+// Render-Loop, aber ohne diesen Hook bliebe eine gerade klingende Note auf der alten
+// Beat-Frequenz stehen, bis sie neu angeschlagen wird.
+taktState.subscribe((k) => { if (k === 'bpm' || k === '*') polySynthEngine.notifyTempoChange(); });
 // Basis-Tonklassen-Brett (@dpa 20260722_013727: „Quelle Ton: das KB fehlt!") — bei Quelle
 // „Ton" bedienbar (wählt baseNote), sonst reine Anzeige, wo die klingende BaseFrq liegt.
 // War schon fertig gebaut (BaseKeyboard.js), nur nie gemountet — tickt im selben Render-Loop
