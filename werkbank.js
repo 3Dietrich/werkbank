@@ -200,7 +200,10 @@ const takt = mountGroups(taktRoot, taktState, taktDefs, {
     instrumentScaled: () => taktInstr.scaled(),
 });
 // Der Start-Knopf trägt den ON-Zustand (Metronom läuft) → nutzt die „BG an"-Farbe (Task D).
-taktEngine.onRunning((on) => takt.setCtrlOn('b:start', on));
+// (recEngine hängt sich hier per _onTaktRunning mit an, sobald es weiter unten existiert —
+// onRunning ist ein Einzel-Callback, s. taktmetro/engine.js, deshalb NUR EINE Registrierung.)
+let _onTaktRunning = () => {};
+taktEngine.onRunning((on) => { takt.setCtrlOn('b:start', on); _onTaktRunning(on); });
 // Die Takt-Anzeige leuchtet auf dem laufenden Beat (zeit-ausgerichtet vom Engine).
 taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
 // BPM-Anzeige folgt dem Anschieben +/− (@dpa 20260720, Punkt): der ±-Schub wird SICHTBAR, ohne
@@ -314,12 +317,17 @@ const recRoot = document.querySelector('#rec');
 const recEngine = createRecEngine(recState, {
     getBpm: () => taktState.get('bpm'),
     getBeatsPerBar: () => taktState.get('beatsPerBar'),
+    isClockRunning: () => taktEngine.running(),
 });
 const recDefs = recInstrumentDefs({ onAction: (id, phase) => recEngine.onAction(id, phase) });
 const rec = mountGroups(recRoot, recState, recDefs, {
     instrumentScaled: () => recInstr.scaled(),
 });
 taktEngine.onClockBeat((t, beat) => recEngine.handleClockBeat(t, beat));
+// Takt gestoppt, während Rec noch auf den nächsten Downbeat wartete → Arm sofort auflösen
+// (@dpa 20260722_013727), statt für immer blinkend hängenzubleiben. Hängt sich an den EINEN
+// taktEngine.onRunning-Callback an (s. _onTaktRunning oben, Zeile ~203) statt ihn zu überschreiben.
+_onTaktRunning = (on) => { if (!on) recEngine.clockStopped(); };
 // Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
 // den „armed, wartet auf nächsten Takt-Downbeat"-Zustand (Rec-Instrument-TODO 5).
 recEngine.onRecording((on) => rec.setCtrlOn('b:rec', on));
