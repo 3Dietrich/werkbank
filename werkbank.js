@@ -347,8 +347,9 @@ polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, k
 // statt jede Taste einzeln … im MIDI-learn mode, nicht als extra Button"): im normalen
 // Tasten-/MIDI-Overlay (⌨/🎹-Header) auf das Keyboard-Control selbst gelernt — die EINE
 // gelernte Note kalibriert kbMidiOffset (s. PlayKeyboard.calibrateMidiOffset), keine
-// Notendauer-Auslösung. Ein Tasten-Druck (kein MIDI-Event) tut bewusst nichts.
-polySynth.keyMidi.register('u:playKb', polySynthKeyboard.element, 'Keyboard', () => {});
+// Notendauer-Auslösung. midiOnly (@dpa 20260722_172315: „Controls die mehr als ein On/Off
+// haben bitte aus Tasten learn ausschließen"): kein ⌨-Tastenfeld, nur der 🎹-Teil.
+polySynth.keyMidi.register('u:playKb', polySynthKeyboard.element, 'Keyboard', () => {}, { midiOnly: true });
 // „Nur eine Note, kein zweiter Druck": Midi.js braucht die ERSTE Note zum Lernen der
 // Bindung selbst (die löst noch KEIN activate() aus, s. Midi._handle) — ein zweiter Druck
 // bräuchte es sonst erst zum tatsächlichen Auslösen. Wir hören stattdessen direkt auf die
