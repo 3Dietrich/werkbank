@@ -253,6 +253,11 @@ const polySynthDefsObj = polySynthDefs({
         // Zustand bleibt aber weiterhin der echte polySynthState-Key (kbHold), damit
         // PlayKeyboard/Config-Snapshot unverändert bleiben — nur der Klick flippt ihn hier.
         else if (id === 'kbHold') polySynthState.set('kbHold', !polySynthState.get('kbHold'));
+        // Akkord-Transponieren (@dpa 20260722_152438, ddw.md): +/- verschieben den GERADE
+        // klingenden Akkord live um einen Halbton (polySynthKeyboard wird weiter unten gebaut
+        // — TDZ-sicher wie chordMemory, die Closure liest erst beim Klick).
+        else if (id === 'chordUp') polySynthKeyboard.transposeActive(1);
+        else if (id === 'chordDown') polySynthKeyboard.transposeActive(-1);
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
