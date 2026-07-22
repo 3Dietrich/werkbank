@@ -139,6 +139,10 @@ body {
   border: 1px solid var(--sel-line); border-radius: 4px;
   box-shadow: 0 6px 24px rgba(0,0,0,.55);
   font-size: 11px; line-height: 1.45;
+  /* @dpa 20260722_130710: „bei Texten für Helphints Zeilenumbrüche (in der Hint-Ansicht)
+     übernehmen" — die Blase setzt den Text per textContent (kein HTML), ohne pre-line
+     kollabiert jeder \n in einem mehrzeiligen Hilfetext (KME/ES-Textarea) zu einem Space. */
+  white-space: pre-line;
 }
 
 /* Der ⤢ der Kette ist eine Nummer kleiner als die beiden in der Kopfzeile (@dpa
