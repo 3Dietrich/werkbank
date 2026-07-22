@@ -234,8 +234,9 @@ polySynth.mountInGroup('Keyboard', polySynthKeyboard.element, 'u:playKb');
 polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, kbStyle(polySynthKeyboard.element), 'Keyboard');
 // Akkord-Speicher: autarker Control NEBEN dem Keyboard (@dpa 20260722_004312) — kommt über
 // snapshotChord/gateChordOn/releaseChordGate/onChordChange an den gespielten Akkord, eigene
-// Settings (u:speicher).
-const chordMemory = new ChordMemory(polySynthState, polySynthKeyboard);
+// Settings (u:speicher). keyMidi mitgegeben (@dpa 20260722_033950): jeder Slot meldet sich
+// einzeln zum Tasten-/MIDI-Learn an (u:speicher:<i>), s. ChordMemory.js Kopf-Kommentar.
+const chordMemory = new ChordMemory(polySynthState, polySynthKeyboard, polySynth.keyMidi);
 polySynth.mountInGroup('Keyboard', chordMemory.element, 'u:speicher');
 polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) => chordMemory.applyStyle(s), 'Speicher');
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard, memory: chordMemory };
