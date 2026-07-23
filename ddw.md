@@ -446,7 +446,7 @@ Controls trigger: sind ja mit D-Env bestückt (super) aber sie sollen jeden trig
         es wandelt direkt nach jeder Aufname
     - Start/stop sync: am Takt Start umschalten, also man klick irgendwann Start, dann geht rec (genau) am dem nächsten On-Click (0C) (bei 4/4 zum beispiel immer bei 1( an, dann clickt man wieder=Stop - beim  nächsten 0C geht es aus. so dass man Loops machen kann..
 - Gruppen 
-    - Die ![Header Farbe](image.png) hier:#ab9bae ist nicht gleich der Eingabefarbe #ffffff 
+    - Die ![Header Farbe](docs/screenshots/image-25.png) hier:#ab9bae ist nicht gleich der Eingabefarbe #ffffff 
     - Der Hinweis mit der Größe muss nicht in die Gruppen Settings, sondern in deb Control settings, dessen Größe verändert ist. ich stelle mir z.B. vor, dass in dessen header mit einer linearen Gate ASR-Env mit Zeiten [0.5,2,0.5] aufleuchtet "Größen via [Gruppe/Instrument/Gruppe und Instrument] geändert." mit doppelclick: zeig nicht mehr (beschrieben mit extra hint auf dieser Anzeige)
 - neues instrument:
     - polyphoner Synt mit
@@ -501,7 +501,7 @@ mit Grenze meinst du diesen stopp? Oder was meinst du?
 -- 
 20260721_203557
 toll! 
-    ![gesamt Panel](image-1.png)
+    ![gesamt Panel](docs/screenshots/image-26.png)
     Instrumente:
     wir haben 3 ism (fyi: ism= 'Instrument', diese Abkürzungen bitte in's von Teslacoil Vorbild abgeschaut teslacoil/docs/CONTROLS.md für werbbank erstelltes werkbank/?/CONTROLS.md)
     die `instrument`e sollen die gleiche Basis haben. Ich betrachte jetzt die Ansicht und "Takt+Metronom" als Vorbild:
@@ -516,7 +516,7 @@ toll!
                 - ism Name
                 - ism breite, höhe (0 auto)
     - Poly-Synth
-        - Keyboard ![commentar](<Bildschirmfoto 2026-07-21 um 21.06.07.png>)
+        - Keyboard ![commentar](<docs/screenshots/Bildschirmfoto 2026-07-21 um 21.06.07.png>)
             - das ist ein `Control`! wie in teslacoil. Also bitte mit entsprechenden Settings (schau sie von teslacoil/basefreq ab)!
 Eine der **Hauptaufgaben ist in 'Werkbank': modulare Syntheshizer gebähren**. (dasist ein guter Hauptsatz dieses Projekts!, bitte merken!), es basiert auf Modulen, was für auch Dich heißt: wie kriege ich diese Bereich ohne viel tokens, vielleicht sogar einfach kopiert oder objektweise nutzt. Die Werkbank macht gerade beides: sowohl die Objekte/Module verfeinern und neu bauen, als auch Projekte vielleicht zu "verdichten", dem Sound anzupassen.. Ich denke gerade laut, Du sollst das unbedingt wissen für das Konzept - ohne ständig alles durchschauen zu müssen.. davon müssen wir weg. Wenn Du dafür Tips hast - gerne! 
             (zurück zum Auslöser:)
@@ -528,7 +528,7 @@ Eine der **Hauptaufgaben ist in 'Werkbank': modulare Syntheshizer gebähren**. (
             - Test-Ton schalter und Volume (und technik dahinter) weg
 
 -- 
-![Kb](image-2.png) - Dass die Oktaven in Zeilen sein können ist gut, aber nicht üblich. Ich würde sagen: Du machst eine Einstellung in `unikat` Keyboard Settings: oktav[umbruchicon]: togglet die Ansicht auf die derzeitige Ansicht zu ein horizontales keyboard
+![Kb](docs/screenshots/image-27.png) - Dass die Oktaven in Zeilen sein können ist gut, aber nicht üblich. Ich würde sagen: Du machst eine Einstellung in `unikat` Keyboard Settings: oktav[umbruchicon]: togglet die Ansicht auf die derzeitige Ansicht zu ein horizontales keyboard
 
 --
 20260721_231818
@@ -552,12 +552,12 @@ der Speicher verändert sein aussehen/farbe... beim drücken eines beegten speic
 20260722_013727      
     - die Zwei Dinge
         - Text Area sieht gut aus, edit ist da 👍🏻
-            - Aber:![edit](image-6.png) # Überschrift und Zeiilenumbrüche zeigt es nicht. **Fettes** schon.. wie ist es aufgebaut? wieviel arbeit/code/Aufmerksamkeit benötigt es?
+            - Aber:![edit](docs/screenshots/image-31.png) # Überschrift und Zeiilenumbrüche zeigt es nicht. **Fettes** schon.. wie ist es aufgebaut? wieviel arbeit/code/Aufmerksamkeit benötigt es?
         AkIO: siehe unten.
     - Gruppe
         - Base Freq
             - der Regler 
-                - ![Freq Range](image-3.png) zeigt manchmal .00 an, obwohl in Settings Dez.=0 gestellt ist. 
+                - ![Freq Range](docs/screenshots/image-28.png) zeigt manchmal .00 an, obwohl in Settings Dez.=0 gestellt ist. 
             - Quelle: Ton: das KB fehlt! (siehe teslacoil) dazu auch gleich: Kammertonfreq angabe default: 440Hz.
             - Quelle: Tempo: kein Anschluss? es gibt ja ein Tempo.. daran anschließen.
             - und die Freq Anzeige fehlt auch. Am besten geteilt in mehrere Control `readout` und `text`s: 'Tone' (z.B. C-1), Freq
@@ -569,7 +569,7 @@ der Speicher verändert sein aussehen/farbe... beim drücken eines beegten speic
         - Keayboard
             - AkIO: brauchen wir nicht. die belegten Speicher sind nur noch gates, wenn Hold an ist bleiben sie an (Umschalten wie gehabt)
             - es sind ja akkord Gates, wenn aus, sollten die Amp Env ins Release übergehen, aber es bricht nur kurz ab.. bitte korrigieren. btw.: zunächst ist die Amp Env einstimmig für alle voices
-            - es packt nach dem Reload die Tastatur ganz links hin ![ist nach reset](image-7.png)   ![soll](image-8.png). ein kurzer gang in e-mode bereinigt das, aber es Wäre schön, wenn das gleich so korrekt angezeigt wird. 
+            - es packt nach dem Reload die Tastatur ganz links hin ![ist nach reset](docs/screenshots/image-32.png)   ![soll](docs/screenshots/image-33.png). ein kurzer gang in e-mode bereinigt das, aber es Wäre schön, wenn das gleich so korrekt angezeigt wird. 
         - wir brauchen einen **Master Volume** mit Einstellungen:
             - Default (doppelclick)
             - dB basiert, von .. bis
@@ -588,7 +588,7 @@ der Speicher verändert sein aussehen/farbe... beim drücken eines beegten speic
             - Rec nnimmt nichts auf (oder?)
             - Rec schaltet man einmal ein, danach "blinkt" er immer, egal wie oft man ihn schaltet
     - Control
-        - es ware schön, wenn alle Controls ihre Einstellungen in deren Settings **speichern** könnten und die Designs damit dann für andere, gleiche Controls zur verfügung stehen. Gespeichert wird das ganze aussehen ohne die text eingaben (Label, Hilfstext,..) Nimm teslacoils ausarbeitung: ![Combo Speicher](image-5.png)
+        - es ware schön, wenn alle Controls ihre Einstellungen in deren Settings **speichern** könnten und die Designs damit dann für andere, gleiche Controls zur verfügung stehen. Gespeichert wird das ganze aussehen ohne die text eingaben (Label, Hilfstext,..) Nimm teslacoils ausarbeitung: ![Combo Speicher](docs/screenshots/image-30.png)
         - die selbst geschrieben texte erscheinen noch nicht als mouse over help hints
         - `button`: Umschalter: wenn sie aussind schalten sie direkt beim click an, wenn sie an sind beim release aus.
         - Keyboard "R" reset ist gerade verdreht: auf BG off ist er aktiv.. kann sich das verdrehen? Oder war das falsch angeschlossen?
@@ -602,7 +602,7 @@ Jeder Speicherplatz im Speicher soll remotes learnen können
 
 20260722_042020
 die Farbpaletten müssen wir leicht überarbeiten:
-    - ![weis-farbe-schwarz](<Bildschirmfoto 2026-07-21 um 21.16.14.png>) die fließende Farbwahl auf diesem Bild gefällt mir. Die Mitte ist sogar (horizontal) länger also nötig, es könnte super auf 200x200px passen. das passt gut zu dem nächstren Punkt
+    - ![weis-farbe-schwarz](<docs/screenshots/Bildschirmfoto 2026-07-21 um 21.16.14.png>) die fließende Farbwahl auf diesem Bild gefällt mir. Die Mitte ist sogar (horizontal) länger also nötig, es könnte super auf 200x200px passen. das passt gut zu dem nächstren Punkt
     - der Farb mode HSL zeigt nicht mehr alles, was schade ist, weil rechts die helligkeit schon ganz cool zu drehen ist.. bitte mach diesen bereich breiter und die zahlen dariin vielleicht sogar dragbar? Fehlt nur noch die Anzeige der tatsächlichen Farbe.. hm.. fällt Dir eine Ordnung ein bei diesen neuen Anforderungen? Copy und Pipette soll auf jeden Fall bleiben! Und die Größe muss auch nicht minimal sein..
 Base-Freq:
     immer sichtbar: Harmonize, Pitchglide und die Anzeigen
@@ -612,7 +612,7 @@ Base-Freq:
 -- 
 Poly-Synth
     wow! die Farbeinstellung sieht jetzt super aus, ist super nützlich! ein Bug noch:
-        das Farbgebungsfeld ![rechts schwarz](image-9.png) bzw. die Übernahme davon ist verkehrt herum: es macht rechts (zeigt schwarz) heller (>weiß). Wie rum der Fix ist, ist mir egal, hauptsache das Feld und das resultierende Ergebnis ist das was man erwartet.
+        das Farbgebungsfeld ![rechts schwarz](docs/screenshots/image-34.png) bzw. die Übernahme davon ist verkehrt herum: es macht rechts (zeigt schwarz) heller (>weiß). Wie rum der Fix ist, ist mir egal, hauptsache das Feld und das resultierende Ergebnis ist das was man erwartet.
     AmpEnv: Release funktiioniert noch nicht (oder ein ähnliches Problem):
         wenn man so lange hält, dass Sustain aktiv ist, schalten die NoteOffs auf gefühlt 1/10 Lautstärke herunter und dann kommt das Release.. das ist schon die ganze Zeit so, nichts neues
     Keyboard
@@ -621,19 +621,19 @@ Poly-Synth
         - Die Rahmen weniger kontrastreich, und 
         - bei mouse overs über den Speichern anzeigen
         - Doppelclick für 'Name ändern' geht leider nicht (das wiederholte drücken ist musikalisch sinnvol und passiert ständig ungewollt) - vielleicht den "R" Button durchschaltbar: [aus, rename, reset]?
-        - Keyboardspeicher..-Learn: meintest Du, hast Du für jeden Speicher zur verfügung gestellt? Das sehe ich nicht ![(midi)](image-10.png), ![auch Tasten](image-11.png)..
+        - Keyboardspeicher..-Learn: meintest Du, hast Du für jeden Speicher zur verfügung gestellt? Das sehe ich nicht ![(midi)](docs/screenshots/image-35.png), ![auch Tasten](docs/screenshots/image-36.png)..
 LevelMeter: 
-    sehe ich noch nicht. allerding ein neues leeres mini Feld ![alt text](image-13.png).. ist es das? :) ich konnte es nicht ziehen, nicht verändern..
+    sehe ich noch nicht. allerding ein neues leeres mini Feld ![alt text](docs/screenshots/image-38.png).. ist es das? :) ich konnte es nicht ziehen, nicht verändern..
 
 -- 
 20260722_130710
 zuerst die BUGS ab Zeile 639
     Meter: ist in einem eigenen ISM (gut), ohne Header (richtig) aber hat dadurch keine Möglichkeit es zu verschieben, nur den Control, was zu einer "mess" 
     .. ich kann jetzt nicht mehr weiterarbeiten.. :(
-    ![dieses Bild zeigt von vorher verschobenen Meter und zeigt wie das Meter-ISM links oben festhängt.](image-15.png) 
+    ![dieses Bild zeigt von vorher verschobenen Meter und zeigt wie das Meter-ISM links oben festhängt.](docs/screenshots/image-40.png) 
     ISM
         [?]:
-            auch den Titel editerbar machen ![Beispiel 'Rec'](image-14.png)
+            auch den Titel editerbar machen ![Beispiel 'Rec'](docs/screenshots/image-39.png)
     ISM Rec:
         was ist aus dem synchronen start-Stop geworden? Ich glaub du hast daran schon gearbeitet, aber auf dme Panel ist davon noch nichts zu sehen..?
     BUG!: ich kann nichts mehr selektieren, nichts mehr verschieben!
@@ -644,8 +644,8 @@ schon getan (wie's scheint noch nicht)?:
     Hilfen/Texte: bitte bei Texten für Helphints Zeilenumbrüche (in der Hint-Ansicht) übernehmen
 
 ISM info
-    ![sinnloser hint](image-16.png)
-    - die [?] Icons sollten ![so](image-17.png) aussehen. und sind dafür da bei mouseover die informationen zu zeigen (nicht "Beschreibung anzeigen" sondern den Text!) und bei click kommt das extra Fenster (ok).
+    ![sinnloser hint](docs/screenshots/image-41.png)
+    - die [?] Icons sollten ![so](docs/screenshots/image-42.png) aussehen. und sind dafür da bei mouseover die informationen zu zeigen (nicht "Beschreibung anzeigen" sondern den Text!) und bei click kommt das extra Fenster (ok).
     - mit dem mermaid ist super!
     - alle text fenster dieser Art (fließtexte) sollten recht unten die eingabeGröße verändern können. Das ist teilweise schon, aber manchmal nicht X UND Y, z.B. bei ISM info geht nur vertikal
 
@@ -662,7 +662,7 @@ Poly-Synth/Keyboard Tastatur:
         - Controls u.a. werden ignoriert
  
 Poly-Synth/Base-Freq/Kammerton:
-    bitte bei den Knobs drauf achten, dass die Value anzeigen ihre gesamte Breite erhalten ![alt text](image-18.png)
+    bitte bei den Knobs drauf achten, dass die Value anzeigen ihre gesamte Breite erhalten ![alt text](docs/screenshots/image-43.png)
     - wenn `knob`s Gestalt=ohne ist, soll BG .. nunja: den BG der Value anzeigen.
 
 -- 
@@ -673,7 +673,7 @@ Poly-Synth/Base-Freq/Kammerton:
     
     fließTextansichten (alle): Markdown
         Hast du mir eigentlich geantwortet? Ich wollte wissen, wie kompliziert es ist, mit Markdown hier zu arbeiten. Bei Instrument Hilfe hast du es ja schon ganz gut eingebaut. Genau so würd ich es auch für die Controls als auch alle anderen Fließtexte haben. 
-        ![Markdown](image-19.png) zumindest #, *kursiv*, **fett** 
+        ![Markdown](docs/screenshots/image-44.png) zumindest #, *kursiv*, **fett** 
 
 -- 
 20260722_155726
@@ -689,7 +689,7 @@ Poly-Synth/Base-Freq/Kammerton:
         das soll in 
     Polysynth/Keyboard/Speicher:
         - mouse Over uber den Speichern soll die gespeicherten Noten auf den Rahmen der Keyboard-Tasten anzeigen
-        - bei learn modes: wird der **Speicher** verschoben ![gewünschter Platz (learn aus)](image-20.png) ![learn mode an](image-21.png)
+        - bei learn modes: wird der **Speicher** verschoben ![gewünschter Platz (learn aus)](docs/screenshots/image-45.png) ![learn mode an](docs/screenshots/image-46.png)
         - die gesetzten shortcuts funktionieren nicht (die 9 speicher gesetzt auf i o p k l ; , . / - kein einziger sprich an)
         - **Keyboard**: auch gut zu sehen: learn macht es breiter hat aber kein learn <-- muss einen besonderer Learn kriegen mit den Einstellungen Midi-Offset (in okt) und Bereich
     Polysynth/Base-Freq/Quelle=Tempo:
@@ -700,9 +700,9 @@ Poly-Synth/Base-Freq/Kammerton:
 20260722_172315
     "BaseKeyboard-MIDI" / Speicher-Layout-Sprung:
     andere Ordnung/sizes bei aktivem **learn** (nicht e-mode!):
-        ![schaumal](image-25.png)ich habe Poly-Synth angeordet, die Control Positionen liegen geordnet
+        ![schaumal](docs/screenshots/image-50.png)ich habe Poly-Synth angeordet, die Control Positionen liegen geordnet
         und dann bei aktivem "learn" (beide):
-        ![alt text](image-26.png)
+        ![alt text](docs/screenshots/image-51.png)
             - Control Verschiebungen
             - Control Vergrößerungen
             falls Du das nicht sehen oder berechnen kannst, sag bescheid. Ansonsten: bitte beides fixen: an Positionen und Größen sollte sich bei "learn" ichts verändern!
@@ -758,7 +758,7 @@ dann weiter mit R-Button:
             - von Button alles außer Modus
                 - die Capations und BGs sind Teil der Tabelle
         - die Farbenwahl wird gewandelt in die Werkbank eigene
-        - die Helps wie immer: mit vergrößerungs-untenrechts-ecke und mit **Mouseover INHALT des Textes** nicht !["Erklärt diese Stufe im Mouseover-Hint des Knopfs"](image-27.png)!
+        - die Helps wie immer: mit vergrößerungs-untenrechts-ecke und mit **Mouseover INHALT des Textes** nicht !["Erklärt diese Stufe im Mouseover-Hint des Knopfs"](docs/screenshots/image-52.png)!
     - neues ISM Stepsequenzer:
         - Stepsequenzer, Basisclock (n*BaseFreq) mit Teiler (Clock/n) als trigger source
         - Erstmal aus teslacoil "rüberkopieren" und technisch einbinden
@@ -805,3 +805,36 @@ Der Stepsequenzer Gruppe:
     zunächst 3 Sequenzer davon bitte
 
 bitte plane gut und Detailiert zum erfolgreichen Projekt mit Sonnet und Opera
+
+-- 
+20260723_124045
+ok, Phase 4 gibt's noch.. argh! 
+
+nun nach dieser ganzen aufwändigen 3 Phasen ..:
+    - funktioniert alles wie vorher: scheint so (👍🏻)
+    - Sequenzer ist immer noch in einem veralteten ISM Hülle! Das halte ich für SCHWACH!! Du müsstest dich beim durchschauen merken müssen, dass der Sequenzer nicht mit den anderen ISM übereinstimmt?!? 
+    - der "Teiler" soll VOM TRANSPORT DIE SCHLäGE üBERNEHMEN. - Derzeit läuft alles verkehrt
+        - der Multiplikator macht schneller (soll vervielfachen)
+        - der Teiler.. bei 1/16 ist es ""~etwa"" der Beatschhalg (mit Metronom verglichen) es soll aber bei 1/1 GENAU dem Beat entsprechen!! dass ich das erklären muss ... 
+        - Der Sequencer ist Null (0)  mit dem Tempo, Start, Sync verbunden !! soll er natürlich!! bei design!
+- Struktur:
+    - als popover - gut!
+    - mit den überdeckten Kabeln - kein Porblem soweit, wenn man..:
+    - alle Module sollen verschiebbar sein, bzw. deren Ein- und Ausgange veränderbar, so dass man z.B. Rec direkt an OSZ stecken kann, oder Stepsequ wo andershin verbinden kann (wenn möglich) = ein Modularer Synth/Werkbank!
+    - dem Struktur Fenster ruhig mehr Platz geben..
+  
+ok mach mit Phase 4 weiter
+
+20260723_134400
+"Damit ist der Sequenzer jetzt mit Tempo, Start und Sync verbunden"
+..aber '!' und '!!' funktionieren noch nicht.
+
+und der unten Text im Sequenzer ISM und das fehlende 'i' rechtsoben zeigen mir, dass Du ISMs nicht einheitlich hast. Warum?
+
+-- 
+20260723_142755
+räum bitte auch den Ordner werkbank auf (bilder)
+**! funktioniert noch immer nicht!! Der Sequenzer läuft einfach weiter langsam wirds peinlich.**
+!! funktioniert, immerhin, **aber dann bleibt der erste trigger 2 Zählzeiten auf erstem Step**! Man eh!! Was ist das für ein scheiß?!?!? in teslacoil ging das zack zack.. alles funktionierte direkt.. hier in Werkbank - nach einem 4 phasigenm allumfassenden, sehr teueren Restaurations-Durchgang ist der Sequenzer (das neuste ISM) so anfängerhaft..?? Was ist hier los??
+
+--
