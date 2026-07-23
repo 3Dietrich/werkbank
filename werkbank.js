@@ -847,6 +847,7 @@ function mountBenchHelp(sectionId, state) {
 }
 mountBenchHelp('bench-taktgeber', taktState);
 mountBenchHelp('bench-polysynth', polySynthState);
+mountBenchHelp('bench-stepseq', stepSeqState);
 mountBenchHelp('bench-rec', recState);
 
 // ── Instrument-Settings, generalisiert (@dpa 20260721: „Instrument allgemein: mit eigen

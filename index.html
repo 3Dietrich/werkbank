@@ -56,11 +56,13 @@
         <h2><span class="wb-instr-name">Stepsequenzer</span></h2>
         <div id="stepseq"></div>
         <details class="wb-note">
-            <summary>Basisclock (BaseFreq × Multiplikator ÷ Teiler) — Port aus teslacoil</summary>
-            Eigener Trigger-Takt, an die Poly-Synth Base-Frq gekoppelt (nicht ans Metronom-BPM):
-            Basisclock = BaseFreq × Multiplikator, geteilt durch den Teiler ergibt die Schritt-Rate.
-            Die Output-Wahl bestimmt, wohin ein aktiver Step feuert — aktuell nur „AmpEnv+OSZ"
-            (löst einen Anschlag auf dem Poly-Synth aus, mit dessen Amp-Hüllkurve/Oszillator).
+            <summary>Basisclock (Takt-Tempo × Multiplikator ÷ Teiler) — Transport-Kind</summary>
+            Eigener Trigger-Takt, an das Takt-Tempo gekoppelt (nicht mehr an die Poly-Synth
+            Base-Frq): 1/1 (Multiplikator=1, Teiler=1) trifft exakt einen Beat, der Multiplikator
+            vervielfacht, der Teiler teilt. Läuft nur bei laufendem Transport, startet mit ihm
+            phasengleich bei Step 0. Die Output-Wahl bestimmt, wohin ein aktiver Step feuert —
+            aktuell nur „AmpEnv+OSZ" (löst einen Anschlag auf dem Poly-Synth aus, mit dessen
+            Amp-Hüllkurve/Oszillator).
         </details>
     </section>
 
