@@ -54,8 +54,16 @@ gilt:
 6. **Reine Logik in einem eigenen `*core.js`** statt Fremd-Import aus einem anderen
    Instrument/Altbestand (s. `lib/stepseq/seqCore.js` als Muster – Phase 0.2 zog die
    gebrauchten Helfer aus der alten `lib/stepSeq.js` genau dorthin).
+7. **`ports` in `defs.js` (optional)** – hat das Instrument sinnvolle Aus-/Eingänge fürs
+   Routing (Phase 2, [PLAN_OPERA.md](../PLAN_OPERA.md)), deklariert es sie dort als reine
+   Metadaten (`{ outputs:[{id,label,type}], inputs:[...] }`), s. [lib/routing/types.js](../lib/routing/types.js)
+   für die Typ-Tabelle. **`latency()`** in `engine.js` (optional, ms, aus
+   [lib/routing/latency.js](../lib/routing/latency.js)`busLatencyMs()` + eigenem
+   Puffer/Offset) ist der zugehörige Latenz-Vertrag. Fehlen beide, ist das ISM „ohne
+   Anschlüsse" – kein Fehler, kein Bruch dieser Checkliste für Alt-ISMs.
 
 Architektur-weiter Einstieg für „welcher Bereich, welche Datei": [ARCHITEKTUR.md](../ARCHITEKTUR.md).
+Routing-Nähte (Ports/Registry/Latenz) im Detail: [PHASE2_SPEC.md](../PHASE2_SPEC.md).
 
 ## Was alle Controls gemeinsam haben
 
