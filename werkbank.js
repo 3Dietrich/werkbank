@@ -77,15 +77,24 @@ const taktEngine = createTaktEngine(taktState);
 const taktDefs = taktMetroDefs({
     onAction: (id, phase) => {
         taktEngine.onAction(id, phase);
-        // Hard-Resync ('!!', „die 1 fällt sofort") reicht den Phasen-Sprung EXPLIZIT an den
-        // Sequenzer weiter (@dpa 20260723_1400: „Metronom springt korrekt, aber der Sequenzer
-        // läuft stur weiter"). Die Zeit-Heuristik in stepSeqEngine.handleClockBeat (4A.3)
-        // erkennt Sprünge nur, wenn sie GENUG vom alten Raster abweichen — liegt der Resync
-        // zufällig nah dran, verfehlt sie das knapp. Dieser Pfad ist der garantierte, kein
-        // Ersatz für die Heuristik (die bleibt für Reanchor/Tempo-Sprung ohne Tastendruck).
+        // Resync reicht ans Sequenzer-ISM weiter (@dpa 20260723_1400/1427: „Metronom springt,
+        // Sequenzer läuft stur weiter" bzw. „! funktioniert noch immer nicht"). Zwei Fälle,
+        // bewusst UNTERSCHIEDLICH behandelt:
+        //  - 'bang' ('!', weich): bewegt KEINE Audio-Zeit (Clock.resync(false) setzt nur
+        //    beatInBar=0, `_next` bleibt stehen — „der Takt läuft unbeirrt weiter"). Der
+        //    Sequenzer bekommt darum auch keinen sofortigen Trigger, sondern nur resetSeq()
+        //    (wie der eigene set0-Knopf): der NÄCHSTE ohnehin fällige Trigger landet auf
+        //    Step 0, statt die Zählung fortzusetzen — sichtbare Wirkung, ohne eine Zeit
+        //    vorzutäuschen, die es nicht gibt.
+        //  - 'bang2' ('!!', hart): reicht den Phasen-Sprung EXPLIZIT an resyncPhase() weiter.
+        //    Die Zeit-Heuristik in stepSeqEngine.handleClockBeat (4A.3) erkennt Sprünge nur,
+        //    wenn sie GENUG vom alten Raster abweichen — liegt der Resync zufällig nah dran,
+        //    verfehlt sie das knapp. Dieser Pfad ist der garantierte, kein Ersatz für die
+        //    Heuristik (die bleibt für Reanchor/Tempo-Sprung ohne Tastendruck).
         // stepSeqEngine existiert erst weiter unten (TDZ-sicher, Closure liest erst beim Klick,
         // dasselbe Muster wie chordUp/chordDown weiter unten in dieser Datei).
-        if (id === 'bang2') stepSeqEngine.resyncPhase();
+        if (id === 'bang') stepSeqEngine.resetSeq();
+        else if (id === 'bang2') stepSeqEngine.resyncPhase();
     },
     audioInfo: () => {
         taktEngine.ensureAudio();
