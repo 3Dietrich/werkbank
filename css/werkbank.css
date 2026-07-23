@@ -104,6 +104,17 @@
   display: inline-flex; align-items: center; justify-content: center;
 }
 .wb-help-btn:hover, .wb-help-btn.active { color: var(--text); border-color: var(--sel-line); }
+/* Sq-Editiersteuerung im Stepsequenzer-Header (@dpa 20260723_140151): ✎-Toggle blendet
+   [+]/[−] ein, die eine Sequenzer-Gruppe anhängen/entfernen — „von ISM aus delegiert,
+   braucht nur die zwei Buttons". Als Gruppe rechts (margin-left:auto) direkt vor dem i-Icon. */
+.sq-edit-ctrls { margin-left: auto; display: inline-flex; gap: 3px; align-items: center; }
+.sq-edit-ctrls .wb-help-btn { margin-left: 0; }
+/* das i-Info-Icon (direktes h2-Kind) trägt selbst margin-left:auto — im Stepseq-Header gibt
+   es aber schon den Spacer von .sq-edit-ctrls; ohne diese Zeile stünden zwei Spacer und die
+   Editiersteuerung landete mittig statt direkt vor dem i. */
+#bench-stepseq h2 > .wb-help-btn { margin-left: 6px; }
+.sq-edit-ctrls .sq-pm { font-size: 15px; font-weight: 600; }
+.sq-edit-ctrls .sq-pm:disabled { opacity: .35; cursor: default; border-color: var(--line); color: var(--muted); }
 .wb-help-pop {
   position: fixed; z-index: 2500; max-width: 380px;
   background: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.2)), var(--panel2);

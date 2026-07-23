@@ -436,6 +436,34 @@ routing.registerModule('stepseq', {
     ...bindPorts(stepSeqDefsObj.ports, {}),
 });
 routing.connect({ module: 'stepseq', port: 'amp' }, { module: 'polysynth', port: 'trig' });
+// Sq-Editiersteuerung im ISM-Header (@dpa 20260723_140151): ein ✎-Toggle blendet [+]/[−] ein,
+// die eine Sequenzer-Gruppe anhängen bzw. die letzte entfernen — „von ISM aus delegiert …
+// braucht nur die zwei Buttons" (@dpa: logischer als ein Button-Paar pro Gruppe). Sitzt im
+// h2 direkt vor dem i-Info-Icon (das mountBenchHelp später anhängt).
+(() => {
+    const h2 = document.querySelector('#bench-stepseq h2');
+    if (!h2) return;
+    const wrap = document.createElement('span'); wrap.className = 'sq-edit-ctrls';
+    const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.className = 'wb-help-btn sq-edit-btn';
+    editBtn.appendChild(icon('edit', 12)); hint(editBtn, 'Sequenzer bearbeiten: hinzufügen/entfernen');
+    const addBtn = document.createElement('button'); addBtn.type = 'button'; addBtn.className = 'wb-help-btn sq-pm'; addBtn.textContent = '+';
+    hint(addBtn, 'Sequenzer hinzufügen');
+    const remBtn = document.createElement('button'); remBtn.type = 'button'; remBtn.className = 'wb-help-btn sq-pm'; remBtn.textContent = '−';
+    hint(remBtn, 'Letzten Sequenzer entfernen (mindestens einer bleibt)');
+    addBtn.style.display = remBtn.style.display = 'none';
+    let editing = false;
+    const sync = () => { remBtn.disabled = sqManager.count() <= 1; };
+    editBtn.addEventListener('click', () => {
+        editing = !editing;
+        addBtn.style.display = remBtn.style.display = editing ? '' : 'none';
+        editBtn.classList.toggle('active', editing);
+        sync();
+    });
+    addBtn.addEventListener('click', () => { sqManager.addSq(); sync(); });
+    remBtn.addEventListener('click', () => { sqManager.removeSq(); sync(); });
+    wrap.append(editBtn, addBtn, remBtn);
+    h2.appendChild(wrap);
+})();
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
 // Instrument") ────────────────────────────────────────────────────────────────────────
