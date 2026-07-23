@@ -28,6 +28,7 @@ import { midiToName, freqToMidi } from './lib/polysynth/pitch/Scaler.js';
 import { stepSeqDefs } from './lib/stepseq/defs.js';
 import { createStepSeqEngine } from './lib/stepseq/engine.js';
 import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
+import { createSqManager } from './lib/stepseq/multiSq.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from './lib/audioBus.js';
@@ -144,10 +145,10 @@ const taktDefs = taktMetroDefs({
         //    wenn sie GENUG vom alten Raster abweichen — liegt der Resync zufällig nah dran,
         //    verfehlt sie das knapp. Dieser Pfad ist der garantierte, kein Ersatz für die
         //    Heuristik (die bleibt für Reanchor/Tempo-Sprung ohne Tastendruck).
-        // stepSeqEngine existiert erst weiter unten (TDZ-sicher, Closure liest erst beim Klick,
-        // dasselbe Muster wie chordUp/chordDown weiter unten in dieser Datei).
-        if (id === 'bang') stepSeqEngine.armBeatSync();
-        else if (id === 'bang2') stepSeqEngine.resyncPhase();
+        // sqManager verteilt an ALLE Sq-Engines (Multi-Sq) — existiert erst weiter unten
+        // (TDZ-sicher, Closure liest erst beim Klick, dasselbe Muster wie chordUp/chordDown).
+        if (id === 'bang') sqManager.armBeatSync();
+        else if (id === 'bang2') sqManager.resyncPhase();
     },
     audioInfo: () => {
         taktEngine.ensureAudio();
@@ -396,34 +397,42 @@ routing.registerModule('polysynth', {
 // 20260723_124045). Start/Stop-Kopplung (_onTaktRunning) und Beat-Anker (onClockBeat) s.u.
 const STEPSEQ_LS = 'werkbank_stepseq';
 const stepSeqDefsObj = stepSeqDefs();
-const stepSeqState = new MiniState(stepSeqDefsObj.DEFAULTS, STEPSEQ_LS);
+// Multi-Sq (@dpa 20260723_140151, Entscheidung „Sq = eigene Gruppe"): die flachen Template-
+// Einträge aus stepSeqDefs() werden zur PRO-SQ-VORLAGE (sqTpl); die Live-defs-Objekte, die
+// mountGroups per Referenz behält, starten LEER und werden vom Sq-Manager je Sequenzer
+// indiziert befüllt (seqMult_0, seqMult_1, …). So baut JEDE Sq — auch die erste — über
+// denselben dynamischen addGroup-Weg, statt einen statischen Sonderpfad für Sq 0 zu pflegen.
+const sqTpl = {
+    KNOBS: { ...stepSeqDefsObj.KNOBS }, SELECTS: { ...stepSeqDefsObj.SELECTS },
+    TOGGLES: { ...stepSeqDefsObj.TOGGLES }, DEFAULTS: { ...stepSeqDefsObj.DEFAULTS },
+};
+stepSeqDefsObj.KNOBS = {}; stepSeqDefsObj.SELECTS = {}; stepSeqDefsObj.TOGGLES = {};
+stepSeqDefsObj.DEFAULTS = {}; stepSeqDefsObj.GROUPS = [];
+const stepSeqState = new MiniState({}, STEPSEQ_LS);
 const stepSeqRoot = document.querySelector('#stepseq');
 const stepSeq = mountGroups(stepSeqRoot, stepSeqState, stepSeqDefsObj, {
     instrumentScaled: () => stepSeqInstr.scaled(),
 });
-// Output-Routing (@dpa: „Output selector — die kriegen im Moment AmpEnv mit OSZ"): EINE
-// funktionierende Quelle bislang, bewusst über den Selector geführt statt fest verdrahtet,
-// damit ein späteres zweites Ziel nur eine neue Option + ein neuer Zweig hier braucht.
-// Zustellung läuft seit Phase 2 Paket C über die Registry (routing.emit) statt über einen
-// direkten polySynthEngine-Aufruf — die gehaltene-Note-Verwaltung (PHASE2_SPEC.md: „dieselbe
-// Note bleibt gehalten, bis sich die BaseFreq-Tonklasse ändert") lebt jetzt GEKAPSELT in
-// polySynthEngine.triggerFromEnv() (lib/polysynth/engine.js), nicht mehr hier als
-// Modul-globales `_seqHeldNote`.
 const getBeatDurMs = () => 60000 / Math.max(1, taktState.get('bpm'));
-const stepSeqEngine = createStepSeqEngine(stepSeqState, getBeatDurMs, (envHeight) => {
-    if (stepSeqState.get('seqOutput') !== 'AmpEnv+OSZ') return;   // andere Optionen: noch kein Ziel verdrahtet
-    routing.emit({ module: 'stepseq', port: 'amp' }, envHeight);
+// Ein Manager für N Sequenzer-Gruppen: baut/entfernt Sqs (die beiden ISM-Buttons), verteilt
+// Clock/Transport an ALLE Engines/Grids. engine.js + StepSeqGrid.js bleiben unverändert — sie
+// bekommen über einen scoped State-View ihre flachen Keys auf die indizierten umgeschrieben.
+// Output-Routing (@dpa: „Output selector — AmpEnv mit OSZ"): alle Sqs teilen sich vorerst den
+// einen 'stepseq→polysynth.trig'-Weg; pro-Sq-Outputs (Punkt 1, BaseFreq/Keyboard/Speicher/
+// AmpEnv-Gate) baut Sonnet darauf auf. Zustellung läuft seit Phase 2 Paket C über die Registry
+// (routing.emit), die gehaltene-Note-Verwaltung liegt gekapselt in polySynthEngine.triggerFromEnv().
+const sqManager = createSqManager({
+    host: stepSeq, state: stepSeqState, defs: stepSeqDefsObj, tpl: sqTpl,
+    getBeatDurMs, routing, createEngine: createStepSeqEngine,
+    makeGrid: (st, eng) => new StepSeqGrid(st, eng),
 });
-const stepSeqGrid = new StepSeqGrid(stepSeqState, stepSeqEngine);
-stepSeq.mountInGroup('Stepsequenzer', stepSeqGrid.element, 'u:seqGrid');
-stepSeq.registerCtrlStyle('u:seqGrid', 'stepseq', stepSeqGrid.element, (s) => stepSeqGrid.applyStyle(s), 'Steps');
+sqManager.init();   // Migration Alt-Stand (flache Keys → Sq 0), dann alle gespeicherten Sqs bauen
 stepSeq.refresh();
-window.__stepseq = { state: stepSeqState, host: stepSeq, engine: stepSeqEngine, grid: stepSeqGrid };
-// Routing-Anmeldung + die tatsächlich migrierte Verbindung (Paket C, s. PHASE2_SPEC.md
-// Migrationsweg Punkt 6): Stepseq.amp → Poly.trig ist jetzt die ECHTE Zustellung (oben
-// routing.emit), nicht mehr nur deklariert wie takt.beat→rec.clock weiter unten.
+window.__stepseq = { state: stepSeqState, host: stepSeq, mgr: sqManager };
+// Routing-Anmeldung + die migrierte Verbindung (Paket C, PHASE2_SPEC.md Punkt 6): Stepseq.amp
+// → Poly.trig ist die ECHTE Zustellung (oben routing.emit), nicht nur deklariert.
 routing.registerModule('stepseq', {
-    label: 'Stepsequenzer', latency: stepSeqEngine.latency,
+    label: 'Stepsequenzer', latency: sqManager.latency,
     ...bindPorts(stepSeqDefsObj.ports, {}),
 });
 routing.connect({ module: 'stepseq', port: 'amp' }, { module: 'polysynth', port: 'trig' });
@@ -460,7 +469,7 @@ taktEngine.onClockBeat((t, beat) => {
     recEngine.handleClockBeat(t, beat);
     const ctx = taktEngine.context;
     const beatMs = ctx ? performance.now() + (t - ctx.currentTime) * 1000 : performance.now();
-    stepSeqEngine.handleClockBeat(beatMs);
+    sqManager.handleClockBeat(beatMs);
 });
 // Takt gestoppt, während Rec noch auf den nächsten Downbeat wartete → Arm sofort auflösen
 // (@dpa 20260722_013727), statt für immer blinkend hängenzubleiben. Stepseq hängt hier mit
@@ -469,7 +478,7 @@ taktEngine.onClockBeat((t, beat) => {
 // (s. _onTaktRunning oben, Zeile ~92) statt ihn zu überschreiben.
 _onTaktRunning = (on) => {
     if (!on) recEngine.clockStopped();
-    if (on) stepSeqEngine.transportStarted(); else stepSeqEngine.transportStopped();
+    sqManager.transport(on);
 };
 // Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
 // den „armed, wartet auf nächsten Takt-Downbeat"-Zustand (Rec-Instrument-TODO 5).
@@ -509,7 +518,7 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: lev
 (function tick(nowMs) {
     baseKeyboard.tick(); toneReadout.tick(); freqReadout.tick();
     levelMeter.tick();
-    stepSeqEngine.tick(nowMs); stepSeqGrid.tick();
+    sqManager.tick(nowMs);
     routing.flush();   // verbundene VALUE-Ports sampeln (Phase 2.3) — Event-Ports laufen über emit()
     requestAnimationFrame(tick);
 })();
