@@ -89,13 +89,30 @@ try:
         after = pg.evaluate("() => document.querySelector('.group[data-group=\"Stepsequenzer\"] canvas.seq-canvas').toDataURL()")
         check(before != after, "Canvas sollte sich SOFORT ändern (gestoppt), auch ohne tick()-Loop")
 
-        # ── Header Reset/Struktur bei keyMidi registriert (Punkt 5, ddw.md) ──
+        # ── Header Reset/Struktur bei keyMidi registriert UND zeigen das Learn-Panel wie
+        # ihre Geschwister-Buttons (Punkt 5, ddw.md — @dpa 20260724_003531 image-3/4.png:
+        # „beide auf beidem nicht" — ohne self:true blieb das Panel unsichtbar). ──
         reg = pg.evaluate("""() => {
-            const t = window.__takt.host.keyMidi._targets;
-            return { reset: t.has('hdr:headerreset'), struct: t.has('hdr:structurebtn') };
+            const km = window.__takt.host.keyMidi;
+            const t = km._targets;
+            const before = { reset: t.has('hdr:headerreset'), struct: t.has('hdr:structurebtn'),
+                              resetSelf: t.get('hdr:headerreset').self, structSelf: t.get('hdr:structurebtn').self };
+            km.setKeyEdit(true);
+            const afterKey = { reset: !!t.get('hdr:headerreset').selfPanel, struct: !!t.get('hdr:structurebtn').selfPanel };
+            km.setKeyEdit(false);
+            km.setMidiEdit(true);
+            const afterMidi = { reset: !!t.get('hdr:headerreset').selfPanel, struct: !!t.get('hdr:structurebtn').selfPanel };
+            km.setMidiEdit(false);
+            return { before, afterKey, afterMidi };
         }""")
-        check(reg["reset"] is True, f"hdr:headerreset sollte bei keyMidi registriert sein: {reg}")
-        check(reg["struct"] is True, f"hdr:structurebtn sollte bei keyMidi registriert sein: {reg}")
+        check(reg["before"]["reset"] is True, f"hdr:headerreset sollte bei keyMidi registriert sein: {reg}")
+        check(reg["before"]["struct"] is True, f"hdr:structurebtn sollte bei keyMidi registriert sein: {reg}")
+        check(reg["before"]["resetSelf"] is True, f"hdr:headerreset sollte self:true sein (Panel-Zeile statt Badge): {reg}")
+        check(reg["before"]["structSelf"] is True, f"hdr:structurebtn sollte self:true sein: {reg}")
+        check(reg["afterKey"]["reset"] is True and reg["afterKey"]["struct"] is True,
+              f"Tasten-Modus: beide sollten ein Learn-Panel zeigen: {reg}")
+        check(reg["afterMidi"]["reset"] is True and reg["afterMidi"]["struct"] is True,
+              f"MIDI-Modus: beide sollten ein Learn-Panel zeigen: {reg}")
 
         errs = [e for e in errors if "favicon" not in e.lower()]
         check(len(errs) == 0, f"Console-/Page-Errors: {errs}")
