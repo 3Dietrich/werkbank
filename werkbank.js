@@ -317,8 +317,10 @@ routing.registerModule('polysynth', {
 // Stepsequenzer, Basisclock (n*BaseFreq) mit Teiler (Clock/n) als trigger source. Erstmal
 // aus teslacoil 'rüberkopieren' und technisch einbinden. er kriegt ein Output selector - die
 // kriegen im Moment AmpEnv mit OSZ") ─────────────────────────────────────────────────────
-// Eigener MiniState/eigene Gruppe wie Rec/Takt+Metronom — die Basisclock liest Poly-Synths
-// BaseFreq nur LESEND (getBaseFreq-Closure), keine harte Kopplung an dessen State.
+// Eigener MiniState/eigene Gruppe wie Rec/Takt+Metronom. PHASE4_SPEC.md Paket 4A: die
+// Basisclock hängt jetzt am Takt-Tempo (getBeatDurMs-Closure, nur LESEND) statt an Poly-
+// Synths BaseFreq — @dpas Kern-Vorwurf „Null mit Tempo/Start/Sync verbunden" (ddw.md
+// 20260723_124045). Start/Stop-Kopplung (_onTaktRunning) und Beat-Anker (onClockBeat) s.u.
 const STEPSEQ_LS = 'werkbank_stepseq';
 const stepSeqDefsObj = stepSeqDefs();
 const stepSeqState = new MiniState(stepSeqDefsObj.DEFAULTS, STEPSEQ_LS);
@@ -334,7 +336,8 @@ const stepSeq = mountGroups(stepSeqRoot, stepSeqState, stepSeqDefsObj, {
 // Note bleibt gehalten, bis sich die BaseFreq-Tonklasse ändert") lebt jetzt GEKAPSELT in
 // polySynthEngine.triggerFromEnv() (lib/polysynth/engine.js), nicht mehr hier als
 // Modul-globales `_seqHeldNote`.
-const stepSeqEngine = createStepSeqEngine(stepSeqState, () => polySynthEngine.baseFreq(), (envHeight) => {
+const getBeatDurMs = () => 60000 / Math.max(1, taktState.get('bpm'));
+const stepSeqEngine = createStepSeqEngine(stepSeqState, getBeatDurMs, (envHeight) => {
     if (stepSeqState.get('seqOutput') !== 'AmpEnv+OSZ') return;   // andere Optionen: noch kein Ziel verdrahtet
     routing.emit({ module: 'stepseq', port: 'amp' }, envHeight);
 });
@@ -370,11 +373,19 @@ const recDefs = recInstrumentDefs({ onAction: (id, phase) => recEngine.onAction(
 const rec = mountGroups(recRoot, recState, recDefs, {
     instrumentScaled: () => recInstr.scaled(),
 });
-taktEngine.onClockBeat((t, beat) => recEngine.handleClockBeat(t, beat));
+// Roher Scheduler-Beat, fan-out an Rec (Downbeat-Arming) UND Stepseq (Beat-Anker,
+// PHASE4_SPEC.md 4A.3 — taktEngine.onClockBeat ist ein Einzel-Callback, deshalb hier
+// gebündelt statt überschrieben).
+taktEngine.onClockBeat((t, beat) => { recEngine.handleClockBeat(t, beat); stepSeqEngine.handleClockBeat(t); });
 // Takt gestoppt, während Rec noch auf den nächsten Downbeat wartete → Arm sofort auflösen
-// (@dpa 20260722_013727), statt für immer blinkend hängenzubleiben. Hängt sich an den EINEN
-// taktEngine.onRunning-Callback an (s. _onTaktRunning oben, Zeile ~203) statt ihn zu überschreiben.
-_onTaktRunning = (on) => { if (!on) recEngine.clockStopped(); };
+// (@dpa 20260722_013727), statt für immer blinkend hängenzubleiben. Stepseq hängt hier mit
+// dran (PHASE4_SPEC.md 4A.4): Start armt auf Step 0 (Downbeat-phasengleich), Stop lässt die
+// Position auf -1 verfallen. Hängt sich an den EINEN taktEngine.onRunning-Callback an
+// (s. _onTaktRunning oben, Zeile ~92) statt ihn zu überschreiben.
+_onTaktRunning = (on) => {
+    if (!on) recEngine.clockStopped();
+    if (on) stepSeqEngine.transportStarted(); else stepSeqEngine.transportStopped();
+};
 // Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
 // den „armed, wartet auf nächsten Takt-Downbeat"-Zustand (Rec-Instrument-TODO 5).
 recEngine.onRecording((on) => rec.setCtrlOn('b:rec', on));
