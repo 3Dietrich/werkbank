@@ -3,13 +3,13 @@
 > **Zweck:** Eine KI (auch ein kleines Modell) soll für einen ddw.md-Punkt NUR diese Karte
 > + die 1–2 Zieldateien laden müssen — nicht das ganze Projekt. Die Modul-Köpfe (erste
 > ~30 Zeilen jeder Datei) sind ausführlich; bei Unklarheit zuerst dort lesen.
-> Stand: 2026-07-19. Zeilenangaben sind Richtwerte, nicht exakt.
+> Stand: 2026-07-23. Zeilenangaben sind Richtwerte, nicht exakt.
 
 ## Bereich → Datei
 
 | UI-Bereich / Thema | Datei | Kern |
 |---|---|---|
-| Seiten-Aufbau, Demo-Verdrahtung | `werkbank.js` (224 Z.) | bewusst dünn, stellt nur Bausteine hin |
+| Seiten-Aufbau, Demo-Verdrahtung | `werkbank.js` (769 Z.) | bewusst dünn (Demo-Bausteinschaukasten seit Phase 0.3 raus), verdrahtet nur die ISMs |
 | Gruppen, e-Mode (Anordnen), Control-Fabriken | `lib/group/GroupHost.js` (1055 Z.) | `mountGroups()`, Port aus teslacoil |
 | Knob/Fader-Control selbst (Zeichnung, Drag) | `lib/Knob.js` (707 Z.) | SVG-Knob, Kurven, Gestalten |
 | Knob-Settings-Panel (Gestalt/Größe/Farbe/Range) | `lib/KnobMetaEditor.js` (505 Z.) | Rechtsklick auf Knob |
@@ -20,7 +20,7 @@
 | Takt/Metronom: Control-Definitionen | `lib/taktmetro/defs.js` (119 Z.) | deklarative `defs` für mountGroups |
 | Takt/Metronom: Audio-Verdrahtung | `lib/taktmetro/engine.js` (129 Z.) | `onAction(id)`, `ensureAudio()` |
 | Metronom-Klang (DSP) | `lib/taktmetro/audio/` (metro, clock, tapTempo, dsp/) | 1:1 aus taktgeber |
-| Step-Sequencer (UI / Logik) | `lib/StepSeqUI.js` / `lib/stepSeq.js` | |
+| Stepsequenzer (eigenes ISM) | `lib/stepseq/` (`defs.js` · `engine.js` · `seqCore.js` · `ui/StepSeqGrid.js`) | `createStepSeqEngine(state, ...)`; `seqCore.js` = reine Logik, aus alter `lib/stepSeq.js` gezogen (Phase 0.2) |
 | Presets / Snapshots | `lib/PresetManager.js` (414 Z.) | inkl. Namensregel `renameIn` |
 | Dropdown-Menüs | `lib/PickMenu.js` (218 Z.) | |
 | Hilfe-Texte (Hints, editierbar) | `lib/hints.js` (412 Z.) + `lib/i18n.js` (273 Z.) | `factoryHint()`, `hint()`, DE/EN |

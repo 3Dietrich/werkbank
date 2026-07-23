@@ -17,7 +17,7 @@ drei Sorten zugeordnet sein — geraten wird nicht, nachgeschlagen:
 | Sorte | Was | Beispiel | Erkennungsmerkmal |
 |---|---|---|---|
 | **Control** | generisches Bedienelement, entsteht deklarativ aus `defs` (`KNOBS`/`SELECTS`/…), Rechtsklick öffnet seine Settings via `registerCtrlStyle()` | `k:bpm`, `t:kbHold`, `u:playKb` | Trägt ein `data-ctrl`-Präfix (s. Tabelle unten), hat KEINEN eigenen State/keine eigene Engine — sein Wert lebt in EINEM `defs.DEFAULTS`-Key des Instruments, das es mountet |
-| **Instrument** (von @dpa „ism" abgekürzt) | eigenständiger Baustein mit eigenem State + `defs.js` + `engine.js` + eigenem `mountGroups()`-Mount, eigene `.wb-bench`-Sektion in `index.html`, eigene `InstrumentSettings.js`-Instanz | `lib/taktmetro/`, `lib/polysynth/`, `lib/recInstrument/` | Hat eine eigene `MiniState` (eigener localStorage-Key), erscheint als eigener Menüpunkt/eigene Sektion, NICHT nur eine Gruppe innerhalb eines anderen Instruments |
+| **Instrument** (von @dpa „ism" abgekürzt) | eigenständiger Baustein mit eigenem State + `defs.js` + `engine.js` + eigenem `mountGroups()`-Mount, eigene `.wb-bench`-Sektion in `index.html`, eigene `InstrumentSettings.js`-Instanz | `lib/taktmetro/`, `lib/polysynth/`, `lib/recInstrument/`, `lib/stepseq/` | Hat eine eigene `MiniState` (eigener localStorage-Key), erscheint als eigener Menüpunkt/eigene Sektion, NICHT nur eine Gruppe innerhalb eines anderen Instruments |
 | **DSP-Baustein** | reine Audio-Mathematik, kein eigenes UI, 1:1 kopierbar zwischen Instrumenten | `lib/polysynth/audio/pulseWave.js`, `lib/polysynth/dsp/holdSlide.js` | Liegt in einem `audio/`- oder `dsp/`-Unterordner, exportiert reine Funktionen/Klassen ohne DOM-Berührung, kennt weder State noch GroupHost |
 
 Freistehende Widgets, die wie ein Instrument AUSSEHEN (eigenes `mount(parent)`, eigener
@@ -27,6 +27,33 @@ kein Instrument: sie bekommen ein `u:`-Präfix und werden per `registerCtrlStyle
 Gruppe eingehängt, s. `lib/polysynth/ui/PlayKeyboard.js` (Poly-Synth-Nacharbeiten,
 @dpa 20260721_203557 — Auslöser für diese Kern-Regel: das Keyboard stand vorher als lose
 DOM-Geschwister neben dem Panel, ohne Settings).
+
+### ISM-Namenskonvention (verbindlich)
+
+Ein Instrument (ism) MUSS diese Naht einhalten – **keine Klassen-Sonderform**:
+
+- Dateiname **muss** `engine.js` heißen (nicht `XEngine.js`, nicht `Engine.js`).
+- Export **muss** eine Factory-Funktion `createXEngine(state, ...)` sein (kein `new XEngine()`).
+
+**Hintergrund:** `lib/stepseq/` brach bis Phase 0.1 mit `StepSeqEngine.js`
+(`new StepSeqEngine`) aus dieser Konvention aus – das war der Auslöser für die Sanierung
+in [PLAN_OPERA.md](../PLAN_OPERA.md). Seitdem ist `lib/stepseq/engine.js` mit
+`createStepSeqEngine(state, opts)` die gleiche Naht wie taktmetro/polysynth/recInstrument.
+
+#### Neues-ISM-Checkliste
+
+Beim Anlegen eines neuen Instruments müssen alle sechs Punkte stehen, bevor es als „fertig"
+gilt:
+
+1. **`defs.js`** – deklarative `DEFAULTS`/`GROUPS`/`KNOBS`/… -Quelle (s. Control-Sorten oben).
+2. **`engine.js`** mit Factory `createXEngine(state, ...)` – keine Klasse, kein anderer Dateiname.
+3. **Eigener `MiniState` + eigener `localStorage`-Key** – isolierte Naht, kein Mitbenutzen
+   des `state` einer anderen Instanz.
+4. **Eigene `.wb-bench`-Sektion** in `index.html` (eigene `id`, eigener Mount-Punkt).
+5. **Eigene `InstrumentSettings.js`-Instanz** (`mountInstrumentSettings(...)`).
+6. **Reine Logik in einem eigenen `*core.js`** statt Fremd-Import aus einem anderen
+   Instrument/Altbestand (s. `lib/stepseq/seqCore.js` als Muster – Phase 0.2 zog die
+   gebrauchten Helfer aus der alten `lib/stepSeq.js` genau dorthin).
 
 Architektur-weiter Einstieg für „welcher Bereich, welche Datei": [ARCHITEKTUR.md](../ARCHITEKTUR.md).
 
