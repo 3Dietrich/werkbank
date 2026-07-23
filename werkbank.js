@@ -77,15 +77,16 @@ const taktEngine = createTaktEngine(taktState);
 const taktDefs = taktMetroDefs({
     onAction: (id, phase) => {
         taktEngine.onAction(id, phase);
-        // Resync reicht ans Sequenzer-ISM weiter (@dpa 20260723_1400/1427: „Metronom springt,
-        // Sequenzer läuft stur weiter" bzw. „! funktioniert noch immer nicht"). Zwei Fälle,
-        // bewusst UNTERSCHIEDLICH behandelt:
+        // Resync reicht ans Sequenzer-ISM weiter (@dpa 20260723_1400/1427/1455: „Metronom
+        // springt, Sequenzer läuft stur weiter" / „! funktioniert noch immer nicht" / "'!'
+        // soll auf den BPM-Schlag synchron syncen, nicht sofort bei jeder Geschwindigkeit").
+        // Zwei Fälle, bewusst UNTERSCHIEDLICH behandelt:
         //  - 'bang' ('!', weich): bewegt KEINE Audio-Zeit (Clock.resync(false) setzt nur
         //    beatInBar=0, `_next` bleibt stehen — „der Takt läuft unbeirrt weiter"). Der
-        //    Sequenzer bekommt darum auch keinen sofortigen Trigger, sondern nur resetSeq()
-        //    (wie der eigene set0-Knopf): der NÄCHSTE ohnehin fällige Trigger landet auf
-        //    Step 0, statt die Zählung fortzusetzen — sichtbare Wirkung, ohne eine Zeit
-        //    vorzutäuschen, die es nicht gibt.
+        //    Sequenzer bekommt darum auch keinen sofortigen Trigger, sondern armBeatSync():
+        //    exakt der NÄCHSTE rohe Beat (nicht der nächste Sequenzer-eigene Sub-Trigger bei
+        //    seqMult/seqDiv≠1/1) wird zum neuen Anker + Step 0 — BPM-Schlag und Seq.-Anfang
+        //    bleiben so synchron, egal welche Geschwindigkeit eingestellt ist.
         //  - 'bang2' ('!!', hart): reicht den Phasen-Sprung EXPLIZIT an resyncPhase() weiter.
         //    Die Zeit-Heuristik in stepSeqEngine.handleClockBeat (4A.3) erkennt Sprünge nur,
         //    wenn sie GENUG vom alten Raster abweichen — liegt der Resync zufällig nah dran,
@@ -93,7 +94,7 @@ const taktDefs = taktMetroDefs({
         //    Heuristik (die bleibt für Reanchor/Tempo-Sprung ohne Tastendruck).
         // stepSeqEngine existiert erst weiter unten (TDZ-sicher, Closure liest erst beim Klick,
         // dasselbe Muster wie chordUp/chordDown weiter unten in dieser Datei).
-        if (id === 'bang') stepSeqEngine.resetSeq();
+        if (id === 'bang') stepSeqEngine.armBeatSync();
         else if (id === 'bang2') stepSeqEngine.resyncPhase();
     },
     audioInfo: () => {
