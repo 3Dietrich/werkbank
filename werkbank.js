@@ -13,6 +13,7 @@ import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js'
 import { factoryHint } from './lib/hints.js';
 import { hint } from './lib/i18n.js';
 import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
+import { ElementSettings } from './lib/ElementSettings.js';
 import { taktMetroDefs } from './lib/taktmetro/defs.js';
 import { createTaktEngine } from './lib/taktmetro/engine.js';
 import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
@@ -39,6 +40,57 @@ import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
 // Globaler Fallback-State: wird von hintResolve() weiter unten genutzt, wenn ein Control
 // zu keinem der eigenen Instrumenten-States gehört (s. Kommentar dort).
 const state = new MiniState();
+
+// ── Header-Button-Settings (@dpa 20260723_1500ff: „die Header-Buttons bitte mit `Button`
+// settings") ─────────────────────────────────────────────────────────────────────────
+// Dieselbe Rechtsklick-Optik wie jeder normale Button-Control (GroupHost.registerCtrlStyle),
+// von Hand nachgebaut — der Header ist keine Gruppe (gleiches Muster wie MasterVolume.js).
+// Persistenz in state.ctrlStyles (globaler werkbank_state), Panel bleibt „rein optisch"
+// (ElementSettings.js-Doktrin): btnMode ist Teil des generischen 'button'-Feldsatzes und
+// bleibt im Panel sichtbar, wirkt hier aber bewusst NICHT — jeder Header-Button hat sein
+// eigenes, festverdrahtetes Klick-Verhalten (Reset=einmalig, Config/Struktur/Rec-Format=
+// auf/zu, Tasten/MIDI/Hints=Dauer-Toggle über `.active`).
+const hdrElemSettings = new ElementSettings(state);
+hdrElemSettings.onApply = (id, style) => {
+    const cur = { ...(state.get('ctrlStyles') || {}) };
+    if (style && Object.keys(style).length) cur[id] = style; else delete cur[id];
+    state.set('ctrlStyles', cur);
+};
+function wireHeaderBtnSettings(id, btn, defLabel) {
+    const field = document.createElement('div'); field.className = 'btn-field hdr-btn-field';
+    const labelEl = document.createElement('span'); labelEl.className = 'btn-label';
+    field.append(labelEl, btn);
+    field.dataset.ctrl = id;
+    const baseText = btn.textContent;
+    const applyStyle = (s) => {
+        labelEl.textContent = s.label || '';
+        field.classList.remove('btn-label-top', 'btn-label-left', 'btn-label-right', 'btn-label-bottom', 'btn-label-off');
+        field.classList.add('btn-label-' + (s.labelPos || 'off'));
+        const onText = s.textOn || baseText, offText = s.textOff || baseText;
+        btn._applyBtnStyle = () => {
+            const on = btn.classList.contains('active');
+            btn.textContent = on ? onText : offText;
+            btn.style.background = on ? (s.bgOn || '') : (s.bg || '');
+        };
+        btn.style.color = s.fg || '';
+        btn.style.fontSize = s.size ? s.size + 'px' : '';
+        btn.style.padding = s.pad != null ? s.pad + 'px' : '';
+        btn.style.width = s.boxSize ? s.boxSize + 'px' : '';
+        btn.style.height = s.boxH ? s.boxH + 'px' : '';
+        btn._applyBtnStyle();
+    };
+    // `.active` wird von jedem Header-Button anders/eigenständig geschaltet (s.o.) — statt
+    // an jeder Stelle einzeln nachzuziehen, EIN MutationObserver auf die Klasse: repaint
+    // (Text/BG) läuft dann für alle 7 Buttons automatisch mit, ohne deren Klick-Logik anzufassen.
+    new MutationObserver(() => btn._applyBtnStyle && btn._applyBtnStyle())
+        .observe(btn, { attributes: true, attributeFilter: ['class'] });
+    field.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        hdrElemSettings.open({ id, type: 'button', el: field, defLabel, applyStyle });
+    });
+    applyStyle((state.get('ctrlStyles') || {})[id] || {});
+    return field;
+}
 
 // ── Master Volume (@dpa 20260722, ddw.md „wir brauchen einen Master Volume") ──────────
 // Header-Fader, eigener State (nicht an ein Instrument gebunden — wirkt auf lib/audioBus.js,
@@ -485,7 +537,7 @@ const mkHeaderToggle = (id, label, title, onToggle) => {
         onToggle(on);
     });
     btn._onToggle = onToggle;
-    document.querySelector('.topbar-right').appendChild(btn);
+    document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:' + id, btn, label));
     return btn;
 };
 // Jedes Instrument hat sein EIGENES KeyMidi (eigener mountGroups-Aufruf) — der globale
@@ -554,7 +606,7 @@ function exportConfig() {
 const cfgBtn = document.createElement('button');
 cfgBtn.className = 'pb-btn'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
 cfgBtn.textContent = '⚙ Config'; cfgBtn.title = 'Konfiguration exportieren/importieren (zum Übergeben)';
-document.querySelector('.topbar-right').appendChild(cfgBtn);
+document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:cfgmenu', cfgBtn, '⚙ Config'));
 const fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.json,application/json'; fileIn.style.display = 'none';
 document.body.appendChild(fileIn);
 fileIn.addEventListener('change', () => {
@@ -587,12 +639,17 @@ cfgBtn.addEventListener('click', () => {
 });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
 
-// Sichtbarer Header-Reset (PLAN_OPERA.md 1.3, @dpa: Reset war nur unter ⚙ Config versteckt).
+// Sichtbarer Header-Button (PLAN_OPERA.md 1.3, @dpa 20260723: „Header/Reset: falsch verstanden!
+// Es soll hängendes Audio reseten! NICHT alles! Nur das momentane Audio" — der volle Wipe
+// (localStorage leeren) bleibt bewusst NUR im ⚙ Config-Menü (doReset oben, absichtlich weniger
+// erreichbar für eine so folgenreiche Aktion). Der schnell erreichbare Header-Button ist ein
+// Panik-Knopf: klingende/hängende Voices sofort stumm, aber Einstellungen/Anordnung/Transport
+// bleiben unangetastet.
 const resetBtn = document.createElement('button');
 resetBtn.className = 'pb-btn'; resetBtn.id = 'headerreset'; resetBtn.type = 'button';
-resetBtn.textContent = '↺ Reset'; resetBtn.title = 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)';
-resetBtn.addEventListener('click', doReset);
-document.querySelector('.topbar-right').appendChild(resetBtn);
+resetBtn.textContent = '🔇 Audio-Reset'; resetBtn.title = 'Hängende/klingende Noten sofort stummschalten (keine Einstellungen betroffen)';
+resetBtn.addEventListener('click', () => { polySynthEngine.allNotesOff(); });
+document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:headerreset', resetBtn, '🔇 Audio-Reset'));
 
 // Struktur-Ansicht (Phase 3, PLAN_OPERA.md/PHASE3_SPEC.md): read-only Karte der
 // Routing-Registry — macht die seit Phase 2 bestehende, aber unsichtbare Verkabelung
@@ -601,7 +658,7 @@ document.querySelector('.topbar-right').appendChild(resetBtn);
 const structureBtn = document.createElement('button');
 structureBtn.className = 'pb-btn'; structureBtn.id = 'structurebtn'; structureBtn.type = 'button';
 structureBtn.textContent = '⧉ Struktur'; structureBtn.title = 'Struktur-Ansicht: Module + Verbindungen (nur ansehen)';
-document.querySelector('.topbar-right').appendChild(structureBtn);
+document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:structurebtn', structureBtn, '⧉ Struktur'));
 const structureView = createStructureView(routing, { button: structureBtn });
 structureBtn.addEventListener('click', () => { structureView.isOpen() ? structureView.close() : structureView.open(); });
 window.__structure = { view: structureView };
@@ -619,7 +676,7 @@ const REC_FORMATS = [
 const recFmtBtn = document.createElement('button');
 recFmtBtn.className = 'pb-btn'; recFmtBtn.id = 'recfmtmenu'; recFmtBtn.type = 'button';
 recFmtBtn.textContent = '⚙ Rec-Format'; recFmtBtn.title = 'Aufnahme-Ausgabeformat (global, für alle Aufnahmen)';
-document.querySelector('.topbar-right').appendChild(recFmtBtn);
+document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format'));
 let recFmtPop = null;
 const closeRecFmt = () => { if (recFmtPop) { recFmtPop.remove(); recFmtPop = null; document.removeEventListener('mousedown', recFmtOutside, true); recFmtBtn.classList.remove('active'); } };
 const recFmtOutside = (e) => { if (recFmtPop && !recFmtPop.contains(e.target) && e.target !== recFmtBtn) closeRecFmt(); };
