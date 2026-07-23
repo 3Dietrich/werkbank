@@ -75,7 +75,18 @@ const taktEngine = createTaktEngine(taktState);
 // audioInfo: echte Latenz/Samplerate fürs Tab-Sonderfenster (Punkt A). ensureAudio() baut den
 // Context (bleibt stumm bis Start) → SR + Basislatenz sind sofort echt, Ausgabelatenz sobald bekannt.
 const taktDefs = taktMetroDefs({
-    onAction: (id, phase) => taktEngine.onAction(id, phase),
+    onAction: (id, phase) => {
+        taktEngine.onAction(id, phase);
+        // Hard-Resync ('!!', „die 1 fällt sofort") reicht den Phasen-Sprung EXPLIZIT an den
+        // Sequenzer weiter (@dpa 20260723_1400: „Metronom springt korrekt, aber der Sequenzer
+        // läuft stur weiter"). Die Zeit-Heuristik in stepSeqEngine.handleClockBeat (4A.3)
+        // erkennt Sprünge nur, wenn sie GENUG vom alten Raster abweichen — liegt der Resync
+        // zufällig nah dran, verfehlt sie das knapp. Dieser Pfad ist der garantierte, kein
+        // Ersatz für die Heuristik (die bleibt für Reanchor/Tempo-Sprung ohne Tastendruck).
+        // stepSeqEngine existiert erst weiter unten (TDZ-sicher, Closure liest erst beim Klick,
+        // dasselbe Muster wie chordUp/chordDown weiter unten in dieser Datei).
+        if (id === 'bang2') stepSeqEngine.resyncPhase();
+    },
     audioInfo: () => {
         taktEngine.ensureAudio();
         const c = taktEngine.context;
@@ -376,7 +387,19 @@ const rec = mountGroups(recRoot, recState, recDefs, {
 // Roher Scheduler-Beat, fan-out an Rec (Downbeat-Arming) UND Stepseq (Beat-Anker,
 // PHASE4_SPEC.md 4A.3 — taktEngine.onClockBeat ist ein Einzel-Callback, deshalb hier
 // gebündelt statt überschrieben).
-taktEngine.onClockBeat((t, beat) => { recEngine.handleClockBeat(t, beat); stepSeqEngine.handleClockBeat(t); });
+// `t` ist AudioContext-Zeit in SEKUNDEN (dieselbe Größe, mit der scheduleBeat/metroTick
+// oben rechnen) — stepSeqEngine.tick() läuft dagegen auf performance.now()-Millisekunden
+// (rAF-Render-Loop). Umrechnen wie recEngine.handleClockBeat/scheduleBeat es schon tun
+// ((t - ctx.currentTime) = Vorlauf in Sekunden, ×1000 auf die reale Uhr draufaddiert) —
+// ohne diese Umrechnung bleibt der Beat-Anker witzlos (@dpa 20260723_1400: „!! springt
+// beim Metronom, aber der Sequenzer läuft stur weiter" — genau dieser Bug: der Anker
+// verglich Audio-Sekunden mit rAF-Millisekunden und korrigierte de facto nie etwas).
+taktEngine.onClockBeat((t, beat) => {
+    recEngine.handleClockBeat(t, beat);
+    const ctx = taktEngine.context;
+    const beatMs = ctx ? performance.now() + (t - ctx.currentTime) * 1000 : performance.now();
+    stepSeqEngine.handleClockBeat(beatMs);
+});
 // Takt gestoppt, während Rec noch auf den nächsten Downbeat wartete → Arm sofort auflösen
 // (@dpa 20260722_013727), statt für immer blinkend hängenzubleiben. Stepseq hängt hier mit
 // dran (PHASE4_SPEC.md 4A.4): Start armt auf Step 0 (Downbeat-phasengleich), Stop lässt die
