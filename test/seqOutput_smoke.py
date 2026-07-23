@@ -64,7 +64,11 @@ try:
         check(pop.count() == 1, f"PickMenu-Popup öffnet nicht, count={pop.count()}")
         items = pop.locator('.pm-item')
         check(items.count() >= 1, f"erwartet mind. 1 Ziel in der Liste, gefunden: {items.count()}")
-        check('Poly-Synth' in (items.first.inner_text() or ''), f"erstes Ziel sollte Poly-Synth sein: {items.first.inner_text()!r}")
+        # Seit Punkt 3b (Phase B) stehen auch Takt/Metronom-Ports in der Liste — Reihenfolge
+        # ist die Modul-Registrierungsreihenfolge, nicht garantiert Poly-Synth zuerst. Prüfen
+        # reicht: der bekannte Trigger-Port ist IRGENDWO in der Liste vorhanden.
+        all_text = pop.inner_text()
+        check('Poly-Synth' in all_text and 'Trigger' in all_text, f"Poly-Synth-Trigger sollte in der Liste stehen: {all_text!r}")
         foot = pop.locator('.pm-foot-btn')
         check(foot.count() == 1, f"erwartet genau 1 Fußzeilen-Aktion (Reload), gefunden: {foot.count()}")
         group_reload = group.locator('button:has-text("Neu laden")')

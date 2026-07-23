@@ -177,7 +177,18 @@ window.__takt = { engine: taktEngine, state: taktState, host: takt };
 // s. weiter unten); die Registry kennt die Verbindung nur für die Struktur-Ansicht (Phase 3).
 routing.registerModule('takt', {
     label: 'Takt/Metronom', latency: taktEngine.latency,
-    ...bindPorts(taktDefs.ports, { outputs: {} }),
+    ...bindPorts(taktDefs.ports, {
+        outputs: {},
+        // Punkt 3b (ddw.md 20260724, Phase B): ALLE Takt/Metronom-Knobs + -Buttons als Sq-
+        // Ziele — dieselbe Brücke wie beim Poly-Synth (portGen.js), `takt.keyMidi` ist DIESES
+        // Instruments eigene KeyMidi-Instanz (nicht die globale `keyMidi`-Konstante weiter
+        // unten, die IST takt.keyMidi, aber existiert an dieser Stelle im Datei-Fluss noch
+        // nicht — s. TDZ-Hinweis dort).
+        inputs: {
+            ...knobWrites(taktState, taktDefs.KNOBS),
+            ...buttonWrites(takt.keyMidi, Object.keys(taktDefs.BUTTONS)),
+        },
+    }),
 });
 
 // ── Poly-Synth – Base-Frq + Audio-Osz, Port aus teslacoil (Schritt 1, @dpa 20260721) ──
