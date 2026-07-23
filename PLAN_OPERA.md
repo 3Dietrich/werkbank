@@ -57,12 +57,16 @@ index.html (alle ISMs mounten, keine Konsolenfehler).
 
 ## Phase 1 — Sichtbare Bugs (nach dem Aufräumen)
 
-### 1.1 Metronom wieder hörbar
-- **Befund:** Audio ist verdrahtet (taktmetro/engine.js → audio/metro.js/clock.js), aber du
-  hörst nichts. Verdacht: Routing seit MasterVolume/audioBus-Umbau (Metro hängt evtl. nicht
-  am gemeinsamen Bus / Limiter schluckt / eigener vs. Bus-Context).
-- **Vorgehen:** per Playwright reproduzieren, `git log` des taktmetro-Audiopfads prüfen
-  (Regression eingrenzen), EIN Change, dann **dein Hördurchgang** (nicht „gefixt" ohne dein Ohr).
+### 1.1 Metronom wieder hörbar — ✓ erledigt (20260723, kein Code-Fix nötig)
+- **Befund:** Audio ist verdrahtet (taktmetro/engine.js → audio/metro.js/clock.js), @dpa
+  hörte nichts. Verdacht: Routing seit MasterVolume/audioBus-Umbau.
+- **Untersuchung:** Playwright-Reproduktion (frischer Reload, echter Klick auf Start) zeigte
+  bei jedem Test ein kräftiges Signal komplett durch die Kette (master → volumeGain →
+  limiter → destination), Defaults unauffällig. Kein Code-Bug im Routing gefunden — der
+  LevelMeter-Commit hatte den einzigen bekannten Bug (blindes `disconnect()`) bereits
+  gefixt. Vermutung: stale localStorage-Zustand aus vorherigen Test-Sessions.
+- **Bestätigt (@dpa 20260723): „beides ist zu hören"** — Teil 1 UND Teil 2 (Onbeat/Offbeat)
+  klingen nach dem neuen Reset-Button (1.3) wieder normal. Kein Regressions-Fix nötig.
 
 ### 1.2 Echtes MIDI-Learn für die Keyboards
 - **Befund:** der „besondere" Learn (werkbank.js ~Z.389-404) lernt eine Note, kalibriert das
