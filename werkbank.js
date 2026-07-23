@@ -685,8 +685,12 @@ window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Hake
 const resetBtn = document.createElement('button');
 resetBtn.className = 'pb-btn'; resetBtn.id = 'headerreset'; resetBtn.type = 'button';
 resetBtn.textContent = '🔇 Audio-Reset'; resetBtn.title = 'Hängende/klingende Noten sofort stummschalten (keine Einstellungen betroffen)';
-resetBtn.addEventListener('click', () => { polySynthEngine.allNotesOff(); });
+const activateHeaderReset = () => { polySynthEngine.allNotesOff(); };
+resetBtn.addEventListener('click', activateHeaderReset);
 document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:headerreset', resetBtn, '🔇 Audio-Reset'));
+// MIDI-/Tasten-Learn (@dpa ddw.md 20260723_210324, „soll auch 'learn' kriegen") — dasselbe
+// keyMidi.register-Muster wie GroupHost.makeButton, activate = derselbe Effekt wie der Klick.
+keyMidi.register('hdr:headerreset', resetBtn, '🔇 Audio-Reset', activateHeaderReset);
 
 // Struktur-Ansicht (Phase 3, PLAN_OPERA.md/PHASE3_SPEC.md): read-only Karte der
 // Routing-Registry — macht die seit Phase 2 bestehende, aber unsichtbare Verkabelung
@@ -697,7 +701,10 @@ structureBtn.className = 'pb-btn'; structureBtn.id = 'structurebtn'; structureBt
 structureBtn.textContent = '⧉ Struktur'; structureBtn.title = 'Struktur-Ansicht: Module + Verbindungen (nur ansehen)';
 document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:structurebtn', structureBtn, '⧉ Struktur'));
 const structureView = createStructureView(routing, { button: structureBtn });
-structureBtn.addEventListener('click', () => { structureView.isOpen() ? structureView.close() : structureView.open(); });
+const activateStructureBtn = () => { structureView.isOpen() ? structureView.close() : structureView.open(); };
+structureBtn.addEventListener('click', activateStructureBtn);
+// MIDI-/Tasten-Learn (@dpa ddw.md 20260723_210324) — s. Kommentar bei headerreset oben.
+keyMidi.register('hdr:structurebtn', structureBtn, '⧉ Struktur', activateStructureBtn);
 window.__structure = { view: structureView };
 
 // ── Aufnahme-Format (Rec-Instrument-TODO 2, @dpa 20260721): globaler App-Default fürs
