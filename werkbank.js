@@ -447,8 +447,13 @@ const mkHeaderToggle = (id, label, title, onToggle) => {
 // Jedes Instrument hat sein EIGENES KeyMidi (eigener mountGroups-Aufruf) — der globale
 // Header-Schalter muss deshalb BEIDE zugleich schalten (Poly-Synth-Instrument Schritt 1,
 // @dpa 20260721: die neuen Base-Frq/Audio-Osz-Controls sollen wie taktgeber lernbar sein).
-const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setKeyEdit(on); polySynth.keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); });
-const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setMidiEdit(on); polySynth.keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); });
+// Bugfix (@dpa 20260723_124045, ddw.md: „Sequenzer ist immer noch in einem veralteten ISM
+// Hülle"): stepSeq.keyMidi fehlte hier UND im globalen Tastendruck-Dispatch (s.u.) — Stepseq
+// wurde später als die anderen drei ISMs angeflanscht, diese zwei Stellen wurden dabei nicht
+// nachgezogen. Tasten/MIDI-Learn wirkte über Stepseqs Controls (seqEnabled/seqOutput/
+// seqMult/seqDiv/u:seqGrid) dadurch NIE — kein Architektur-Thema, schlicht vergessen.
+const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setKeyEdit(on); polySynth.keyMidi.setKeyEdit(on); stepSeq.keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); });
+const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setMidiEdit(on); polySynth.keyMidi.setMidiEdit(on); stepSeq.keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); });
 keyBtn._radioPeer = midiBtn; midiBtn._radioPeer = keyBtn;
 
 // ── Help Hints (@dpa 20260720): die (editierten bzw. Auslieferungs-)Hilfetexte als Hover-Blase
@@ -459,9 +464,11 @@ const hintResolve = (el) => {
         const id = c.dataset.ctrl;
         // Jedes Instrument hat sein EIGENES hintText im eigenen State (@dpa 20260722_013727:
         // Bugfix — vorher fiel Poly-Synth/Rec immer auf das globale `state` zurück, darum
-        // tauchten dort editierte Hilfe-Texte nie als Hover-Blase auf).
+        // tauchten dort editierte Hilfe-Texte nie als Hover-Blase auf). Stepseq fehlte hier
+        // ebenfalls (@dpa 20260723_124045, s. Kommentar am keyBtn/midiBtn oben) — nachgezogen.
         const st = c.closest('#taktgeber') ? taktState
                  : c.closest('#polysynth') ? polySynthState
+                 : c.closest('#stepseq') ? stepSeqState
                  : c.closest('#rec') ? recState
                  : state;
         const own = (st.get('hintText') || {})[id];
@@ -678,6 +685,7 @@ keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.
 // Slots) nie (@dpa 20260722_155726: "die gesetzten shortcuts funktionieren nicht").
 window.addEventListener('keydown', (e) => keyMidi.dispatchKey(e));
 window.addEventListener('keydown', (e) => polySynth.keyMidi.dispatchKey(e));
+window.addEventListener('keydown', (e) => stepSeq.keyMidi.dispatchKey(e));
 window.addEventListener('keydown', (e) => rec.keyMidi.dispatchKey(e));
 
 // ESC stuft die Funktionsebenen ab (@dpa 20260720, Punkt D): pro ESC eine grobe Ebene, von
