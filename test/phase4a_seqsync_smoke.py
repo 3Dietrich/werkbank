@@ -67,13 +67,14 @@ try:
         }""")
 
         # bekanntes Tempo + voller Step-Puffer (jeder Step triggert, 1/1 muss den Beat treffen)
+        # Indizierte Keys (Multi-Sq-Umbau, s. lib/stepseq/multiSq.js scoped()) — Sq 0.
         pg.evaluate("""() => {
             window.__takt.state.set('bpm', 120);
-            window.__stepseq.state.set('seqSteps', new Array(120).fill(1));
-            window.__stepseq.state.set('seqLen', 8);
-            window.__stepseq.state.set('seqMult', 1);
-            window.__stepseq.state.set('seqDiv', 1);
-            window.__stepseq.state.set('seqEnabled', true);
+            window.__stepseq.state.set('seqSteps_0', new Array(120).fill(1));
+            window.__stepseq.state.set('seqLen_0', 8);
+            window.__stepseq.state.set('seqMult_0', 1);
+            window.__stepseq.state.set('seqDiv_0', 1);
+            window.__stepseq.state.set('seqEnabled_0', true);
         }""")
 
         # ── 1) An, aber Transport gestoppt → kein Puls (beweist die Start-Kopplung) ──
@@ -89,7 +90,7 @@ try:
               f"1/1-Abstand erwartet ≈500ms (±30ms), gemessen: {avg_11}")
 
         # ── 3a) seqMult=2 → ≈250ms (schneller/vervielfacht) ──
-        pg.evaluate("() => { window.__seqPulses.length = 0; window.__stepseq.state.set('seqMult', 2); }")
+        pg.evaluate("() => { window.__seqPulses.length = 0; window.__stepseq.state.set('seqMult_0', 2); }")
         time.sleep(1.8)
         avg_mult2 = avg_interval(pg.evaluate("() => window.__seqPulses.slice()"))
         check(avg_mult2 is not None and abs(avg_mult2 - 250) < 25,
@@ -98,8 +99,8 @@ try:
         # ── 3b) seqMult=1, seqDiv=2 → ≈1000ms (langsamer/geteilt) ──
         pg.evaluate("""() => {
             window.__seqPulses.length = 0;
-            window.__stepseq.state.set('seqMult', 1);
-            window.__stepseq.state.set('seqDiv', 2);
+            window.__stepseq.state.set('seqMult_0', 1);
+            window.__stepseq.state.set('seqDiv_0', 2);
         }""")
         time.sleep(5.2)
         avg_div2 = avg_interval(pg.evaluate("() => window.__seqPulses.slice()"))
@@ -107,11 +108,11 @@ try:
               f"seqDiv=2-Abstand erwartet ≈1000ms (±45ms), gemessen: {avg_div2}")
 
         # ── 4) Transport-Stop → Puls endet, Position -1; erneuter Start beginnt bei Step 0 ──
-        pos_before_stop = pg.evaluate("() => window.__stepseq.engine.seqPos()")
+        pos_before_stop = pg.evaluate("() => window.__stepseq.mgr.engineAt(0).seqPos()")
         check(pos_before_stop >= 0, f"vor dem Stop sollte eine Position mitten im Muster stehen: {pos_before_stop}")
         pg.evaluate("() => window.__takt.engine.onAction('start')")   # stop
         time.sleep(0.1)
-        pos_after_stop = pg.evaluate("() => window.__stepseq.engine.seqPos()")
+        pos_after_stop = pg.evaluate("() => window.__stepseq.mgr.engineAt(0).seqPos()")
         check(pos_after_stop == -1, f"nach Transport-Stop Position erwartet -1, ist: {pos_after_stop}")
         pg.evaluate("() => { window.__seqPulses.length = 0; }")
         time.sleep(0.8)
@@ -120,7 +121,7 @@ try:
 
         pg.evaluate("() => window.__takt.engine.onAction('start')")   # restart
         time.sleep(0.15)
-        pos_after_restart = pg.evaluate("() => window.__stepseq.engine.seqPos()")
+        pos_after_restart = pg.evaluate("() => window.__stepseq.mgr.engineAt(0).seqPos()")
         check(pos_after_restart == 0, f"nach Neustart erwartet Step 0, ist: {pos_after_restart}")
 
         # Panik, damit keine Voice den Rest des Laufs durchklingt.
