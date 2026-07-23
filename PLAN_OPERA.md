@@ -124,9 +124,12 @@ ports: {
 
 - Stepseq auf das Port-Modell heben: Aus-/Eingangs-Listen werden **automatisch** aus den
   Registry-Ports angeboten (AmpEnv · OSZ-F · OSZ-P · Keyboard/Speicher 0..n · BaseFreq 0..12).
-- **Teiler reparieren:** funktioniert aktuell nicht. **→ RÜCKFRAGE R1** (du hast eingeladen):
-  meine Vermutung — `seqDiv` war als Clock-Untersetzung gedacht (Trigger-Hz = BaseFreq·Mult÷Div),
-  wirkt im UI aber nicht. Was soll der Teiler im modularen Kontext genau tun?
+- **Teiler reparieren (geklärt @dpa 20260723):** der Teiler soll die **Clock vom Tempo**
+  in Step-Speed unterteilen — musikalisch wie beim Metronom (1/4, 1/8, …), aber als **n/m**.
+  D.h. die Trigger-Rate leitet sich vom **Takt-BPM** ab (nicht primär von BaseFreq wie im
+  jetzigen `BaseFreq·seqMult÷seqDiv`), als Bruch `n/m` des Beats. Umbau in Phase 4:
+  Basisclock-Quelle = Tempo (taktState.bpm), `seqMult/seqDiv` werden zu Zähler/Nenner der
+  Beat-Unterteilung. (BaseFreq-gekoppelter Puls kann als zweite wählbare Quelle bleiben.)
 - **3 Sequenzer-Instanzen** statt einer (Instanz-fähig machen: eigener State-Namespace je Seq).
 
 ---
@@ -141,11 +144,12 @@ ports: {
 
 ---
 
-## Offene Rückfragen (blockieren nur ihre Phase, nicht den Start)
+## Offene Rückfragen — beide geklärt (20260723)
 
-- **R1 (Phase 4):** Was soll der **Teiler** im Stepsequenzer genau bewirken?
-- **R2 (Phase 0.3):** Dürfen die versteckten Demo-Sektionen (`bench-knob/ctrls/keys/scratch`)
-  raus, oder sind sie bewusst als Bausteinschaukasten-Doku behalten?
+- **R1 (Phase 4):** ✓ geklärt — Teiler = Tempo-Clock als n/m unterteilen (s. Phase 4).
+- **R2 (Phase 0.3):** ✓ geklärt — alle Demo-Sektionen raus.
+- **Metronom-Stille (Phase 1.1):** @dpa kennt keinen Auslöse-Commit; beim Aufschreiben
+  (~20260723_022916) entdeckt → per Reproduktion eingrenzen, nicht per git-Bisect raten.
 
 ## Reihenfolge kompakt
 
