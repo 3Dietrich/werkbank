@@ -388,7 +388,7 @@ routing.registerModule('rec', {
     label: 'Rec', latency: recEngine.latency,
     ...bindPorts(recDefs.ports, { inputs: { clock: { write: () => {} } } }),
 });
-routing.connect({ module: 'takt', port: 'beat' }, { module: 'rec', port: 'clock' });
+routing.connect({ module: 'takt', port: 'beat' }, { module: 'rec', port: 'clock' }, { active: false });
 // Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
 window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser };
 
