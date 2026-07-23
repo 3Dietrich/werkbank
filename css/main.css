@@ -1288,3 +1288,60 @@ body {
   font-size: 9.5px; color: var(--muted); font-variant-numeric: tabular-nums;
   border-top: 1px solid var(--sel-line); padding-top: 6px; margin-top: 2px; line-height: 1.3;
 }
+
+/* ═══ Struktur-Ansicht (Phase 3, PHASE3_SPEC.md, @dpa 20260723) ═══════════════════════
+   Read-only Karte der Routing-Registry: Module als Kästen, Kabel als SVG-Pfade. Gleiche
+   Hülle wie .special-pop (Kopf verschiebbar, sanfter Rahmen, kleiner Radius) — nur die
+   Kästen/Kabel DARIN sind nicht verschiebbar/umsteckbar. */
+.structure-pop {
+  position: fixed; z-index: 1100; min-width: 320px; max-width: 94vw;
+  background: var(--panel2); border: 1px solid var(--sel-line);
+  border-radius: 5px; box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  display: flex; flex-direction: column; max-height: 86vh;
+}
+.structure-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 10px; background: var(--panel); border-bottom: 1px solid var(--line);
+  border-radius: 5px 5px 0 0; font-size: 11px; font-weight: 600; color: var(--accent);
+  cursor: move; flex: 0 0 auto;
+}
+.structure-body { padding: 10px; overflow: auto; max-height: calc(86vh - 34px); }
+.structure-stage { position: relative; }
+.structure-wires { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: visible; }
+.structure-boxes {
+  position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 22px 34px;
+}
+.structure-box {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  min-width: 148px; flex: 0 0 auto;
+}
+.structure-box-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  padding: 5px 8px; border-bottom: 1px solid var(--line);
+}
+.structure-box-title { font-size: 11.5px; font-weight: 600; color: var(--text); }
+.structure-box-lat { font-size: 9.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.structure-box-rows { display: flex; flex-direction: column; }
+.structure-box-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 14px;
+  padding: 3px 8px; border-top: 1px solid var(--line);
+}
+.structure-box-row:first-child { border-top: 0; }
+.structure-port { display: flex; align-items: center; gap: 4px; font-size: 9.5px; color: var(--muted); min-height: 14px; }
+.structure-port--in { flex-direction: row; }
+.structure-port--out { flex-direction: row-reverse; text-align: right; }
+.structure-port--empty { flex: 1; }
+.structure-port-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex: 0 0 auto;
+}
+.structure-port-label { color: var(--text); white-space: nowrap; }
+.structure-port-type { font-size: 8.5px; color: var(--muted); opacity: .7; white-space: nowrap; }
+
+/* Kabel: ruhig liegend nach Art (Value dauernd „aktiv", Event nur beim Puls hell), nur
+   deklarierte (noch klassisch zugestellte) Verbindungen gestrichelt+gedimmt — ehrlich statt
+   so zu tun, als liefe schon alles über die Registry (PHASE3_SPEC.md 3.4). */
+.wire { fill: none; stroke-width: 1.5px; transition: stroke .15s, opacity .15s, stroke-width .15s; }
+.wire--value { stroke: var(--accent); opacity: .5; }
+.wire--event { stroke: var(--accent2); opacity: .3; }
+.wire--declared { stroke: var(--muted); opacity: .35; stroke-dasharray: 4 3; }
+.wire--pulse { stroke: var(--accent); opacity: 1; stroke-width: 2.5px; }

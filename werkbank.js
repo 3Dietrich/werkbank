@@ -31,6 +31,7 @@ import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from './lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from './lib/routing/Registry.js';
+import { createStructureView } from './lib/routing/StructureView.js';
 import { LevelMeter } from './lib/LevelMeter.js';
 import { icon } from './lib/icons.js';
 import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
@@ -541,6 +542,18 @@ resetBtn.className = 'pb-btn'; resetBtn.id = 'headerreset'; resetBtn.type = 'but
 resetBtn.textContent = '↺ Reset'; resetBtn.title = 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)';
 resetBtn.addEventListener('click', doReset);
 document.querySelector('.topbar-right').appendChild(resetBtn);
+
+// Struktur-Ansicht (Phase 3, PLAN_OPERA.md/PHASE3_SPEC.md): read-only Karte der
+// Routing-Registry — macht die seit Phase 2 bestehende, aber unsichtbare Verkabelung
+// endlich sichtbar (@dpa 20260723: „ich sehe davon NICHTS"). Toggle wie der Config-Knopf,
+// kein Radio-Peer der Tasten/MIDI-Schalter.
+const structureBtn = document.createElement('button');
+structureBtn.className = 'pb-btn'; structureBtn.id = 'structurebtn'; structureBtn.type = 'button';
+structureBtn.textContent = '⧉ Struktur'; structureBtn.title = 'Struktur-Ansicht: Module + Verbindungen (nur ansehen)';
+document.querySelector('.topbar-right').appendChild(structureBtn);
+const structureView = createStructureView(routing, { button: structureBtn });
+structureBtn.addEventListener('click', () => { structureView.isOpen() ? structureView.close() : structureView.open(); });
+window.__structure = { view: structureView };
 
 // ── Aufnahme-Format (Rec-Instrument-TODO 2, @dpa 20260721): globaler App-Default fürs
 // Rec-Ausgabeformat — EIN Wert für alle Aufnahmen, keine Pro-Instanz-Einstellung. Die
