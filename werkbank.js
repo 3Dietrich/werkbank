@@ -30,7 +30,7 @@ import { BaseKeyboard } from './lib/polysynth/ui/BaseKeyboard.js';
 import { Readout } from './lib/polysynth/ui/Readout.js';
 import { midiToName, freqToMidi } from './lib/polysynth/pitch/Scaler.js';
 import { stepSeqDefs } from './lib/stepseq/defs.js';
-import { StepSeqEngine } from './lib/stepseq/StepSeqEngine.js';
+import { createStepSeqEngine } from './lib/stepseq/engine.js';
 import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
@@ -441,7 +441,7 @@ const stepSeq = mountGroups(stepSeqRoot, stepSeqState, stepSeqDefsObj, {
 // echter noteOff auf die ALTE Note) — sonst häuften sich Voices auf `held`, falls BaseFreq
 // zwischen zwei Triggern wechselt (baseSrc='Ton'/'Tempo' live gespielt).
 let _seqHeldNote = null;
-const stepSeqEngine = new StepSeqEngine(stepSeqState, () => polySynthEngine.baseFreq(), (envHeight) => {
+const stepSeqEngine = createStepSeqEngine(stepSeqState, () => polySynthEngine.baseFreq(), (envHeight) => {
     if (stepSeqState.get('seqOutput') !== 'AmpEnv+OSZ') return;   // andere Optionen: noch kein Ziel verdrahtet
     const note = Math.round(freqToMidi(polySynthEngine.baseFreq()));
     if (_seqHeldNote !== null && _seqHeldNote !== note) polySynthEngine.noteOff(_seqHeldNote);
