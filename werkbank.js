@@ -153,15 +153,16 @@ const baseKbBanner = () => {
 };
 polySynth.keyMidi.register('u:baseKb', baseKeyboard.element, 'Ton-Wahl', () => {}, { midiOnly: true, customBanner: baseKbBanner });
 // „Nur eine Note, kein zweiter Druck" — dieselbe Naht wie bei u:playKb (s.u.): die frisch
-// gelernte Bindung wird direkt zur Kalibrierung genutzt und sofort wieder gelöscht.
+// gelernte Bindung kalibriert die Oktave UND bleibt jetzt bestehen (PLAN_OPERA.md 1.2 —
+// vorher sofort wieder gelöscht, damit war der Kanal nie tatsächlich gelernt). Der Kanal
+// wird nach baseMidiChannel gespiegelt, wo BaseKeyboard._onMidiMessage ihn als aktiven
+// Filter nutzt (0 = alle Kanäle).
 polySynthState.subscribe((k) => {
     if (k !== 'midiBindings') return;
     const b = (polySynthState.get('midiBindings') || {})['u:baseKb'];
     if (!b || b.type !== 'note') return;
     baseKeyboard.calibrateMidiOctave(b.data1);
-    const rest = { ...polySynthState.get('midiBindings') };
-    delete rest['u:baseKb'];
-    polySynthState.set('midiBindings', rest);
+    polySynthState.set('baseMidiChannel', b.ch || 0);
 });
 // Freq-Anzeige (@dpa 20260722_013727: „die Freq Anzeige fehlt auch... geteilt in mehrere
 // Control readout und texts: 'Tone', Freq") — zwei eigenständige, einzeln verschiebbare
@@ -248,17 +249,17 @@ polySynth.keyMidi.register('u:playKb', polySynthKeyboard.element, 'Keyboard', ()
 // „Nur eine Note, kein zweiter Druck": Midi.js braucht die ERSTE Note zum Lernen der
 // Bindung selbst (die löst noch KEIN activate() aus, s. Midi._handle) — ein zweiter Druck
 // bräuchte es sonst erst zum tatsächlichen Auslösen. Wir hören stattdessen direkt auf die
-// frisch gelernte Bindung (midiBindings-State) und entfernen sie SOFORT wieder, damit keine
-// dauerhafte Notenbindung liegen bleibt — rein optisch bleibt der offene Lern-Banner (kann
-// mit ✕ geschlossen werden).
+// frisch gelernte Bindung (midiBindings-State) und kalibrieren daraus — die Bindung bleibt
+// jetzt BESTEHEN (PLAN_OPERA.md 1.2 — vorher sofort wieder gelöscht, damit war der Kanal nie
+// tatsächlich gelernt; der no-op-`activate` oben macht das gefahrlos, Midi.js löst über die
+// Bindung nichts mehr aus). Der Kanal wird nach kbMidiChannel gespiegelt, wo
+// PlayKeyboard._onMidiMessage ihn als aktiven Filter nutzt (0 = alle Kanäle).
 polySynthState.subscribe((k) => {
     if (k !== 'midiBindings') return;
     const b = (polySynthState.get('midiBindings') || {})['u:playKb'];
     if (!b || b.type !== 'note') return;
     polySynthKeyboard.calibrateMidiOffset(b.data1);
-    const rest = { ...polySynthState.get('midiBindings') };
-    delete rest['u:playKb'];
-    polySynthState.set('midiBindings', rest);
+    polySynthState.set('kbMidiChannel', b.ch || 0);
 });
 // Akkord-Speicher: autarker Control NEBEN dem Keyboard (@dpa 20260722_004312) — kommt über
 // snapshotChord/gateChordOn/releaseChordGate/onChordChange an den gespielten Akkord, eigene
@@ -464,6 +465,12 @@ fileIn.addEventListener('change', () => {
 let cfgPop = null;
 const closeCfg = () => { if (cfgPop) { cfgPop.remove(); cfgPop = null; document.removeEventListener('mousedown', cfgOutside, true); cfgBtn.classList.remove('active'); } };
 const cfgOutside = (e) => { if (cfgPop && !cfgPop.contains(e.target) && e.target !== cfgBtn) closeCfg(); };
+// Reset-Logik EINMAL (PLAN_OPERA.md 1.3): bisher nur versteckt unter ⚙ Config → ↺ Reset
+// erreichbar — jetzt zusätzlich ein sichtbarer Header-Button (s.u.), beide rufen dieselbe
+// Funktion, derselbe Bestätigungsdialog.
+function doReset() {
+    if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) { LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload(); }
+}
 cfgBtn.addEventListener('click', () => {
     if (cfgPop) { closeCfg(); return; }
     cfgPop = document.createElement('div'); cfgPop.className = 'cfg-pop';
@@ -471,15 +478,20 @@ cfgBtn.addEventListener('click', () => {
     cfgPop.append(
         mk('⭳ Export', 'Aktuellen Zustand als .json herunterladen', () => { exportConfig(); closeCfg(); }),
         mk('⭱ Import', 'Zustand aus einer .json laden (Seite lädt neu)', () => { fileIn.click(); }),
-        mk('↺ Reset', 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)', () => {
-            if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) { LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload(); }
-        }),
+        mk('↺ Reset', 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)', doReset),
     );
     document.querySelector('.topbar-right').appendChild(cfgPop);
     cfgBtn.classList.add('active');
     setTimeout(() => document.addEventListener('mousedown', cfgOutside, true), 0);
 });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
+
+// Sichtbarer Header-Reset (PLAN_OPERA.md 1.3, @dpa: Reset war nur unter ⚙ Config versteckt).
+const resetBtn = document.createElement('button');
+resetBtn.className = 'pb-btn'; resetBtn.id = 'headerreset'; resetBtn.type = 'button';
+resetBtn.textContent = '↺ Reset'; resetBtn.title = 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)';
+resetBtn.addEventListener('click', doReset);
+document.querySelector('.topbar-right').appendChild(resetBtn);
 
 // ── Aufnahme-Format (Rec-Instrument-TODO 2, @dpa 20260721): globaler App-Default fürs
 // Rec-Ausgabeformat — EIN Wert für alle Aufnahmen, keine Pro-Instanz-Einstellung. Die
