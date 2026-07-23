@@ -418,3 +418,390 @@ Controls trigger: sind ja mit D-Env bestückt (super) aber sie sollen jeden trig
     Das verrückte ist: sogar 'Tasten' aus, wieder an: sind sie noch immer selektiert! 
 
 'Hints' und 'Config' kriegen auch tasten und midi learn
+
+-- 
+20260721_114745
+- Instrument (ism) `Rec`:
+    - ok! nimmt auf, Name ist etwas wie "Recname-20260721095323.webm"
+        Recname     - ist klar
+        -20260721   - ist auch klar
+        095323      - falsche Zeit oder was ist das?
+        .webm       - dazu im folgenden mehr:
+        Was ist webm und wie ist es einzuschätzen? 
+    Geht webm automatisch zu wandeln (z.B. via ffmpeg), würde ich gern  
+        ein extra 'Settings' Button hinzufügen, der entscheidet, was direkt nach der Aufnahme passieren soll:
+            - nichts (es bleibt *.webm)
+            - MP3-wandlung 
+                - es erscheinen Einstellungen: 
+                    - CBR | VBR
+                        - bei CBR Bitrate in kbps, 
+                        - bei VBR min und max Bitrate (ich muss zugeben dass ich keine Unterschiede gehört habe, zu Auswahl nicht alle, sondern nur 64, 128,192,256,320)
+                    - Mono/Stereo
+                    - Qualität (unsichtbar, fest): =3
+            - Wav
+                - es erscheinen Einstellungen: 
+                    - 16 ] 32 Bit
+                    - SR (22,24,44,48,88,96kHz)
+                    - noch was?
+        es wandelt direkt nach jeder Aufname
+    - Start/stop sync: am Takt Start umschalten, also man klick irgendwann Start, dann geht rec (genau) am dem nächsten On-Click (0C) (bei 4/4 zum beispiel immer bei 1( an, dann clickt man wieder=Stop - beim  nächsten 0C geht es aus. so dass man Loops machen kann..
+- Gruppen 
+    - Die ![Header Farbe](image.png) hier:#ab9bae ist nicht gleich der Eingabefarbe #ffffff 
+    - Der Hinweis mit der Größe muss nicht in die Gruppen Settings, sondern in deb Control settings, dessen Größe verändert ist. ich stelle mir z.B. vor, dass in dessen header mit einer linearen Gate ASR-Env mit Zeiten [0.5,2,0.5] aufleuchtet "Größen via [Gruppe/Instrument/Gruppe und Instrument] geändert." mit doppelclick: zeig nicht mehr (beschrieben mit extra hint auf dieser Anzeige)
+- neues instrument:
+    - polyphoner Synt mit
+        - polyphony einstellbar
+        - 2 Osc pro voice
+            - Verstimmbar zueinander [0..99 cent] (cent ist glaub ich ein 1/100el eines Halbtones? wie auch immer: ein Vermerk in CONTROL.md wäre gut)
+            - der zweite ist via toggle akivierbar, wenn deaktiviert, dann auch keine Verstimmung (auch nicht anzeigen)
+            - pro Osc einstelluungen wie in teslacoil Audio-OSC (ein Poly für beide)
+        - eine simples Keyboard 
+            - (gleiche breiten, wie teslacoil BaseFreq Ton: Base-Keyboard, aber über mehrere Oktaven (einstellbar [1-9]octaven), start mit C (evtl. verstellbar aber erstmal nicht)
+            - click erzeugt Gate ([vel 127])
+                - extra toggle für "hold": On: sendet NoteOffs erst beim ausschalten, Off: normal Gates
+            - Tastatur auch via Midi (auf 'hold' achtend)
+            - das Keyboard har einen ausklappbaren Vel bereich: 0=off, 1..127 Gate on mit entsprechender Vel
+                - man kann mir der mouse die aktiven gates (also alles über 0) frei draggen (Ich stelle es mir so vor dass man frei draggen kann und dabei die Anschlagstärken der aktiven Noten verstellen kann)
+                - daneben wieder ein 'Dyn' knob (wie teslacoil AmpEnv 'Dyn')
+        -  diese unter hold gesetzten Akkorde sollten über Button ein und Ausschalter sein (AkIO)
+        -   Es sollte eine "Speicher" zum speichern und aufruf unterschiedlicher Akkorde erstellt werden, zunächst 3x3, aber die Menge ist einstellbar.
+            -  beim Wechsel kurz NoteOffs und die neuen NoteOns
+        - es gibt hier aucuh eine Gruppe 'BaseFreq' (BF) (kopiert von teslacoil) [incl. allem :)](~/Downloads/teslacoil_backup_20260721_131544.json)
+        - Die Tonefrequenzen werden quantisiert auf die Vielfachen der BF, wie in teslacoil bekannt.
+        - Amp env:
+            - ADSR attack linear, dec und release log, peak Vel* abhängig
+    - alles was in BaseFreq verstellt wird, wird mit einem einstallbaren "LP"smooth) direkt in die Oscillatoren eingearbeitet.
+    
+-- 
+20260721_154522
+    Weist Du, Du stoppst (immer "bewußt"). Ud schon wieder zu früh: es ist Rec eingebaut, ja, es funktioniert noch nicht richtig (müssten wir fixen), aber es ist eine Klkeine DetailAufgabe, die ic h noch gar nicht richtig testen **kann**, weil es nur Metronom gibt! Bitte führe doch bitte ein paar mehr Punkte duch! Ohne nach dem nächsten Schritt wieder zu stoppen. das kostet nur sinnlos Zeit!
+    btw.: kanjnst Du ein Audiozeichen geben wenn Du stoppst?
+
+-- 
+20260721_162648
+    "Gruppen-UI-Größenhinweis" 
+        nee, falsch.
+        Der Hinweis soll **in den control settings** erscheinen, und zwar immer wenn man control settings aufruft (bis man es global dismissed hat, dann nirgends mehr.
+        - ASR Timin super
+    - Instrumente 
+        - soll man (via header) verschieben können
+    - Rec 
+        - nicht in Poly drin, sondern als Extra Instrument
+    - Instrument allgemein
+        - mit eigen Einstellungen (erstmal gleich wie Gruppen)
+    - PolySynth: sieht korrekt aus, aber das Thema ist hier Audio, und stumm ist quasi nur die 'Fassade' - sinnlos
+    
+"Außerdem: Feedback-Memory zum Nicht-zu-früh-Stoppen gespeichert, Stop-Hook mit Audioton (Glass.aiff) eingerichtet."
+ich hoffe du hast es richtig verstanden: ich meinte nicht die Werkbank, sondern den Chat.. Du hast gerade wieder gestoppt, was nach meiner Meinung nach zu früh ist (siehe stummer Synth..). Diese überflüssigen Stopps meine ich! Und der Audioton beim stottern
+ich hoffe du hast es richtig verstanden: ich meinte nicht die Werkbank, sondern den Chat.. Du hast gerade wieder gestoppt, was nach meiner Meinung nach zu früh ist (siehe stummer Synth..). Diese überflüssigen Stopps meine ich! Und der Audioton beim stoppen auch: wenn der Chat auf eingabe wartet, dann soll ein Ton darauf hinweisen. Verstanden?
+
+"Grenze erreicht:"
+mit Grenze meinst du diesen stopp? Oder was meinst du?
+
+-- 
+20260721_203557
+toll! 
+    ![gesamt Panel](image-1.png)
+    Instrumente:
+    wir haben 3 ism (fyi: ism= 'Instrument', diese Abkürzungen bitte in's von Teslacoil Vorbild abgeschaut teslacoil/docs/CONTROLS.md für werbbank erstelltes werkbank/?/CONTROLS.md)
+    die `instrument`e sollen die gleiche Basis haben. Ich betrachte jetzt die Ansicht und "Takt+Metronom" als Vorbild:
+        - der soll den Namen (z.B. Takt+Metronom) in diesem etwas fetteren weiß darstellen (ok), 
+        - den BG dahinter (ok), 
+        - ohne die foldenden infos (z.B. "taktmetro/defs.js - group/GroupHost.js") die sollen dort weg.
+        - rechts oben das [?] mit der Beschreibung drin (ok).
+        - das für alle ISM (die Info unten wandert in [?])
+        - Wünsche:
+            - in den [?] Hilfen ein Symbol 'Edit' Button, der die Hilfe in Markdown editieren kann.
+            - Settings: 
+                - ism Name
+                - ism breite, höhe (0 auto)
+    - Poly-Synth
+        - Keyboard ![commentar](<Bildschirmfoto 2026-07-21 um 21.06.07.png>)
+            - das ist ein `Control`! wie in teslacoil. Also bitte mit entsprechenden Settings (schau sie von teslacoil/basefreq ab)!
+Eine der **Hauptaufgaben ist in 'Werkbank': modulare Syntheshizer gebähren**. (dasist ein guter Hauptsatz dieses Projekts!, bitte merken!), es basiert auf Modulen, was für auch Dich heißt: wie kriege ich diese Bereich ohne viel tokens, vielleicht sogar einfach kopiert oder objektweise nutzt. Die Werkbank macht gerade beides: sowohl die Objekte/Module verfeinern und neu bauen, als auch Projekte vielleicht zu "verdichten", dem Sound anzupassen.. Ich denke gerade laut, Du sollst das unbedingt wissen für das Konzept - ohne ständig alles durchschauen zu müssen.. davon müssen wir weg. Wenn Du dafür Tips hast - gerne! 
+            (zurück zum Auslöser:)
+            Bitte nichts mehr "einfach so" dazu stellen. Wenn Du nicht weist, ob Control oder ism, oder.. frag mich. aber alles hat hier seine Module. klar? für's Projekt bitte merken.
+            - dieses Keyboard gehört mit in die Gruppe Keyboard (logisch :)
+            - die Octav Höhe, wo es anfängt, also von welchem C es biginnt muss noch als control dazu
+            - bei hold=on soll man angeschaltete Noten auch einzeln ausschalten können (togglen)
+        - Base-Freq
+            - Test-Ton schalter und Volume (und technik dahinter) weg
+
+-- 
+![Kb](image-2.png) - Dass die Oktaven in Zeilen sein können ist gut, aber nicht üblich. Ich würde sagen: Du machst eine Einstellung in `unikat` Keyboard Settings: oktav[umbruchicon]: togglet die Ansicht auf die derzeitige Ansicht zu ein horizontales keyboard
+
+--
+20260721_231818
+ich brauch noch unbedingt den Akkord Speicher. Den hatte ich schonmal beschrieben.. Hattest du das vielleicht verwechselt mit dem Keyboard? Es sollten 3X3 zunächst Flächen/Vielen Dank.
+
+20260721_233233
+gute Frage, hab eine besondere Antwort: Den Speicher nutzen:
+die KB-Tasten, die im moment des triggerns eines Speicherplatzes aktiv sind, sind im speicher.
+der Speicher verändert sein aussehen/farbe... beim drücken eines beegten speichers ruft man das gesammelte Gate aus, es überschreibt sich danach nicht, es sei denn es ist ein zusätzlicher `button` "[R]" (für "reset") aktiv. Dann "löscht" man die noten vom speicher.
+
+20260722_004312
+    - controls
+        - `Select` Settings
+            - Optionen [?]" ist undurchdacht
+                - Der name.. [?] reicht
+                - Das fenster ist hinter den Settings, man kann also gar nichts lesen
+                - danach kann ich erst sehen, ob Du den Edit button eingebaut hast für den  markdown edit dieser Info
+        - "AkIO" und "R" sind `toggle`s, es sollten `Button`s sein
+        - Keyboard akkord speicher: ist jetzt am Keyboard, er soll aber autark neben keyboard als eigenen Control `speicher` werden. (und das Keyboard als control `keyboard` oder `kb` ist sicher auch keine schlechte Idee). `speicher` kann man die speicherquadrat größe einstellen, ob es nummern sind oder eigene Kürzel (via doppelclick?) default numern (startend von 0 oder 1), BG, VG1 (unbesetzt) VG2 (belegt) VG3 (..irgendwas gibt's bestimmt:), und die Tabellengröße mit den gegebenen Zeilen und Spalten, nuur in und als Settings Eingabe
+
+20260722_013727      
+    - die Zwei Dinge
+        - Text Area sieht gut aus, edit ist da 👍🏻
+            - Aber:![edit](image-6.png) # Überschrift und Zeiilenumbrüche zeigt es nicht. **Fettes** schon.. wie ist es aufgebaut? wieviel arbeit/code/Aufmerksamkeit benötigt es?
+        AkIO: siehe unten.
+    - Gruppe
+        - Base Freq
+            - der Regler 
+                - ![Freq Range](image-3.png) zeigt manchmal .00 an, obwohl in Settings Dez.=0 gestellt ist. 
+            - Quelle: Ton: das KB fehlt! (siehe teslacoil) dazu auch gleich: Kammertonfreq angabe default: 440Hz.
+            - Quelle: Tempo: kein Anschluss? es gibt ja ein Tempo.. daran anschließen.
+            - und die Freq Anzeige fehlt auch. Am besten geteilt in mehrere Control `readout` und `text`s: 'Tone' (z.B. C-1), Freq
+            - 
+        - Osz
+            - die Änderungen sollten standig upgedatet werden.
+            - Sine-FM zeigt FM, verbirgt PW
+            - Square-PW umgedreht: zeigt PW, verbirgt FM
+        - Keayboard
+            - AkIO: brauchen wir nicht. die belegten Speicher sind nur noch gates, wenn Hold an ist bleiben sie an (Umschalten wie gehabt)
+            - es sind ja akkord Gates, wenn aus, sollten die Amp Env ins Release übergehen, aber es bricht nur kurz ab.. bitte korrigieren. btw.: zunächst ist die Amp Env einstimmig für alle voices
+            - es packt nach dem Reload die Tastatur ganz links hin ![ist nach reset](image-7.png)   ![soll](image-8.png). ein kurzer gang in e-mode bereinigt das, aber es Wäre schön, wenn das gleich so korrekt angezeigt wird. 
+        - wir brauchen einen **Master Volume** mit Einstellungen:
+            - Default (doppelclick)
+            - dB basiert, von .. bis
+            - eine compressorschaltung die bei 0dB ansetzt ohne extra Latenz: "Limiter" mit IO Schalter, Attack (default  0.5ms0 und release (default 250ms) 
+            - Fader länge, Farben
+            - Valaue sichtbar IO
+            - verübergehend auch "Größe" des Faders
+            Der Fader soll  waagerecht im **Header** sein. "Bausteine aus teslacoil – bearbeiten, verfeinern, rüberkopieren" kann weg, "Rechtsklick = Settings · Regler ziehen/Doppelklick · alles überlebt den Reload" ist schon eine wichtige Info für Afänger.. sollte nicht den Header vollmachen.. weißt Du was besseres?
+
+        - Ich brauche auch einen **LevelMeter** (wie in teslacoil), aber auch mit Settings 
+            - vielleicht kommst Du nach Master Vol auuf die nötigen settings regler? probier es, ohne mich zu darüber auszufragen. Ich kann es ja danach verändern
+            - es soll dem Level "ISM" angehören, aber kein header besitzen und keinen extra BG
+            - die Anzeige rechts auf dem Hauptdisplay hat sich bewährt, aber wie so vieles: man kann es im e-mode verschieben
+        - Rec
+            - also von den Syncs habe ich noch nichts gefunden
+            - Rec nnimmt nichts auf (oder?)
+            - Rec schaltet man einmal ein, danach "blinkt" er immer, egal wie oft man ihn schaltet
+    - Control
+        - es ware schön, wenn alle Controls ihre Einstellungen in deren Settings **speichern** könnten und die Designs damit dann für andere, gleiche Controls zur verfügung stehen. Gespeichert wird das ganze aussehen ohne die text eingaben (Label, Hilfstext,..) Nimm teslacoils ausarbeitung: ![Combo Speicher](image-5.png)
+        - die selbst geschrieben texte erscheinen noch nicht als mouse over help hints
+        - `button`: Umschalter: wenn sie aussind schalten sie direkt beim click an, wenn sie an sind beim release aus.
+        - Keyboard "R" reset ist gerade verdreht: auf BG off ist er aktiv.. kann sich das verdrehen? Oder war das falsch angeschlossen?
+
+
+"Soll ich das umsetzen (AkIO-Button raus, Speicher-Slots werden selbst zum Ein/Aus-Gate inkl. Release-Fix)"
+hm.. Wenn ich darüber so nachdenke, ist das nichts für den "Speicher". Der Speicher triggert eigentlich nur entweder Save oder Recall. Das wird auch ein anderer Speicher dieser Art irgendwann tun. Aber trotzdem würde es hier sehr gut passen.. Ich will die Gate Funktion auf den Speicher Buttons. Also nimm den Speicher recall, verbinde ihn mit einem Gate ON, und bei mouse release ein release trgger.
+
+20260722_033950
+Jeder Speicherplatz im Speicher soll remotes learnen können
+
+20260722_042020
+die Farbpaletten müssen wir leicht überarbeiten:
+    - ![weis-farbe-schwarz](<Bildschirmfoto 2026-07-21 um 21.16.14.png>) die fließende Farbwahl auf diesem Bild gefällt mir. Die Mitte ist sogar (horizontal) länger also nötig, es könnte super auf 200x200px passen. das passt gut zu dem nächstren Punkt
+    - der Farb mode HSL zeigt nicht mehr alles, was schade ist, weil rechts die helligkeit schon ganz cool zu drehen ist.. bitte mach diesen bereich breiter und die zahlen dariin vielleicht sogar dragbar? Fehlt nur noch die Anzeige der tatsächlichen Farbe.. hm.. fällt Dir eine Ordnung ein bei diesen neuen Anforderungen? Copy und Pipette soll auf jeden Fall bleiben! Und die Größe muss auch nicht minimal sein..
+Base-Freq:
+    immer sichtbar: Harmonize, Pitchglide und die Anzeigen
+    Quelle Freq: Keyboard und Kammerton weg (gehört nur zu ton)
+    Quelle tempo: Keyboard, Kammerton, Base-Freq (knob) weg
+
+-- 
+Poly-Synth
+    wow! die Farbeinstellung sieht jetzt super aus, ist super nützlich! ein Bug noch:
+        das Farbgebungsfeld ![rechts schwarz](image-9.png) bzw. die Übernahme davon ist verkehrt herum: es macht rechts (zeigt schwarz) heller (>weiß). Wie rum der Fix ist, ist mir egal, hauptsache das Feld und das resultierende Ergebnis ist das was man erwartet.
+    AmpEnv: Release funktiioniert noch nicht (oder ein ähnliches Problem):
+        wenn man so lange hält, dass Sustain aktiv ist, schalten die NoteOffs auf gefühlt 1/10 Lautstärke herunter und dann kommt das Release.. das ist schon die ganze Zeit so, nichts neues
+    Keyboard
+        - hold bitte als `Button`
+        - die Tastatur bei aktiven Tönen nicht die "Rahmen" der Tasten sondern die Tasten selbst
+        - Die Rahmen weniger kontrastreich, und 
+        - bei mouse overs über den Speichern anzeigen
+        - Doppelclick für 'Name ändern' geht leider nicht (das wiederholte drücken ist musikalisch sinnvol und passiert ständig ungewollt) - vielleicht den "R" Button durchschaltbar: [aus, rename, reset]?
+        - Keyboardspeicher..-Learn: meintest Du, hast Du für jeden Speicher zur verfügung gestellt? Das sehe ich nicht ![(midi)](image-10.png), ![auch Tasten](image-11.png)..
+LevelMeter: 
+    sehe ich noch nicht. allerding ein neues leeres mini Feld ![alt text](image-13.png).. ist es das? :) ich konnte es nicht ziehen, nicht verändern..
+
+-- 
+20260722_130710
+zuerst die BUGS ab Zeile 639
+    Meter: ist in einem eigenen ISM (gut), ohne Header (richtig) aber hat dadurch keine Möglichkeit es zu verschieben, nur den Control, was zu einer "mess" 
+    .. ich kann jetzt nicht mehr weiterarbeiten.. :(
+    ![dieses Bild zeigt von vorher verschobenen Meter und zeigt wie das Meter-ISM links oben festhängt.](image-15.png) 
+    ISM
+        [?]:
+            auch den Titel editerbar machen ![Beispiel 'Rec'](image-14.png)
+    ISM Rec:
+        was ist aus dem synchronen start-Stop geworden? Ich glaub du hast daran schon gearbeitet, aber auf dme Panel ist davon noch nichts zu sehen..?
+    BUG!: ich kann nichts mehr selektieren, nichts mehr verschieben!
+    BUG!: Farbwähler offen: das gesamte Panel verschwindet hinter einem rießigen Farbfeld und bleibt danach (Panel verschwunden)
+
+-- 
+schon getan (wie's scheint noch nicht)?:
+    Hilfen/Texte: bitte bei Texten für Helphints Zeilenumbrüche (in der Hint-Ansicht) übernehmen
+
+ISM info
+    ![sinnloser hint](image-16.png)
+    - die [?] Icons sollten ![so](image-17.png) aussehen. und sind dafür da bei mouseover die informationen zu zeigen (nicht "Beschreibung anzeigen" sondern den Text!) und bei click kommt das extra Fenster (ok).
+    - mit dem mermaid ist super!
+    - alle text fenster dieser Art (fließtexte) sollten recht unten die eingabeGröße verändern können. Das ist teilweise schon, aber manchmal nicht X UND Y, z.B. bei ISM info geht nur vertikal
+
+Poly-Synth/Keyboard/R:
+    Du hast für R sehr schön die Modi mit "blinken" unterschieden. Das ist aber derzeit noch unklar: bei blinken überschreibt es, bei AN löscht es. Außerdem hätte ich gerne unterschiedliche Farben.. weistewas? wir machen einen einen erweiterten `select` daraus (oder lieber einen extra `select button`?:
+        - settings neuer Mode: [menu (wie select bisher), inplace (Button Ansicht durchschaltbar)] <-- wenn nötig
+        - für jede Selektion kriegt eine andere BG-Farbe und eigenen (caption-)Text
+        - 
+
+Poly-Synth/Keyboard Tastatur:
+    - 'Ton an' Farbe kommt nicht an
+    - Midi learn ist noch nicht aktiv - es sollte aber hier ein besonderes Midilearn sein:
+        - wenn Noten = dann der Ch für die ganze Tastatur
+        - Controls u.a. werden ignoriert
+ 
+Poly-Synth/Base-Freq/Kammerton:
+    bitte bei den Knobs drauf achten, dass die Value anzeigen ihre gesamte Breite erhalten ![alt text](image-18.png)
+    - wenn `knob`s Gestalt=ohne ist, soll BG .. nunja: den BG der Value anzeigen.
+
+-- 
+20260722_152438
+    Poly-Synth/Keyboard gruppe
+        zwei buttons dazu: +, -
+        sie schalten den akkord (live) ± Halbton
+    
+    fließTextansichten (alle): Markdown
+        Hast du mir eigentlich geantwortet? Ich wollte wissen, wie kompliziert es ist, mit Markdown hier zu arbeiten. Bei Instrument Hilfe hast du es ja schon ganz gut eingebaut. Genau so würd ich es auch für die Controls als auch alle anderen Fließtexte haben. 
+        ![Markdown](image-19.png) zumindest #, *kursiv*, **fett** 
+
+-- 
+20260722_155726
+    zu Deiner Zusammenfassung:
+        BaseKeyboard-MIDI:
+            Hast Du völlig recht.
+            "Noten per MIDI direkt die Basis-Tonklasse setzen lassen." ja, aber mit den gewünschten Einschränkungen: Bereich (wenn an, dann ist die Oktave, in der man Midi gelearned hat, die aktive Oktave. darunter und darüber ist dann ignoriert
+        Control-Konsolidierung:
+            Ok! dann nicht. Aber immer wenn ich eine Tastatur irgendwo einfügen will, sollte man zunächst von 'Keyboard von Basefreq' ausgehen können.
+    'Meter'
+        hat immernoch ein "festsitzendes" ISM an der Backe. Man kann das Meter-Ism nicht verschieben, deswegen breitet es sich wild aus, wenn ich Meter (gruppe) verschiebe. Bitte löse das Problem: Ich will sichtbar kein ISM, nur von der Kathegorie her ist Meter ein ISM, das Ausshen (auch im e-mode) kann völlig ohne ISM auskommen, lediglich das control soll man schieben können, ohne extra BG, ohne extra Größe - das macht alles Meter-Settings
+    Polysynth/Keyboard/MidiOktave:
+        das soll in 
+    Polysynth/Keyboard/Speicher:
+        - mouse Over uber den Speichern soll die gespeicherten Noten auf den Rahmen der Keyboard-Tasten anzeigen
+        - bei learn modes: wird der **Speicher** verschoben ![gewünschter Platz (learn aus)](image-20.png) ![learn mode an](image-21.png)
+        - die gesetzten shortcuts funktionieren nicht (die 9 speicher gesetzt auf i o p k l ; , . / - kein einziger sprich an)
+        - **Keyboard**: auch gut zu sehen: learn macht es breiter hat aber kein learn <-- muss einen besonderer Learn kriegen mit den Einstellungen Midi-Offset (in okt) und Bereich
+    Polysynth/Base-Freq/Quelle=Tempo:
+        sollte "live" geuptated werden (tut es noch nicht)
+
+
+-- 
+20260722_172315
+    "BaseKeyboard-MIDI" / Speicher-Layout-Sprung:
+    andere Ordnung/sizes bei aktivem **learn** (nicht e-mode!):
+        ![schaumal](image-25.png)ich habe Poly-Synth angeordet, die Control Positionen liegen geordnet
+        und dann bei aktivem "learn" (beide):
+        ![alt text](image-26.png)
+            - Control Verschiebungen
+            - Control Vergrößerungen
+            falls Du das nicht sehen oder berechnen kannst, sag bescheid. Ansonsten: bitte beides fixen: an Positionen und Größen sollte sich bei "learn" ichts verändern!
+    synth/Keboard/Keyboard
+        /Tastaturlabels
+            ändere in diesem Keyboard: die **Oktavangaben** nur bei **C** (z.B. C2, C3..), die **anderen Tasten ohne oktave** (z.B. D, D#, E ..) das spart uns zusätzlich 1/3 Platz
+            trotzdem sind sie noch wenige px zu groß (-2px oder -4px?)
+        / @Midilearn:
+            - das KB reagiert auch wenn ich nichts gelearned hab (fehler)
+            - zu "PlayKeyboard-Learn: eine Note im normalen MIDI-Overlay kalibriert kbMidiOffset — kein Extra-Button, wie gewünscht.":
+            Die Controls Midi_Ofset und Bereich sind noch da.. sie sollen in (den speziellen) Midilearn fenster.. (das ist noch nicht der Fall)
+            - Das Kb reagiert auf die von BaseFreq/Keyboard besetzten Noten, das darf es nicht. **Grundsätzlich** sollten alle Midi remotes **nur einmal vergeben und genutzt** werden (dazu gibt's ja das Ausrufezeichen (wie bei Tasten funktioniert)
+            - Keyboards und andere "controls die mehr als (ein) On und off haben bitte aus Tasten learn ausschließen
+
+    OSZ: **Detune und OSC2** ist noch nicht 'live' (verändert sich nicht direkt)
+    Poly=12 - nur 8 Voices?
+    Poly=16 - nur 8 Voices??
+    Poly=24 - 8 Voices! BUG!
+    und die Stimmung (Range und Harmonize) kommt auch nicht mehr durch.. hä? das ging doch .. ich versteh es nicht.. hast Du eine Idee
+
+    Umbau von synth/Keboard/save/R:
+        es ist ein besonderer Button. "BG blink" (bzw. der dritte Mode) hat nichts in anderen Buttons zu tun.
+    
+    gutes Zeichen: Ich brauche Snapshots :) 
+        
+-- 
+20260722_194404
+grünes Licht für "Midi-Offset/Bereich ins Lernfenster verschieben + Multi-State-Controls aus Tasten-Learn ausschließen"
+
+neuer Config-Export ist da /Downloads
+dann weiter mit R-Button: 
+    ein neuer Control ein besseres kürzel für `wechselButton`:
+        settings: für `n` als int>0
+        ein üblicher Button, nur in `n` modi. 
+        Es gibt eine Tabelle, deren reihenfolge man ändern kann: jede `n` eine Zeile:
+        |`n`|[Caption]    |[farbe]    |[(KI-vorgefertigte aber editierbare) Kurzbeschreibung der Funktion|
+        Die Menge und Funktion wird durch die KI gegeben, aber das design incl. der Reihenfolge.. das kann man so nun auch spontan :)
+    "`wechselButton` - R" speziell:
+        |1|use|..|speichert in leere Fächer und ruft die gespeichertn ab
+        |2|over|..|überschreibt auf jeden speicher auf den man clickt mit dem aktuellen Akkord
+        |3|kill|..|jeder click auf Speicher löscht ihn
+        verstanden?
+        
+
+-- 
+20260722_203201
+    "2. Midi-Offset/Bereich"
+        bei dem Kb in BaseFreq finde ich noch immer kein MidiLearn, da soll es genauso rein wie in Keyboard/Keyboard! 
+        und btw: dieser "MIDI lernen" Button ist doch überflüssig - weg. es soll über Midi learn funktionieren
+    `wechselButton`: 
+        - n brauchts nicht, das ist Background. 
+        - Es gibt noch keine normalen Button settings! Settings wie beim normalen Button! 
+            - von Button alles außer Modus
+                - die Capations und BGs sind Teil der Tabelle
+        - die Farbenwahl wird gewandelt in die Werkbank eigene
+        - die Helps wie immer: mit vergrößerungs-untenrechts-ecke und mit **Mouseover INHALT des Textes** nicht !["Erklärt diese Stufe im Mouseover-Hint des Knopfs"](image-27.png)!
+    - neues ISM Stepsequenzer:
+        - Stepsequenzer, Basisclock (n*BaseFreq) mit Teiler (Clock/n) als trigger source
+        - Erstmal aus teslacoil "rüberkopieren" und technisch einbinden
+        - freie Seq-Daten wahl:
+            - Anzahl Steps
+            - off
+        - er kriegt ein Output selector
+            - die kriegen im Moment 
+                - AmpEnv mit OSZ (0,1-99)
+                - /Keyboard-Speicher (1-n)
+
+-- 
+20260723_004305
+Hi Opera, Ich hatte nun viele Chats mit Sonnet an der Werkbank. Jetzt ist aber einiges im Argen (s.u.). Ich will dass Du Dir das Projekt nochmal nach veralteten oder überfrlüssigen Dingen durchsuchst, die Gedanken von Sonnet durchschaust und prüfst, alle infos worüber mal wieder updatest und FlüchigkeitsFehler ausbügelst.
+Für Opera:
+Kann jedes ISM seine Latenzzeit angeben?
+Können wir ein "Struktur Ansicht" bauen (wie 'Kette' in teslacoil nur mit mehr Verbindungen und Freiheiten) um den flow zu durchschauen und zu verändern?
+
+20260722_233428
+Ich brauche ein header Reset Button
+    der alles zurücksetzt
+
+
+Midi Learn bei den Keyboards:
+    Fuck! da ist gar kein Midilearn dabei?!?? die Funktion wurde wissenlos eingebaut.. schwach! Es geht hier um "Midi learn" und hier quasi mit Filterung (Bereich) aber learnen muss es trotzdem (z.B. welcher MIDI-Ch)! 
+
+    und noch ein fetter Fuck:
+ISM: 
+    Du nutzt ein veraltetes ISM Konstrukt! Hast du die Lib nicht aktualiisiert??  Das ist jetzt zuviel fuckups.. hier muuss erstal alles in Ordnung gebracht werden..
+Metronom ist nicht mehr zu hören.. (braucht auch die Struktur)
+Und Oscillator und spektrometer als extra module..
+
+Der Stepsequenzer Gruppe:
+    Hier sollte das modulare werden Aus- und Eingänge Automatisch anbieten und verknüpfen (listen für in- und outputs zur Nutzung/Weitergabe):
+        - AmpEnv  (0,1-99) 
+        - OSZ F
+        - OSZ P
+        - Keyboard/Keyboard-Speicher (0,1-n)
+        - BaseFreq-Töne (0,1-12)
+        - 0 soviel wie nichts/kein einfluss/laufenlassen
+        - >0 Ausgabe/GateOn/Wert
+    - Das mit Teiler hat null funktioniert.. frag mich wenn Du nicht mehr weist wozu sie da sind
+    
+    zunächst 3 Sequenzer davon bitte
+
+bitte plane gut und Detailiert zum erfolgreichen Projekt mit Sonnet und Opera
