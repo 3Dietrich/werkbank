@@ -33,6 +33,7 @@ import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from './lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from './lib/routing/Registry.js';
+import { knobWrites, buttonWrites } from './lib/routing/portGen.js';
 import { createStructureView } from './lib/routing/StructureView.js';
 import { LevelMeter } from './lib/LevelMeter.js';
 import { icon } from './lib/icons.js';
@@ -380,6 +381,15 @@ routing.registerModule('polysynth', {
         },
         inputs: {
             trig: { write: (v) => polySynthEngine.triggerFromEnv(v) },
+            // Punkt 3b (ddw.md 20260724): ALLE Knobs + die drei freigegebenen Buttons als
+            // Sq-Ziele — write()-Bindungen aus derselben KNOBS/BUTTONS-Quelle wie das Panel
+            // (portGen.js), `polySynth.keyMidi` ist die EIGENE KeyMidi-Instanz dieses
+            // mountGroups()-Aufrufs (nicht die globale `keyMidi`-Konstante weiter unten, die
+            // ist taktmetro's — jedes Instrument hat sein eigenes, s. GroupHost.js mountGroups).
+            ...knobWrites(polySynthState, polySynthDefsObj.KNOBS),
+            ...buttonWrites(polySynth.keyMidi, ['chordUp', 'chordDown', 'kbHold']),
+            speicher: { write: (v) => { if (v > 0) chordMemory.triggerSlot(Math.round(v) - 1); } },
+            note: { write: (v) => polySynthKeyboard.playRemote(Math.round(v)) },
         },
     }),
 });
