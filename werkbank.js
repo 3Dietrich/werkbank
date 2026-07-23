@@ -30,6 +30,7 @@ import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from './lib/audioBus.js';
+import { createRoutingRegistry, bindPorts } from './lib/routing/Registry.js';
 import { LevelMeter } from './lib/LevelMeter.js';
 import { icon } from './lib/icons.js';
 import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
@@ -48,6 +49,15 @@ const masterState = new MiniState(masterVolumeDefaults, MASTER_LS);
 const masterVolume = createMasterVolume(masterState);
 document.querySelector('#master-vol').appendChild(masterVolume.element);
 window.__master = { state: masterState, volume: masterVolume };
+
+// ── Routing-Registry (Phase 2.3, PLAN_OPERA.md/PHASE2_SPEC.md) ────────────────────────
+// Zentrale Wahrheit über ISM-Ports + ihre Verbindungen. Muss VOR den Instrumenten stehen
+// (die melden sich direkt nach ihrem jeweiligen createXEngine() an). Migrationsweg bewusst
+// zweistufig: erst deklarieren + bestehende Verbindungen eintragen (Paket B, s.u. bei den
+// einzelnen Instrumenten), danach EINE Zustellung nach der anderen auf reg.emit()/reg.flush()
+// heben statt alles auf einmal (Paket C) — momentan nur Stepseq→Poly migriert (s. dort).
+const routing = createRoutingRegistry();
+window.__routing = { reg: routing };
 
 // ── Takt + Metronom – Neu-Port (P1) + echter Ton (P4) ──────────────────────────
 // Der frühere Mount lief über taktgebers eigene ui.js (der „eigene Scheiß"). Jetzt füttert
@@ -86,6 +96,13 @@ taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
 taktEngine.onNudge((liveBpm) => takt.setKnobDisplay('bpm', liveBpm));
 // Debug/Headless-Test-Haken (wie _selftest.html sein __host): Zugriff auf Engine/State/Host.
 window.__takt = { engine: taktEngine, state: taktState, host: takt };
+// Routing-Anmeldung (Paket B): der `beat`-Output ist ein EVENT-Port ohne read() — seine
+// tatsächliche Zustellung an Rec läuft weiterhin über taktEngine.onClockBeat() (unverändert,
+// s. weiter unten); die Registry kennt die Verbindung nur für die Struktur-Ansicht (Phase 3).
+routing.registerModule('takt', {
+    label: 'Takt/Metronom', latency: taktEngine.latency,
+    ...bindPorts(taktDefs.ports, { outputs: {} }),
+});
 
 // ── Poly-Synth – Base-Frq + Audio-Osz, Port aus teslacoil (Schritt 1, @dpa 20260721) ──
 // Eigener MiniState + eigene deklarative defs-Quelle, gemountet über dieselbe
@@ -276,6 +293,21 @@ polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) =
 // tut exakt das, ohne dass @dpa dafür erst in e-Mode wechseln muss.
 polySynth.refresh();
 window.__polysynth = { state: polySynthState, host: polySynth, engine: polySynthEngine, keyboard: polySynthKeyboard, memory: chordMemory, baseKeyboard };
+// Routing-Anmeldung (Paket B/C): `baseFreq`/`baseTone` sind echte VALUE-Ports (read() ist
+// gefahrlos additiv, wird nur bei einer Verbindung gesampelt). `trig` ist die AKTIVE Ziel-
+// Bindung für die Stepseq-Migration (Paket C, s. dort) — write() ruft direkt die Engine.
+routing.registerModule('polysynth', {
+    label: 'Poly-Synth', latency: polySynthEngine.latency,
+    ...bindPorts(polySynthDefsObj.ports, {
+        outputs: {
+            baseFreq: { read: () => polySynthEngine.baseFreq() },
+            baseTone: { read: () => polySynthEngine.baseTone() },
+        },
+        inputs: {
+            trig: { write: (v) => polySynthEngine.triggerFromEnv(v) },
+        },
+    }),
+});
 // Render-Loop steht GANZ UNTEN in dieser Datei (nach LevelMeter) — ruft sich beim ersten Mal
 // SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber
 // erst weiter unten gebaut wird (s. Kommentar dort, gleiches Muster wie oben bei baseKeyboard).
@@ -296,22 +328,28 @@ const stepSeq = mountGroups(stepSeqRoot, stepSeqState, stepSeqDefsObj, {
 // Output-Routing (@dpa: „Output selector — die kriegen im Moment AmpEnv mit OSZ"): EINE
 // funktionierende Quelle bislang, bewusst über den Selector geführt statt fest verdrahtet,
 // damit ein späteres zweites Ziel nur eine neue Option + ein neuer Zweig hier braucht.
-// Dieselbe Note bleibt „gehalten", bis sich die BaseFreq-Tonklasse ändert (dann erst ein
-// echter noteOff auf die ALTE Note) — sonst häuften sich Voices auf `held`, falls BaseFreq
-// zwischen zwei Triggern wechselt (baseSrc='Ton'/'Tempo' live gespielt).
-let _seqHeldNote = null;
+// Zustellung läuft seit Phase 2 Paket C über die Registry (routing.emit) statt über einen
+// direkten polySynthEngine-Aufruf — die gehaltene-Note-Verwaltung (PHASE2_SPEC.md: „dieselbe
+// Note bleibt gehalten, bis sich die BaseFreq-Tonklasse ändert") lebt jetzt GEKAPSELT in
+// polySynthEngine.triggerFromEnv() (lib/polysynth/engine.js), nicht mehr hier als
+// Modul-globales `_seqHeldNote`.
 const stepSeqEngine = createStepSeqEngine(stepSeqState, () => polySynthEngine.baseFreq(), (envHeight) => {
     if (stepSeqState.get('seqOutput') !== 'AmpEnv+OSZ') return;   // andere Optionen: noch kein Ziel verdrahtet
-    const note = Math.round(freqToMidi(polySynthEngine.baseFreq()));
-    if (_seqHeldNote !== null && _seqHeldNote !== note) polySynthEngine.noteOff(_seqHeldNote);
-    polySynthEngine.noteOn(note, Math.max(1, Math.min(127, Math.round(envHeight * 127))));
-    _seqHeldNote = note;
+    routing.emit({ module: 'stepseq', port: 'amp' }, envHeight);
 });
 const stepSeqGrid = new StepSeqGrid(stepSeqState, stepSeqEngine);
 stepSeq.mountInGroup('Stepsequenzer', stepSeqGrid.element, 'u:seqGrid');
 stepSeq.registerCtrlStyle('u:seqGrid', 'stepseq', stepSeqGrid.element, (s) => stepSeqGrid.applyStyle(s), 'Steps');
 stepSeq.refresh();
 window.__stepseq = { state: stepSeqState, host: stepSeq, engine: stepSeqEngine, grid: stepSeqGrid };
+// Routing-Anmeldung + die tatsächlich migrierte Verbindung (Paket C, s. PHASE2_SPEC.md
+// Migrationsweg Punkt 6): Stepseq.amp → Poly.trig ist jetzt die ECHTE Zustellung (oben
+// routing.emit), nicht mehr nur deklariert wie takt.beat→rec.clock weiter unten.
+routing.registerModule('stepseq', {
+    label: 'Stepsequenzer', latency: stepSeqEngine.latency,
+    ...bindPorts(stepSeqDefsObj.ports, {}),
+});
+routing.connect({ module: 'stepseq', port: 'amp' }, { module: 'polysynth', port: 'trig' });
 
 // ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
 // Instrument") ────────────────────────────────────────────────────────────────────────
@@ -341,6 +379,16 @@ _onTaktRunning = (on) => { if (!on) recEngine.clockStopped(); };
 recEngine.onRecording((on) => rec.setCtrlOn('b:rec', on));
 recEngine.onRecArmed((armed) => rec.setCtrlBlink('b:rec', !!armed));
 window.__rec = { engine: recEngine, state: recState, host: rec };
+// Routing-Anmeldung (Paket B): der `clock`-Input ist noch nicht die aktive Zustellung — die
+// echte Verbindung bleibt taktEngine.onClockBeat(recEngine.handleClockBeat) oben (braucht Zeit
+// UND beatInBar, ein skalarer Gate-Wert reicht dafür nicht). write() ist ein Platzhalter für
+// eine spätere Migration mit einem passenderen Payload/Adapter (s. PHASE2_SPEC.md, offene
+// Mikro-Entscheidung); die Registry kennt die Verbindung nur für die Struktur-Ansicht.
+routing.registerModule('rec', {
+    label: 'Rec', latency: recEngine.latency,
+    ...bindPorts(recDefs.ports, { inputs: { clock: { write: () => {} } } }),
+});
+routing.connect({ module: 'takt', port: 'beat' }, { module: 'rec', port: 'clock' });
 // Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
 window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser };
 
@@ -365,6 +413,7 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: lev
     baseKeyboard.tick(); toneReadout.tick(); freqReadout.tick();
     levelMeter.tick();
     stepSeqEngine.tick(nowMs); stepSeqGrid.tick();
+    routing.flush();   // verbundene VALUE-Ports sampeln (Phase 2.3) — Event-Ports laufen über emit()
     requestAnimationFrame(tick);
 })();
 
