@@ -138,6 +138,12 @@ ports: {
 
 ## Phase 4 — Modularer Stepsequenzer (3 Instanzen)
 
+> **Spezifikation: [PHASE4_SPEC.md](PHASE4_SPEC.md)** (Opera, 20260723, erweitert um @dpa-Feedback
+> ddw.md 20260723_124045). Zuschnitt in drei einzeln-verifizierten Paketen: **4A** Teiler/Sync-Umbau
+> (Tempo-Quelle, 1/1=Beat, Transport-Start/Stop-Kopplung — @dpas lauteste Beschwerde, zuerst) ·
+> **4B** 3 Instanzen · **4C** editierbares Patchfeld (aus Phase 3b vorgezogen). „Rec an OSZ"
+> (Audio-Signal-Routing) ist bewusst Phase 5 abgegrenzt (dort entsteht erst der OSZ-Ausgang).
+
 - Stepseq auf das Port-Modell heben: Aus-/Eingangs-Listen werden **automatisch** aus den
   Registry-Ports angeboten (AmpEnv · OSZ-F · OSZ-P · Keyboard/Speicher 0..n · BaseFreq 0..12).
 - **Teiler reparieren (geklärt @dpa 20260723):** der Teiler soll die **Clock vom Tempo**
