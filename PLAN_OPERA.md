@@ -84,9 +84,21 @@ index.html (alle ISMs mounten, keine Konsolenfehler).
 
 ---
 
-## Phase 2 — Port-/Routing-Fundament (das gemeinsame Modell)
+## Phase 2 — Port-/Routing-Fundament (das gemeinsame Modell) — ✓ erledigt (20260724)
 
 **Ziel:** eine Abstraktion, auf der Struktur-Ansicht, Stepseq-Modularität und Latenz aufsetzen.
+
+**Umgesetzt** (Architektur/Spezifikation: [PHASE2_SPEC.md](PHASE2_SPEC.md); Umsetzung Sonnet,
+Playwright-verifiziert über [test/phase2_routing_smoke.py](test/phase2_routing_smoke.py)):
+alle vier ISMs (taktmetro/polysynth/stepseq/recInstrument) deklarieren `ports` in ihrer
+defs.js + `latency()` in ihrer engine.js; `lib/routing/Registry.js` sammelt sie, hält
+Verbindungen unter `werkbank_routing`. **Migriert** (Zustellung läuft real über
+`registry.emit()`): Stepseq.amp→Poly.trig (die für Phase 4 nötige Verbindung; Held-Note-
+Logik jetzt gekapselt in `polySynthEngine.triggerFromEnv()`). **Nur deklariert, Zustellung
+bewusst alt belassen**: Takt.beat→Rec.clock (ein skalarer `Gate`-Wert trägt Zeit+beatInBar
+nicht verlustfrei — offene Mikro-Entscheidung für einen richtigeren Payload/Adapter, s.
+PHASE2_SPEC.md). Poly.baseFreq/baseTone sind lesbare Value-Ports ohne aktiven Verbraucher
+bislang. `docs/CONTROLS.md` Checkliste um Punkt 7 (ports/latency, optional) ergänzt.
 
 ### 2.1 Port-Schema pro ISM
 Jedes ISM deklariert in seiner `defs.js`:
