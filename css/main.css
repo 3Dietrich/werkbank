@@ -315,6 +315,14 @@ body {
 .toggle-field.tgl-label-left { flex-direction: row-reverse; }
 .toggle-field.tgl-label-top { flex-direction: column-reverse; align-items: center; gap: 1px; }
 .toggle-field.tgl-label-bottom { flex-direction: column; align-items: center; gap: 1px; }
+/* Select/Segment-Label-Position (@dpa 20260723_857ff, ersetzt das alte reine labelOn an/aus).
+   DOM-Reihenfolge hier = Label, Control (umgekehrt zum Toggle) — 'top' ist daher die normale
+   Spalten-Richtung, kein *-reverse nötig. */
+.select-field.sel-label-top { flex-direction: column; }
+.select-field.sel-label-bottom { flex-direction: column-reverse; }
+.select-field.sel-label-left { flex-direction: row; align-items: center; gap: 6px; }
+.select-field.sel-label-right { flex-direction: row-reverse; align-items: center; gap: 6px; }
+.select-field.sel-label-off > span { display: none; }
 /* Label von Controls ohne Knob (Select/Toggle) ist wie ein Regler draggbar (@dpa
    20260713) – Cursor zeigt das an; Klick auf den Value bleibt normale Bedienung. */
 .ctrl-label-drag { cursor: ns-resize; user-select: none; }
