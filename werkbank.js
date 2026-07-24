@@ -28,7 +28,7 @@ import { PlayKeyboard } from './lib/polysynth/ui/PlayKeyboard.js';
 import { ChordMemory } from './lib/polysynth/ui/ChordMemory.js';
 import { BaseKeyboard } from './lib/polysynth/ui/BaseKeyboard.js';
 import { Readout } from './lib/polysynth/ui/Readout.js';
-import { midiToName, freqToMidi } from './lib/polysynth/pitch/Scaler.js';
+import { midiToName, freqToMidi, NOTE_NAMES } from './lib/polysynth/pitch/Scaler.js';
 import { stepSeqDefs } from './lib/stepseq/defs.js';
 import { createStepSeqEngine } from './lib/stepseq/engine.js';
 import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
@@ -416,6 +416,10 @@ routing.registerModule('polysynth', {
             ...buttonWrites(polySynth.keyMidi, ['chordUp', 'chordDown', 'kbHold']),
             speicher: { write: (v) => { if (v > 0) chordMemory.triggerSlot(Math.round(v) - 1); } },
             note: { write: (v) => polySynthKeyboard.playRemote(Math.round(v)) },
+            // Ton-Wahl als Sq-Ziel (@dpa ddw.md 20260724_153349): moduloed auf 1..12, damit
+            // auch Werte außerhalb des Ports-Bereichs (z.B. eine Sq-Skala mit anderem Min/Max)
+            // eine gültige Tonklasse ergeben, statt am Rand einzurasten.
+            tonWahl: { write: (v) => polySynthState.set('baseNote', NOTE_NAMES[((Math.round(v) - 1) % 12 + 12) % 12]) },
         },
     }),
 });

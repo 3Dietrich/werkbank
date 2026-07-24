@@ -68,16 +68,19 @@ try:
         check(mult2 == 1, f"Sq2 sollte vom Sq0-Recall unangetastet bleiben, war {mult2}")
 
         # ── Combo-Pool: Farbe in Sq2 speichern, in Sq0 laden ──
+        # k:seqMult statt u:seqGrid (@dpa ddw.md 20260724_153349, seqOutputTailComboExclude_
+        # smoke.py): das Step-GRID ist bewusst vom Combo ausgeschlossen, ein normaler Knob wie
+        # seqMult ist der richtige Beweis dafür, dass der Pool-Mechanismus selbst funktioniert.
         pg.evaluate("""() => {
             const s = window.__stepseq.state;
             const cur = { ...(s.get('ctrlStyles') || {}) };
-            cur['u:seqGrid_2'] = { ...(cur['u:seqGrid_2']||{}), fg: '#00ffaa' };
+            cur['k:seqMult_2'] = { ...(cur['k:seqMult_2']||{}), fg: '#00ffaa' };
             s.set('ctrlStyles', cur);
         }""")
         pg.evaluate(f"() => {host_js}.saveGroupCombo('Sequenzer 3', 'Pool-Combo')")
         combo_ok = pg.evaluate(f"() => {host_js}.recallGroupCombo('Stepsequenzer', 0)")
         check(combo_ok is True, "recallGroupCombo in Sq0 sollte true liefern")
-        fg0 = pg.evaluate("() => (window.__stepseq.state.get('ctrlStyles')||{})['u:seqGrid_0'].fg")
+        fg0 = pg.evaluate("() => (window.__stepseq.state.get('ctrlStyles')||{})['k:seqMult_0'].fg")
         check(fg0 == '#00ffaa', f"Sq0 sollte die in Sq2 gespeicherte Farbe übernehmen, war {fg0!r}")
 
         # ── Sq2 löschen: Pool-Inhalt bleibt (kein Verwaisen), nur ihr eigener Sel-Zeiger weg ──

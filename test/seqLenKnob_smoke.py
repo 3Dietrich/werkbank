@@ -40,7 +40,9 @@ try:
         check(group.locator('input.seq-steps').count() == 0, "Es sollte KEIN <input class=seq-steps> mehr geben")
         knob = group.locator('[data-ctrl="k:seqLen_0"]')
         check(knob.count() == 1, f"Steps-Knob (k:seqLen_0) fehlt, count={knob.count()}")
-        check("Steps" in knob.inner_text(), f"Knob sollte 'Steps' beschriftet sein: {knob.inner_text()!r}")
+        # Label 'Steps' -> 'Step-Zahl' (@dpa ddw.md 20260724_153349): hieß bisher wie das
+        # Step-Grid selbst, umbenannt zur Unterscheidung (s. seqOutputTailComboExclude_smoke.py).
+        check("Step-Zahl" in knob.inner_text(), f"Knob sollte 'Step-Zahl' beschriftet sein: {knob.inner_text()!r}")
 
         # ── Rechtsklick öffnet KnobMetaEditor mit min=1/max=64 ──
         knob.click(button="right")

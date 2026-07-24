@@ -502,6 +502,11 @@ body {
 .seq-lab { color: var(--muted); font-size: 11px; }
 .seq-steps { width: 52px; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 2px; padding: 2px 4px; font: inherit; }
 .seq-canvas { display: block; border: 1px solid var(--line); border-radius: 4px; background: #0e1116; cursor: crosshair; touch-action: none; }
+/* Live-Wertanzeige beim Ziehen (@dpa ddw.md 20260724_153349) — schwebt über dem gerade
+   gezogenen Step, folgt der Maus-x-Position (StepSeqGrid.js _showDragVal). */
+.seq-drag-val { position: absolute; transform: translate(-50%, -100%); background: #000c;
+  color: #fff; font-size: 10px; line-height: 1; padding: 2px 4px; border-radius: 2px;
+  pointer-events: none; white-space: nowrap; z-index: 2; }
 /* Fill/set0 stecken je in einem eigenen <div>-Wrapper (.seq-ic-wrap, @dpa 20260724_114012):
    der Wrapper trägt Layout/Abstand UND ist das, was mountInGroup/registerCtrlStyle anfassen
    — im e-Mode ist der rohe <button> pointer-events:none (s. .arranging button unten), der

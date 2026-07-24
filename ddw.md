@@ -1114,7 +1114,12 @@ PolySynth/Keyboard/
         nur bei diesem speziell:
         Over und kill sollen nach dem click auf einen Speicher automatisch auf Use zürückgehen
 
-
-
 Outputs:
     es fehlt mir PolySynth-TonWahl! Der sollte auf 1 - 12 (moduloed?) reagieren können.
+
+-- 
+20260724_183901
+main Config:
+   - 'BESCHRIFTUNG' umbenennen in 'LABELS'
+       - Wert-BG mit Deckkraft (default=0)
+   - ![Gruppen-Kopf Größe und Höhe](image-14.png) sie reagieren noch nicht. Egal was ich einsetze: mini oder rießig, die Gruppenköpfe und Schriften bleiben gleich..
