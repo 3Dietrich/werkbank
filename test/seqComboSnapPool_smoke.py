@@ -80,12 +80,16 @@ try:
         fg0 = pg.evaluate("() => (window.__stepseq.state.get('ctrlStyles')||{})['u:seqGrid_0'].fg")
         check(fg0 == '#00ffaa', f"Sq0 sollte die in Sq2 gespeicherte Farbe übernehmen, war {fg0!r}")
 
-        # ── Sq2 löschen: Pool-Inhalt bleibt (kein Verwaisen) ──
+        # ── Sq2 löschen: Pool-Inhalt bleibt (kein Verwaisen), nur ihr eigener Sel-Zeiger weg ──
+        sel_before = pg.evaluate("() => (window.__stepseq.state.get('groupSnapSel')||{})['Sequenzer 3']")
+        check(sel_before == 'Pool-Snap', f"Sq2 sollte 'Pool-Snap' als Sel-Zeiger haben, war {sel_before!r}")
         pg.evaluate("() => window.__stepseq.mgr.removeSq()")
         n2 = pg.evaluate("() => window.__stepseq.mgr.count()")
         check(n2 == 2, f"erwartet 2 Sq nach removeSq(), war {n2}")
         list_after = pg.evaluate(f"() => {host_js}.listGroupSnaps('Stepsequenzer').map(s => s.name)")
         check('Pool-Snap' in list_after, f"Pool-Snap sollte nach Löschen von Sq2 weiter existieren: {list_after!r}")
+        sel_after = pg.evaluate("() => (window.__stepseq.state.get('groupSnapSel')||{})['Sequenzer 3']")
+        check(sel_after is None, f"Sq2's eigener Sel-Zeiger sollte nach removeSq() weg sein, war {sel_after!r}")
 
         # ── Aufräumen: zurück auf 1 Sq, Testeinträge aus dem Pool entfernen ──
         pg.evaluate("() => window.__stepseq.mgr.removeSq()")
