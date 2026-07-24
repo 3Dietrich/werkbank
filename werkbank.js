@@ -33,6 +33,7 @@ import { stepSeqDefs } from './lib/stepseq/defs.js';
 import { createStepSeqEngine } from './lib/stepseq/engine.js';
 import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
 import { createSqManager } from './lib/stepseq/multiSq.js';
+import { makeWorkerTicker } from './lib/workerTicker.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
 import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from './lib/audioBus.js';
@@ -548,9 +549,17 @@ taktEngine.onClockBeat((t, beat) => {
 // dran (PHASE4_SPEC.md 4A.4): Start armt auf Step 0 (Downbeat-phasengleich), Stop lässt die
 // Position auf -1 verfallen. Hängt sich an den EINEN taktEngine.onRunning-Callback an
 // (s. _onTaktRunning oben, Zeile ~92) statt ihn zu überschreiben.
+// Worker-getriebener Antrieb für den Seq-Transport (ddw.md 20260724_212747, „stabiler
+// Bus"): der rAF-Loop unten tickt sqManager nur, solange der Tab sichtbar ist — im
+// Hintergrund friert rAF ein und die Sequenzer „senden nichts mehr". Dieser Ticker läuft
+// im Worker (nicht gedrosselt) und treibt denselben tick() unabhängig vom Tab-Fokus weiter.
+// Nur bei laufendem Transport aktiv (tick() ist ohne Transport ohnehin ein No-op); der
+// Doppelantrieb rAF+Worker ist unschädlich, weil tick() gegen `nextAt` idempotent ist.
+const seqTicker = makeWorkerTicker(20, (nowMs) => sqManager.tick(nowMs));
 _onTaktRunning = (on) => {
     if (!on) recEngine.clockStopped();
     sqManager.transport(on);
+    on ? seqTicker.start() : seqTicker.stop();
 };
 // Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
 // den „armed, wartet auf nächsten Takt-Downbeat"-Zustand (Rec-Instrument-TODO 5).
