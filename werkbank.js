@@ -707,7 +707,14 @@ const ensembleState = new MiniState({}, ENSEMBLE_LS);
 const ensembleStore = createEnsembleStore(ensembleState, [
     { lsKey: TAKT_LS, state: taktState, allSoundValues: () => takt.allSoundValues() },
     { lsKey: POLYSYNTH_LS, state: polySynthState, allSoundValues: () => polySynth.allSoundValues() },
-    { lsKey: STEPSEQ_LS, state: stepSeqState, allSoundValues: () => stepSeq.allSoundValues() },
+    // Stepseq: sqCount ist ISM-weit (keine Gruppe) → mit sichern, und nach dem Recall die
+    // Sq-Gruppen reconcilen (sonst käme die Sequenzer-Anzahl aus dem Ensemble-Snapshot
+    // ebenso wenig zurück wie beim ISM-Snapshot, @dpa 20260725).
+    {
+        lsKey: STEPSEQ_LS, state: stepSeqState, allSoundValues: () => stepSeq.allSoundValues(),
+        snapExtra: () => ({ sqCount: stepSeqState.get('sqCount') }),
+        onRecalled: () => sqManager.reconcile(),
+    },
     { lsKey: REC_LS, state: recState, allSoundValues: () => rec.allSoundValues() },
 ]);
 window.__ensemble = { state: ensembleState, store: ensembleStore };
@@ -1206,7 +1213,15 @@ mountBenchHelp('bench-rec', recState);
 // Rückgabe mit rein — InstrumentSettings.js nutzt host.allSoundValues() für den Snapshot.
 const taktInstr = mountInstrumentSettings(benchTakt, taktState, { bodySelector: '#taktgeber', host: takt });
 const polySynthInstr = mountInstrumentSettings(document.querySelector('#bench-polysynth'), polySynthState, { bodySelector: '#polysynth', host: polySynth });
-const stepSeqInstr = mountInstrumentSettings(document.querySelector('#bench-stepseq'), stepSeqState, { bodySelector: '#stepseq', host: stepSeq });
+const stepSeqInstr = mountInstrumentSettings(document.querySelector('#bench-stepseq'), stepSeqState, {
+    bodySelector: '#stepseq', host: stepSeq,
+    // sqCount gehört zu keiner Gruppe (ISM-weit) → allSoundValues() erfasst es nicht; ohne
+    // es käme nach dem Recall die Sq-ANZAHL nicht zurück. onSnapRecalled reconcilet danach
+    // die tatsächlich gebauten Sq-Gruppen an den geladenen sqCount (@dpa 20260725: Snapshot
+    // stellte gelöschte Sequenzer nicht wieder her).
+    snapExtra: () => ({ sqCount: stepSeqState.get('sqCount') }),
+    onSnapRecalled: () => sqManager.reconcile(),
+});
 const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), recState, { bodySelector: '#rec', host: rec });
 window.__takt.instr = taktInstr;
 window.__polysynth.instr = polySynthInstr;
