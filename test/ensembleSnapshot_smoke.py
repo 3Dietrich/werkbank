@@ -39,7 +39,7 @@ try:
         check(pg.evaluate("() => !!window.__ensemble && !!window.__ensemble.store"), "window.__ensemble.store fehlt")
 
         # ── Header-PickMenu ist da ──
-        menu_btn = pg.locator('.topbar-right .pickmenu .pm-btn')
+        menu_btn = pg.locator('.topbar [data-ctrl="hdr:ensemble"] .pm-btn')
         check(menu_btn.count() >= 1, f"Ensemble-PickMenu-Knopf fehlt im Header, count={menu_btn.count()}")
 
         # ── 'werkbank_ensemble' in LS_KEYS (buildConfig greift es mit, sobald was drinsteht) ──

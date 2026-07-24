@@ -718,12 +718,17 @@ cfgBtn.addEventListener('click', () => {
 });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
 
-// Ensemble-Snapshot-Menü im Header (@dpa 20260724) — direkt als PickMenu, kein eigener
-// Toggle-Knopf nötig (PickMenu bringt Knopf+Popup schon mit, wie beim Sq-Output-Menü).
+// Ensemble-Snapshot-Menü im Header (@dpa 20260724, Feinschliff 20260724_114012: rechts neben
+// „Werkbank" statt bei ⚙ Config, UND mit echten Rechtsklick-Settings wie ein normales
+// select-Control) — direkt als PickMenu, kein eigener Toggle-Knopf nötig (PickMenu bringt
+// Knopf+Popup schon mit, wie beim Sq-Output-Menü). noContextOpen: die eigene Optik-
+// Rechtsklick-Kette unten (hdrElemSettings, dasselbe Muster wie wireHeaderBtnSettings) soll
+// den Rechtsklick bekommen, nicht PickMenus eingebautes „geh auf".
 const ensembleMenu = new PickMenu({
     label: '',
     empty: '⭐ Ensemble',
     title: 'Zustand mehrerer Instrumente zusammen speichern/laden (Master-Fader bleibt außen vor)',
+    noContextOpen: true,
     list: () => ensembleStore.list(),
     current: () => ensembleState.get('ensembleSnapSel') || '',
     onPick: (i) => ensembleStore.recall(i),
@@ -735,7 +740,23 @@ const ensembleMenu = new PickMenu({
         if (nm && nm.trim()) ensembleStore.save(nm.trim());
     }]],
 });
-document.querySelector('.topbar-right').appendChild(ensembleMenu.element);
+ensembleMenu.element.dataset.ctrl = 'hdr:ensemble';
+const applyEnsembleStyle = (s) => {
+    const btn = ensembleMenu.element.querySelector('.pm-btn');
+    if (btn) {
+        btn.style.background = s.bg0 || '';
+        btn.style.color = s.fg || '';
+        btn.style.fontSize = s.size ? s.size + 'px' : '';
+        btn.style.padding = s.pad != null ? s.pad + 'px' : '';
+        btn.style.width = s.boxSize ? s.boxSize + 'px' : '';
+    }
+};
+ensembleMenu.element.addEventListener('contextmenu', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    hdrElemSettings.open({ id: 'hdr:ensemble', type: 'select', el: ensembleMenu.element, defLabel: 'Ensemble', applyStyle: applyEnsembleStyle });
+});
+applyEnsembleStyle((state.get('ctrlStyles') || {})['hdr:ensemble'] || {});
+document.querySelector('.topbar h1').insertAdjacentElement('afterend', ensembleMenu.element);
 window.__ensemble.menu = ensembleMenu;
 
 // Sichtbarer Header-Button (PLAN_OPERA.md 1.3, @dpa 20260723: „Header/Reset: falsch verstanden!
