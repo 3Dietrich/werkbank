@@ -308,6 +308,12 @@ body {
 
 /* ── Selects ── */
 .select-field { display: flex; flex-direction: column; gap: 2px; color: var(--lab-col, var(--muted)); font-size: var(--lab-size, 11px); }
+/* @dpa 20260724: eigene Label-Texte (ElementSettings-Feld „Label") sollen echte Leerzeichen
+   zeigen — auch mehrere hintereinander oder nachgestellte, als Platzhalter-Trick ("/     "
+   soll sichtbar breiter sein als "/"). Browser-Default (white-space:normal) faltet jede
+   Leerzeichen-Folge auf eins zusammen und schneidet nachgestellte weg — pre-wrap erhält sie,
+   erlaubt aber weiterhin Zeilenumbruch bei einem echt langen Label (anders als reines `pre`). */
+.select-field > span, .btn-label, .pm-label, .note-field { white-space: pre-wrap; }
 /* Schalter: Kästchen und Beschriftung dichter zusammen (@dpa 20260716_011222). */
 .toggle-field { flex-direction: row; align-items: center; gap: 3px; }
 /* Toggle-Label-Position (@dpa 20260714, Element-Settings). DOM-Reihenfolge = Checkbox, Label. */
