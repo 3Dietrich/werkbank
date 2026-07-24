@@ -177,7 +177,10 @@ const takt = mountGroups(taktRoot, taktState, taktDefs, {
 // (recEngine hängt sich hier per _onTaktRunning mit an, sobald es weiter unten existiert —
 // onRunning ist ein Einzel-Callback, s. taktmetro/engine.js, deshalb NUR EINE Registrierung.)
 let _onTaktRunning = () => {};
-taktEngine.onRunning((on) => { takt.setCtrlOn('b:start', on); _onTaktRunning(on); });
+// Beide Start-Knöpfe (>/|>, ddw.md 20260724_212747) tragen den „Transport läuft"-Zustand:
+// egal welcher gestartet hat, beide leuchten, und ein Druck auf einen von beiden stoppt.
+// `avv` (nur bei on=true belegt) unterscheidet '>' (alles von vorne) von '|>' (weiter).
+taktEngine.onRunning((on, avv) => { takt.setCtrlOn('b:start', on); takt.setCtrlOn('b:startCont', on); _onTaktRunning(on, avv); });
 // Die Takt-Anzeige leuchtet auf dem laufenden Beat (zeit-ausgerichtet vom Engine).
 taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
 // BPM-Anzeige folgt dem Anschieben +/− (@dpa 20260720, Punkt): der ±-Schub wird SICHTBAR, ohne
@@ -556,9 +559,9 @@ taktEngine.onClockBeat((t, beat) => {
 // Nur bei laufendem Transport aktiv (tick() ist ohne Transport ohnehin ein No-op); der
 // Doppelantrieb rAF+Worker ist unschädlich, weil tick() gegen `nextAt` idempotent ist.
 const seqTicker = makeWorkerTicker(20, (nowMs) => sqManager.tick(nowMs));
-_onTaktRunning = (on) => {
+_onTaktRunning = (on, avv = true) => {
     if (!on) recEngine.clockStopped();
-    sqManager.transport(on);
+    sqManager.transport(on, avv);   // avv=false ('|>') → Sequenzer laufen ab Position weiter
     on ? seqTicker.start() : seqTicker.stop();
 };
 // Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
