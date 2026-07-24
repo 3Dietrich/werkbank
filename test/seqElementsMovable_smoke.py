@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Headless-Smoke: Steps-Feld/Fill/set0 sind im e-Mode einzeln verschiebbar (ddw.md @dpa
-20260724_114012: "mach die Elemente im e-mode verschiebbar"). Lauf:
-python3 test/seqElementsMovable_smoke.py
+"""Headless-Smoke: Fill/set0 sind im e-Mode einzeln verschiebbar (ddw.md @dpa 20260724_114012:
+"mach die Elemente im e-mode verschiebbar"). Lauf: python3 test/seqElementsMovable_smoke.py
+
+Steps (seqLen) ist seit @dpa 20260724_122929 ein normaler Knob (k:seqLen) statt eines
+eigenen Unikat-Controls — Knobs sind über GroupHost.knobRow/freezeGroup schon immer
+automatisch einzeln verschiebbar, wird hier mitgeprüft statt gesondert gebaut.
 
 Hart begrenzt (Watchdog killt nach 40s), kein Pollen.
-  · Im e-Mode bekommen alle drei ein eigenes data-ctrl UND position:absolute (flat unit,
-    wie jeder andere Control) — NICHT mehr nur Teil der Grid-Box.
+  · Im e-Mode bekommen Fill/set0/Steps-Knob ein eigenes data-ctrl UND position:absolute
+    (flat unit, wie jeder andere Control) — NICHT mehr nur Teil der Grid-Box.
   · Fill lässt sich EINZELN ziehen (ctrlPos ändert sich NUR für 'u:seqFill_0', nicht für
     'u:seqSet0_0' oder 'u:seqGrid_0').
-  · Normales (nicht-e-mode) Layout bleibt kompakt (Steps-Feld/Fill/set0 sitzen weiter
-    sichtbar nahe beieinander über der Canvas, kein Rendering-Bruch).
+  · Normales (nicht-e-mode) Layout bleibt kompakt (Fill/set0 sitzen weiter sichtbar nahe
+    beieinander über der Canvas, kein Rendering-Bruch).
 """
 import subprocess, sys, time, os, threading
 from playwright.sync_api import sync_playwright
@@ -42,10 +45,10 @@ try:
         group = pg.locator('.group[data-group="Stepsequenzer"]')
         fill = group.locator('[data-ctrl="u:seqFill_0"]')
         s0 = group.locator('[data-ctrl="u:seqSet0_0"]')
-        steps = group.locator('[data-ctrl="u:seqSteps_0"]')
+        steps = group.locator('[data-ctrl="k:seqLen_0"]')
         check(fill.count() == 1, f"Fill sollte data-ctrl='u:seqFill_0' tragen, count={fill.count()}")
         check(s0.count() == 1, f"set0 sollte data-ctrl='u:seqSet0_0' tragen, count={s0.count()}")
-        check(steps.count() == 1, f"Steps-Feld sollte data-ctrl='u:seqSteps_0' tragen, count={steps.count()}")
+        check(steps.count() == 1, f"Steps-Knob sollte data-ctrl='k:seqLen_0' tragen, count={steps.count()}")
 
         # ── Normales Layout: alle drei + Canvas sichtbar nahe beieinander (kein Bruch) ──
         canvas = group.locator('canvas.seq-canvas')

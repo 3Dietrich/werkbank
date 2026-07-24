@@ -315,6 +315,10 @@ body {
 .toggle-field.tgl-label-left { flex-direction: row-reverse; }
 .toggle-field.tgl-label-top { flex-direction: column-reverse; align-items: center; gap: 1px; }
 .toggle-field.tgl-label-bottom { flex-direction: column; align-items: center; gap: 1px; }
+/* @dpa 20260724_122929: "toggle controls zeigen [Label-Pos = ohne] die Labels fälschlicherweise
+   noch rechts an" — GroupHost.makeToggle() setzt die Klasse tgl-label-off schon korrekt (wie
+   bei select), nur die Ausblend-Regel dafür fehlte hier (anders als .select-field.sel-label-off). */
+.toggle-field.tgl-label-off > span { display: none; }
 /* Select/Segment-Label-Position (@dpa 20260723_857ff, ersetzt das alte reine labelOn an/aus).
    DOM-Reihenfolge hier = Label, Control (umgekehrt zum Toggle) — 'top' ist daher die normale
    Spalten-Richtung, kein *-reverse nötig. */
