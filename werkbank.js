@@ -435,11 +435,11 @@ routing.registerModule('polysynth', {
         },
     }),
 });
-// Base-Frq als Quelle fürs Metronom (ddw.md 20260724_212747, teslacoil-Parität): dauerhafte
+// Base-Frq als Quelle fürs Metronom (ddw.md 20260724_212747, korrigiert 233253): dauerhafte
 // VALUE-Verbindung polysynth.baseFreq → takt.baseFreqIn. Der Wert fließt jeden Frame über
-// flush() (billig), WIRKT aber nur, wenn das Metronom-Toggle „Cut⇢Base" (metroCutoffQuant) an
-// ist. connect() ist idempotent (dedupliziert gegen die persistierte Verbindungsliste), der
-// erste echte VALUE-Modulationsweg der Werkbank — sichtbar auch in der Struktur-Ansicht.
+// flush() (billig), WIRKT aber nur, wenn das Metronom-Toggle „Quant" (metroCutoffQuant) an ist
+// (dann rasten die Metro-Cutoffs auf Base-Frq-Vielfache). connect() ist idempotent (dedupliziert
+// gegen die persistierte Verbindungsliste), der erste echte VALUE-Modulationsweg der Werkbank.
 routing.connect({ module: 'polysynth', port: 'baseFreq' }, { module: 'takt', port: 'baseFreqIn' });
 // Render-Loop steht GANZ UNTEN in dieser Datei (nach LevelMeter) — ruft sich beim ersten Mal
 // SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber
