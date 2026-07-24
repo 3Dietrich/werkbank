@@ -1159,7 +1159,14 @@ fehlende Übersetzungen:
 20260724_233253
     Tempo:
         "|> nach Stop → läuft Seq ab Position weiter statt auf 1?" Nein, |> soll von vorne starten ABER > soll ab Position weiter.
-        
+
     Metronom ..anders..
         Quant an/aus: rundet die Cutoffs
         Band erstmal raus, (vielleicht aber auch wieder..)
+
+die Stepsequencer werden niicht korrekt upgedatet bei Snapshot aufrufen! z.B.
+    6 sind da. 
+    Snapshot gespeichert.
+    3 weglöschen (ism header '-')
+    Snapshot aufrufen   
+    --> die 6 sollten wieder da und ready to run sein (es sind aber 3 Seq (mit snap inhalt, aber nur die 3..) 
