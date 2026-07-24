@@ -529,7 +529,7 @@ Eine der **Hauptaufgaben ist in 'Werkbank': modulare Syntheshizer gebähren**. (
 
 -- 
 ![Kb](docs/screenshots/image-27.png) - Dass die Oktaven in Zeilen sein können ist gut, aber nicht üblich. Ich würde sagen: Du machst eine Einstellung in `unikat` Keyboard Settings: oktav[umbruchicon]: togglet die Ansicht auf die derzeitige Ansicht zu ein horizontales keyboard
-
+## Akkordspeicher++
 --
 20260721_231818
 ich brauch noch unbedingt den Akkord Speicher. Den hatte ich schonmal beschrieben.. Hattest du das vielleicht verwechselt mit dem Keyboard? Es sollten 3X3 zunächst Flächen/Vielen Dank.
@@ -1154,3 +1154,12 @@ fehlende Übersetzungen:
         bei "Start" wird automatisch der Sync ('!') mitgetriggert, also "alles von vorne" (avv). Das will ich aufteilen in "Go clock mit avv" und "continue ohne avv". Also zwei "Start"s 
         einer '>' der andere '|>' 
         Stop verhalten bleibt unverändert. und beide Starts sollen eigene learns kriegen.. also eifach zwei Start buttons.. oder?
+        
+
+20260724_233253
+    Tempo:
+        "|> nach Stop → läuft Seq ab Position weiter statt auf 1?" Nein, |> soll von vorne starten ABER > soll ab Position weiter.
+        
+    Metronom ..anders..
+        Quant an/aus: rundet die Cutoffs
+        Band erstmal raus, (vielleicht aber auch wieder..)
