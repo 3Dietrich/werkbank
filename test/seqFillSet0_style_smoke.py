@@ -4,8 +4,9 @@ bei Control/Knob-Settings" für die Sq-eigenen Elemente). Lauf: python3 test/seq
 
 Hart begrenzt (Watchdog killt nach 40s), kein Pollen — wie test/seqOutput_smoke.py.
 Prüft:
-  · Fill-Knopf und set0-Knopf öffnen je einen EIGENEN ElementSettings-Rechtsklick (Typ 'opener':
-    Textumschalt-Feld + Farbe/Größe, ohne Label/L.Pos).
+  · Fill-Knopf und set0-Knopf öffnen je einen EIGENEN ElementSettings-Rechtsklick (Typ
+    'button', @dpa 20260724_122929: "Reset: bitte als Button" · "Fill auch" — inkl.
+    Label/L.Pos-Feldern, anders als der ursprüngliche Typ 'opener').
   · Eine gesetzte Hintergrundfarbe wird SOFORT auf genau diesen einen Knopf angewandt (nicht auf
     den anderen, nicht auf die ganze Grid-Box).
   · Die Farbe steckt danach unter eigenen ctrlStyles-Keys ('u:seqFill_0'/'u:seqSet0_0') im
@@ -47,11 +48,11 @@ try:
         check(fill_btn.count() == 1, f"Fill-Knopf fehlt, count={fill_btn.count()}")
         check(s0_btn.count() == 1, f"set0-Knopf fehlt, count={s0_btn.count()}")
 
-        # ── Rechtsklick auf Fill öffnet EIGENES Settings-Panel (Typ 'opener': kein Label-Feld) ──
+        # ── Rechtsklick auf Fill öffnet EIGENES Settings-Panel (Typ 'button': mit Label/L.Pos) ──
         fill_btn.click(button="right")
         panel = pg.locator('.elem-settings:visible')
         check(panel.count() == 1, f"Element-Settings-Panel für Fill öffnet nicht, count={panel.count()}")
-        check(not panel.locator('.kme-row[data-f="label"]').is_visible(), "Fill-Panel sollte KEIN Label-Feld zeigen (Typ 'opener')")
+        check(panel.locator('.kme-row[data-f="label"]').is_visible(), "Fill-Panel sollte ein Label-Feld zeigen (Typ 'button')")
         bg_input = panel.locator('.kme-row[data-f="bg"] .es-bg')
         check(bg_input.count() == 1, "BG-Farbfeld fehlt im Fill-Panel")
         bg_input.fill("#ff00aa")

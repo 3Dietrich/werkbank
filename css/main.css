@@ -495,9 +495,17 @@ body {
    — im e-Mode ist der rohe <button> pointer-events:none (s. .arranging button unten), der
    Wrapper dahinter bleibt für Maus/Rechtsklick erreichbar (dasselbe Prinzip wie .btn-field
    bei GroupHost.makeButton). Icon füllt den Rahmen, s. .ico-Regel oben. */
-.seq-ic-wrap { display: inline-flex; margin: 0 6px 6px 0; vertical-align: top; }
+.seq-ic-wrap { display: inline-flex; align-items: center; margin: 0 6px 6px 0; vertical-align: top; }
 .seq-ic { --ico: 16px; display: inline-flex; align-items: center; justify-content: center;
   padding: 3px; min-width: 24px; line-height: 1; }
+/* Reset (set0) ist seit @dpa 20260724_122929 Typ 'button' (@dpa: "bitte als Button") und
+   bekommt darum einen Außen-Label wie GroupHost.makeButton()s .btn-field/.btn-label — hier
+   unter .seq-ic-wrap statt .btn-field, damit die Inline-Zeile mit Fill/Steps erhalten bleibt. */
+.seq-ic-wrap.btn-label-off .btn-label { display: none; }
+.seq-ic-wrap.btn-label-top { flex-direction: column; }
+.seq-ic-wrap.btn-label-bottom { flex-direction: column-reverse; }
+.seq-ic-wrap.btn-label-left { flex-direction: row; }
+.seq-ic-wrap.btn-label-right { flex-direction: row-reverse; }
 
 /* ── Reflections-Anzeige (Settings per Rechtsklick, kein Knopf daneben) ── */
 .refl-wrap { display: flex; align-items: flex-start; gap: 6px; }
@@ -611,7 +619,10 @@ body {
    die gleiche Farbe haben sollten muss man sie irgendwie global vorgeben"). Die Variablen
    setzt app.js aus dem State; ist nichts gesetzt, gilt der bisherige Wert als Fallback –
    ein unangetastetes Instrument sieht also exakt aus wie vorher. */
-.knob-label { font-size: var(--lab-size, 10px); line-height: 1; color: var(--lab-col, var(--muted)); margin-top: 3px; text-align: center; }
+/* @dpa 20260724_122929: "StepSeq/Multiplikator ... Label '/  ' (Leerzeichen rechts), aber
+   die Leerzeichen sind immer wieder weg" — weiße-space:normal-Default faltet Leerzeichen-
+   Folgen zusammen, pre-wrap erhält sie (erlaubt aber weiterhin Umbruch bei langen Labels). */
+.knob-label { font-size: var(--lab-size, 10px); line-height: 1; color: var(--lab-col, var(--muted)); margin-top: 3px; text-align: center; white-space: pre-wrap; }
 /* Label-Position (@dpa 20260714): oben = per flex-order vor den Dial, aus = weg. */
 .knob-label-top .knob-label { order: -1; margin-top: 0; margin-bottom: 1px; }
 .knob-label-off .knob-label { display: none; }
@@ -628,7 +639,8 @@ body {
 .knob-label-right .knob-svg   { grid-column: 1; grid-row: 1; }
 .knob-label-right .knob-value { grid-column: 1; grid-row: 2; }
 .knob-label-right .knob-label { grid-column: 2; grid-row: 1 / span 2; text-align: left; }
-.knob-label-left .knob-label, .knob-label-right .knob-label { margin: 0 3px; white-space: nowrap; }
+/* `pre` statt `nowrap`: verhindert weiterhin Umbruch, faltet aber KEINE Leerzeichen zusammen. */
+.knob-label-left .knob-label, .knob-label-right .knob-label { margin: 0 3px; white-space: pre; }
 /* Knob-BG-Farbe (@dpa 20260714): NUR der runde Dial-Innenkreis – die einzige Fläche am
    Knob, die #232833 (--panel2) ist. Siehe .knob-center. KEIN Value-BG (@dpa ausdrücklich),
    kein Container-Hintergrund. */
