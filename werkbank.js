@@ -406,7 +406,11 @@ routing.registerModule('polysynth', {
             baseTone: { read: () => polySynthEngine.baseTone() },
         },
         inputs: {
-            trig: { write: (v) => polySynthEngine.triggerFromEnv(v) },
+            // meta.srcId (Bugfix „lautes Getöse" bei 2+ aktiven Sq, ddw.md 20260724_192304):
+            // durchgereicht an triggerFromEnv/playRemote, damit ihr Legato-Gedächtnis PRO
+            // SQ-KLON läuft statt in einer einzigen geteilten Variable — s. Registry.js
+            // deliver()-Kommentar.
+            trig: { write: (v, meta) => polySynthEngine.triggerFromEnv(v, meta && meta.srcId) },
             // Punkt 3b (ddw.md 20260724): ALLE Knobs + die drei freigegebenen Buttons als
             // Sq-Ziele — write()-Bindungen aus derselben KNOBS/BUTTONS-Quelle wie das Panel
             // (portGen.js), `polySynth.keyMidi` ist die EIGENE KeyMidi-Instanz dieses
@@ -415,7 +419,7 @@ routing.registerModule('polysynth', {
             ...knobWrites(polySynthState, polySynthDefsObj.KNOBS),
             ...buttonWrites(polySynth.keyMidi, ['chordUp', 'chordDown', 'kbHold']),
             speicher: { write: (v) => { if (v > 0) chordMemory.triggerSlot(Math.round(v) - 1); } },
-            note: { write: (v) => polySynthKeyboard.playRemote(Math.round(v)) },
+            note: { write: (v, meta) => polySynthKeyboard.playRemote(Math.round(v), meta && meta.srcId) },
             // Ton-Wahl als Sq-Ziel (@dpa ddw.md 20260724_153349): moduloed auf 1..12, damit
             // auch Werte außerhalb des Ports-Bereichs (z.B. eine Sq-Skala mit anderem Min/Max)
             // eine gültige Tonklasse ergeben, statt am Rand einzurasten.

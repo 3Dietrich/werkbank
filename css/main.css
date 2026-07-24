@@ -1221,6 +1221,11 @@ body {
 /* Der laufende Beat leuchtet in seiner Farbe (Haupt- vs. Nebenbeat). */
 .beat-dot.beat-hit { background: var(--beat-sub, var(--accent2)); }
 .beat-dot.beat-hit.beat-main { background: var(--beat-main, var(--accent)); }
+/* Puls auf der 1 (@dpa 20260724_192304, D-Env-Gefühl wie .btn-fade): .beat-pulse snapt ohne
+   Transition hell an, .beat-pulse-fade blendet über die Transition wieder auf die normale
+   beat-hit/beat-main-Farbe zurück (GroupHost.js pulseMain). */
+.beat-dot.beat-pulse { background: #fff; box-shadow: 0 0 6px 1px var(--beat-main, var(--accent)); }
+.beat-dot.beat-pulse-fade { transition: background-color .35s ease-out, box-shadow .35s ease-out; }
 
 /* Button im ON-Zustand (Task D): die „BG an"-Farbe kommt inline über paintBg; diese Regel
    sichert nur, dass ein evtl. Rahmen mitzieht. */
