@@ -1123,3 +1123,16 @@ main Config:
    - 'BESCHRIFTUNG' umbenennen in 'LABELS'
        - Wert-BG mit Deckkraft (default=0)
    - ![Gruppen-Kopf Größe und Höhe](image-14.png) sie reagieren noch nicht. Egal was ich einsetze: mini oder rießig, die Gruppenköpfe und Schriften bleiben gleich..
+
+fehlende Übersetzungen:
+    Englisch:
+    ![2 fehler](image-15.png)
+        - die Hilfen im Speicher sind noch deutsch
+        - die Hilfen unten im Gruppen Settings (z.B. "Enter = Übernehmen - ESC = Verlassen") sind noch deutsch
+        - alle ISM Hilfen ![Beispiel](image-16.png).. 
+
+-- 
+20260724_192304
+    beim Combo speichern fiel mir doch wieder etwas auf:
+        ![alt text](image-17.png) oberes gespeichert, in unterem recalled. die ANSICHT der Steps soll übernommen werden, also Farben, Breite und Höhe. Der Inhalt und min,max,stepsize bleibt.
+    

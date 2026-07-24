@@ -5,7 +5,7 @@ Themen ... Label Farben bestimmbar ... Gruppen header Schriftgröße und Höhe e
 Deutsch/Englisch").
 
 Prüft:
-  - ⚙ Config öffnet ein MiniSettings-Panel mit 4 Themen-Abschnitten (Beschriftung/
+  - ⚙ Config öffnet ein MiniSettings-Panel mit 4 Themen-Abschnitten (Labels/
     Gruppen-Kopf/Sprache/Daten), nicht mehr das alte schmale Export/Import/Reset-Popup.
   - Label-Farbe wirkt sofort auf ein echtes Knob-Label (CSS-Var --lab-col).
   - Gruppen-Kopf-Größe wirkt sofort auf .group-title (CSS-Var --grp-head-size).
@@ -53,7 +53,9 @@ try:
         # (.cfg-section-title steht per CSS in Großbuchstaben, all_inner_texts() liefert
         # den GERENDERTEN Text — daher hier gegen die Großschreibung prüfen.)
         sections = panel.locator('.cfg-section-title').all_inner_texts()
-        check(sections == ['BESCHRIFTUNG', 'GRUPPEN-KOPF', 'SPRACHE', 'DATEN'],
+        # 'Beschriftung' -> 'Labels' (@dpa ddw.md 20260724_183901): wörtlich umbenannt, kein
+        # Übersetzungs-Eintrag (englischer Fachbegriff wie 'Base-Frq', in beiden Sprachen gleich).
+        check(sections == ['LABELS', 'GRUPPEN-KOPF', 'SPRACHE', 'DATEN'],
               f"Erwartet 4 Themen-Abschnitte in Reihenfolge, war {sections!r}")
 
         # ── Label-Farbe wirkt sofort ──
@@ -124,4 +126,4 @@ if fails:
     for f in fails:
         print(" -", f)
     sys.exit(1)
-print("SMOKE OK: main Config als Themen-Fenster (Beschriftung/Gruppen-Kopf/Sprache/Daten) funktioniert.")
+print("SMOKE OK: main Config als Themen-Fenster (Labels/Gruppen-Kopf/Sprache/Daten) funktioniert.")

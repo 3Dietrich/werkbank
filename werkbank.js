@@ -11,7 +11,7 @@ import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
 import { HintBubble } from './lib/HintBubble.js';
 import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js';
 import { factoryHint } from './lib/hints.js';
-import { hint, text as i18nText, setLang, lang as curLang } from './lib/i18n.js';
+import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from './lib/i18n.js';
 import { MiniSettings } from './lib/MiniSettings.js';
 import { wireGlobalLook } from './lib/globalLook.js';
 import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
@@ -732,19 +732,26 @@ const cfgPanel = new MiniSettings('⚙ Config');
 cfgBtn.addEventListener('click', () => {
     if (cfgPanel.isOpen) { cfgPanel.close(); return; }
     cfgBtn.classList.add('active');
-    cfgPanel.open(cfgBtn, ({ color, num, section, full }) => {
-        section('Beschriftung');
+    cfgPanel.open(cfgBtn, ({ color, colorA, num, section, full }) => {
+        // 'Beschriftung' -> 'Labels' (@dpa ddw.md 20260724_183901) — wörtlich umbenannt, keine
+        // Übersetzung/Sprachumschaltung: wie 'Base-Frq'/'Keyboard' ist das ein englischer
+        // Fachbegriff, der in BEIDEN Sprachen gleich steht.
+        section('Labels');
         const colorField = color('Farbe', { get: () => state.get('labelColor') || '#8a94a6', set: (v) => state.set('labelColor', v) });
         hint(colorField.closest('.kme-row'), 'Gilt für ALLE Beschriftungen und Werte-Anzeigen auf einmal. Leer bzw. ✕ = wie ausgeliefert. Einzelne Regler-Farben bleiben davon unberührt (Rechtsklick auf den Regler).');
         const sizeField = num('Größe', { min: 6, max: 16, get: () => state.get('labelSize') || 10, set: (v) => state.set('labelSize', v) });
         hint(sizeField, 'Schriftgröße der Beschriftungen (6–16 px)');
-        const bgField = color('Wert-BG', { get: () => state.get('valueBg') || '#000000', set: (v) => state.set('valueBg', v) });
-        hint(bgField.closest('.kme-row'), 'Hintergrund der Werte-Anzeige (Regler-Zahl)');
+        // Wert-BG jetzt mit Deckkraft (@dpa ddw.md 20260724_183901, "Wert-BG mit Deckkraft
+        // (default=0)"): rgba() statt reinem Hex, Default-Alpha 0 — unsichtbar, bis @dpa sie
+        // aufdreht (vorher: Default-Hintergrund #000000 sofort sichtbar, sogar unangefordert).
+        const bgFallback = 'rgba(0,0,0,0)';
+        colorA('Wert-BG', { get: () => state.get('valueBg') || bgFallback, set: (v) => state.set('valueBg', v), fallback: '#000000' });
         const clearBtn = document.createElement('button'); clearBtn.className = 'pb-btn';
         clearBtn.textContent = '✕ Vorgabe entfernen'; hint(clearBtn, 'Vorgabe entfernen (wieder wie ausgeliefert)');
         clearBtn.addEventListener('click', () => {
             state.set('labelColor', ''); state.set('labelSize', ''); state.set('valueBg', '');
-            colorField.value = '#8a94a6'; sizeField.value = 10; bgField.value = '#000000';
+            colorField.value = '#8a94a6'; sizeField.value = 10;
+            cfgPanel.close(); cfgBtn.click();   // Wert-BG-Zeile (colorA) hat kein eigenes Element-Handle — Panel frisch aufbauen zeigt den Reset
         });
         full(clearBtn);
 
@@ -1011,19 +1018,48 @@ applyBenchCollapse();
 //    @dpa 20260721_203557: „das für alle ISM" (bisher nur Takt+Metronom) + im Popover ein
 //    Edit-Symbol, das die Hilfe als Markdown editierbar macht (`state.instrHelpMd`
 //    überschreibt den mitgelieferten HTML-Text dauerhaft, überlebt den Reload). ─────
+// EN-Fassung der Auslieferungs-Hilfetexte (@dpa ddw.md 20260724_183901, "fehlende
+// Übersetzungen: ... alle ISM Hilfen"). Die DEUTSCHEN Texte bleiben in index.html
+// (.wb-note) — der deutsche Text IST auch hier das Original, das die Nutzer:innen zuerst
+// sehen; Englisch steht daneben, keyed über die section-Id (nicht über den Wortlaut, der
+// ist mehrsätziges HTML). state.instrHelpMd (Markdown-Override, s.u.) schlägt BEIDE.
+const BENCH_HELP_EN = {
+    'bench-taktgeber': 'Two groups from <b>one</b> declarative defs source (mapped from ' +
+        'taktgeber), rendered with teslacoil’s factories. <b>e</b> = arrange mode ' +
+        '(groups/controls can be dragged freely). Right-click a group title = settings, ' +
+        'right-click a control = its look. Dragged values = a “knob without a knob”. ' +
+        'The header switch <b>⌨ Keys/MIDI</b> shows/changes key bindings + MIDI learn ' +
+        'across all controls. <b>▶</b> (or the bound key) starts the metronome — real ' +
+        'sound from taktgeber’s metro.js/clock.js.',
+    'bench-polysynth': 'Polyphonic voice engine (poly, stealing, Osc2/detune), base-freq ' +
+        'quantisation with pitch glide, real ADSR per voice, and a play keyboard (mouse + ' +
+        'MIDI, hold toggle). Played directly via the keyboard — no separate test tone ' +
+        'anymore.',
+    'bench-stepseq': 'Its own trigger clock, locked to the beat tempo (no longer to the ' +
+        'Poly-Synth base freq): 1/1 (multiplier=1, divider=1) hits exactly one beat, the ' +
+        'multiplier multiplies, the divider divides. Only runs while transport is running, ' +
+        'starts in phase with it at step 0. The output choice decides where an active step ' +
+        'fires — currently only “AmpEnv+OSZ” (triggers a hit on the Poly-Synth, ' +
+        'using its amp envelope/oscillator).',
+    'bench-rec': 'Used to be part of Beat+Metronome, now stands on its own: taps the shared ' +
+        'master bus (lib/audioBus.js) — all instruments together, not just one. ' +
+        'Start/stop still syncs to the next downbeat of the beat/metronome instrument.',
+};
 function mountBenchHelp(sectionId, state) {
     const section = document.querySelector('#' + sectionId);
     if (!section) return;
     const note = section.querySelector(':scope > .wb-note');
     const h2 = section.querySelector('h2');
     if (!h2) return;
-    let defaultBodyHtml = '';
+    let defaultBodyHtmlDe = '';
     if (note) {
         const clone = note.cloneNode(true);
         const s = clone.querySelector('summary'); if (s) s.remove();
-        defaultBodyHtml = clone.innerHTML.trim();
+        defaultBodyHtmlDe = clone.innerHTML.trim();
         note.remove();
     }
+    const defaultBodyHtmlEn = BENCH_HELP_EN[sectionId] || defaultBodyHtmlDe;
+    const defaultBodyHtml = () => (curLang() === 'en' ? defaultBodyHtmlEn : defaultBodyHtmlDe);
     // Titel im Popover = der Instrumenten-Name selbst, direkt editierbar (@dpa 20260722_130710:
     // „auch den Titel editierbar machen … beides, es braucht keine extra Überschrift") — die
     // alte separate <summary>-Überschrift ist raus, statt zwei Titeln (Popover-Caption +
@@ -1048,7 +1084,7 @@ function mountBenchHelp(sectionId, state) {
      *  Markdown/HTML — die Blase zeigt textContent, s. HintBubble.js). */
     function updateBtnHint() {
         const md = state.get('instrHelpMd');
-        const html = md ? mdToHtml(md) : defaultBodyHtml;
+        const html = md ? mdToHtml(md) : defaultBodyHtml();
         const tmp = document.createElement('div'); tmp.innerHTML = html;
         const plain = tmp.textContent.trim().replace(/\s+/g, ' ');
         hint(btn, plain || 'Beschreibung');
@@ -1096,7 +1132,7 @@ function mountBenchHelp(sectionId, state) {
 
         if (editing) {
             const ta = document.createElement('textarea'); ta.className = 'wb-help-edit-area';
-            ta.value = state.get('instrHelpMd') || htmlToMdApprox(defaultBodyHtml);
+            ta.value = state.get('instrHelpMd') || htmlToMdApprox(defaultBodyHtml());
             pop.appendChild(ta);
             const foot = document.createElement('div'); foot.className = 'wb-help-foot';
             const save = document.createElement('button'); save.type = 'button'; save.textContent = 'Speichern';
@@ -1108,7 +1144,7 @@ function mountBenchHelp(sectionId, state) {
         } else {
             const body = document.createElement('div'); body.className = 'wb-help-body';
             const md = state.get('instrHelpMd');
-            body.innerHTML = md ? mdToHtml(md) : defaultBodyHtml;
+            body.innerHTML = md ? mdToHtml(md) : defaultBodyHtml();
             pop.appendChild(body);
         }
     }
@@ -1125,6 +1161,11 @@ function mountBenchHelp(sectionId, state) {
         pop.style.top = (r.bottom + 6) + 'px';
         setTimeout(() => { document.addEventListener('mousedown', onOut, true); document.addEventListener('keydown', onKey, true); }, 0);
     });
+
+    // Sprachwechsel (@dpa ddw.md 20260724_183901): Hover-Hint sofort neu ziehen, ein OFFENES
+    // Popover (nur wenn nicht gerade editiert wird — sonst risse es den Editor-Text weg) neu
+    // rendern, statt erst beim nächsten Öffnen die neue Sprache zu zeigen.
+    onLangChange(() => { updateBtnHint(); if (pop && !editing) render(); });
 }
 mountBenchHelp('bench-taktgeber', taktState);
 mountBenchHelp('bench-polysynth', polySynthState);

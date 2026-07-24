@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
-"""Headless-Smoke: ddw.md @dpa 20260724 (Zeile 1082-1087, klargestellt 20260724_153349):
-'StepSeq/StepSeq/output: soll ... den Namen "rechts aligned" anzeigen ... (Das ist etwas
-besonderes nur für Output..)' + 'Combo: soll nicht den Steps inhalt speichern/recallen!'
-— gemeint ist das Step-GRID (u:seqGrid, seine Data-Sektion), NICHT der Step-Zahl-Knob
-(seqLen). Die erste Fassung hatte das vertauscht (seqLen ausgeschlossen statt seqGrid);
-@dpa-Klarstellung: "einmal die Daten+Ansicht (Settings: 'Steps') <- die sollen nicht in
-Combo gespeichert werden, zum anderen den Knob `steps` <- dieser soll sehr wohl in Combo
-gespeichert werden!" — seqLen heißt seither 'Step-Zahl' (defs.js), um die beiden
-gleichnamigen Dinge auseinanderzuhalten.
+"""Headless-Smoke: ddw.md @dpa 20260724 (Zeile 1082-1087, klargestellt 20260724_153349
+und nochmal 20260724_192304): 'StepSeq/StepSeq/output: soll ... den Namen "rechts
+aligned" anzeigen ... (Das ist etwas besonderes nur für Output..)' + 'Combo: soll nicht
+den Steps inhalt speichern/recallen!'
+— gemeint ist die DATA-SEKTION des Step-GRIDs (u:seqGrid: seqOff/seqMin/seqMax/seqStep),
+NICHT der Step-Zahl-Knob (seqLen) UND NICHT die ANSICHT des Grids selbst. @dpa-Klarstellung
+20260724_192304 (image-17: Combo gespeichert, in anderem Sq recalled — Farben/Größe blieben
+unverändert): "die ANSICHT der Steps soll übernommen werden, also Farben, Breite und Höhe.
+Der Inhalt und min,max,stepsize bleibt." — Fein-Ausschluss statt ganzem Control
+(comboExcludeFields, GroupHost.js): bg/fg/boxSize/boxH gehen normal ins Combo, nur
+seqOff/seqMin/seqMax/seqStep bleiben draußen. seqLen heißt seither 'Step-Zahl' (defs.js),
+um Knob und Grid-Ansicht (beide hießen vorher 'Steps') auseinanderzuhalten.
 
 Prüft:
   1. Sq-Output-PickMenu (collapsed .pm-name) hat die neue 'pm-name-tail'-Klasse und damit
      computed direction:rtl (Kürzung/Alignment am ANFANG statt am Ende) — NUR dieses eine
      PickMenu, nicht z.B. das Gruppen-Combo-PickMenu (Regressionscheck: bleibt unverändert).
   2. Combo (Gruppen-Optik-Speicher) speichert/recallt den 'seqLen'-Knob ('Step-Zahl') GANZ
-     NORMAL wie jeden anderen Knob; das Step-Grid (u:seqGrid) bleibt dagegen ausgeschlossen
-     (Regressionscheck, wie seqComboSnapPool_smoke.py).
+     NORMAL wie jeden anderen Knob. Vom Step-Grid (u:seqGrid) geht die ANSICHT (fg) mit ins
+     Combo, die Data-Sektion (seqMin) bleibt beim Recall unangetastet stehen.
 
 Lauf: python3 test/seqOutputTailComboExclude_smoke.py
 Hart begrenzt (Watchdog killt nach 40s), kein Pollen.
@@ -101,7 +104,7 @@ try:
         check(geo['rightGap'] < 2, f"Sq-Output-Text sollte rechtsbündig in seiner eigenen Box sitzen (Gap<2px), war {geo['rightGap']}px")
         check(geo['clipped'], "Sq-Output-Text sollte bei 90px tatsächlich sichtbar beschnitten sein (scrollWidth > clientWidth)")
 
-        # ── 2) Combo exkludiert 'seqGrid' (die Steps-Ansicht), NICHT den seqLen-Knob ──
+        # ── 2) Combo: seqLen-Knob normal drin, vom Grid nur die ANSICHT (fg), nicht seqMin ──
         pg.evaluate("""() => {
             const s = window.__stepseq.state;
             const km = { ...(s.get('knobMeta') || {}) };
@@ -109,13 +112,13 @@ try:
             s.set('knobMeta', km);
             const cs = { ...(s.get('ctrlStyles') || {}) };
             cs['k:seqLen_0'] = { ...(cs['k:seqLen_0']||{}), bg: '#ff00ff' };   // soll INS Combo
-            cs['u:seqGrid_0'] = { ...(cs['u:seqGrid_0']||{}), fg: '#00ffaa' };   // soll NICHT ins Combo
+            cs['u:seqGrid_0'] = { ...(cs['u:seqGrid_0']||{}), fg: '#00ffaa', seqMin: 3 };   // fg INS Combo, seqMin NICHT
             s.set('ctrlStyles', cs);
         }""")
         host_js = "window.__stepseq.host"
         pg.evaluate(f"() => {host_js}.saveGroupCombo('Stepsequenzer', 'ExcludeStepsTest')")
 
-        # Gespeichertes Combo-Payload direkt inspizieren: 'seqGrid' darf NICHT drin sein, 'seqLen' schon.
+        # Gespeichertes Combo-Payload direkt inspizieren: seqGrid.fg drin, seqGrid.seqMin NICHT, seqLen schon.
         payload = pg.evaluate("""() => {
             const list = (window.__stepseq.state.get('groupCombos')||{})['Sequenzer'] || [];
             const e = list.find(c => c.name === 'ExcludeStepsTest');
@@ -125,9 +128,11 @@ try:
         if payload:
             check('seqLen' in (payload.get('knobMeta') or {}), f"knobMeta sollte 'seqLen' enthalten (Knob gehört ins Combo): {payload.get('knobMeta')}")
             check('k:seqLen' in (payload.get('ctrlStyles') or {}), f"ctrlStyles sollte 'k:seqLen' enthalten: {payload.get('ctrlStyles')}")
-            check('u:seqGrid' not in (payload.get('ctrlStyles') or {}), "ctrlStyles sollte 'u:seqGrid' (Steps-Ansicht) NICHT enthalten")
+            grid_style = (payload.get('ctrlStyles') or {}).get('u:seqGrid')
+            check(grid_style is not None and grid_style.get('fg') == '#00ffaa', f"ctrlStyles 'u:seqGrid' sollte die Ansicht (fg) enthalten: {grid_style!r}")
+            check(grid_style is not None and 'seqMin' not in grid_style, f"ctrlStyles 'u:seqGrid' sollte 'seqMin' (Data-Sektion) NICHT enthalten: {grid_style!r}")
 
-        # Werte ändern, recallen, prüfen: seqLen wird wiederhergestellt, seqGrid-Farbe bleibt unangetastet.
+        # Werte ändern, recallen: seqLen + Grid-Farbe werden wiederhergestellt, Grid-seqMin bleibt unangetastet.
         pg.evaluate("""() => {
             const s = window.__stepseq.state;
             const km = { ...(s.get('knobMeta') || {}) };
@@ -135,7 +140,7 @@ try:
             s.set('knobMeta', km);
             const cs = { ...(s.get('ctrlStyles') || {}) };
             cs['k:seqLen_0'] = { ...(cs['k:seqLen_0']||{}), bg: '#000000' };
-            cs['u:seqGrid_0'] = { ...(cs['u:seqGrid_0']||{}), fg: '#111111' };
+            cs['u:seqGrid_0'] = { ...(cs['u:seqGrid_0']||{}), fg: '#111111', seqMin: 9 };
             s.set('ctrlStyles', cs);
         }""")
         combo_ok = pg.evaluate(f"() => {host_js}.recallGroupCombo('Stepsequenzer', 0)")
@@ -147,11 +152,13 @@ try:
                 seqLenMax: (s.get('knobMeta')||{})['seqLen_0'].max,
                 seqLenBg: (s.get('ctrlStyles')||{})['k:seqLen_0'].bg,
                 gridFg: (s.get('ctrlStyles')||{})['u:seqGrid_0'].fg,
+                gridSeqMin: (s.get('ctrlStyles')||{})['u:seqGrid_0'].seqMin,
             };
         }""")
         check(after['seqLenMax'] == 99, f"seqLen-knobMeta.max sollte vom Combo-Recall wiederhergestellt werden (99), war {after['seqLenMax']}")
         check(after['seqLenBg'] == '#ff00ff', f"seqLen-ctrlStyles.bg sollte vom Combo-Recall wiederhergestellt werden, war {after['seqLenBg']!r}")
-        check(after['gridFg'] == '#111111', f"seqGrid-Farbe sollte vom Combo-Recall UNANGETASTET bleiben, war {after['gridFg']!r}")
+        check(after['gridFg'] == '#00ffaa', f"seqGrid-Ansicht (fg) sollte vom Combo-Recall wiederhergestellt werden, war {after['gridFg']!r}")
+        check(after['gridSeqMin'] == 9, f"seqGrid-Data (seqMin) sollte vom Combo-Recall UNANGETASTET bleiben (9), war {after['gridSeqMin']}")
 
         # ── Aufräumen ──
         pg.evaluate(f"() => {host_js}.deleteGroupCombo('Stepsequenzer', 0)")
@@ -175,4 +182,4 @@ if fails:
     for f in fails:
         print(" -", f)
     sys.exit(1)
-print("SMOKE OK: Sq-Output rechtsbündig/Kürzung-am-Anfang (nur dort), Combo exkludiert 'seqGrid' (Steps-Ansicht), seqLen-Knob ('Step-Zahl') ganz normal dabei.")
+print("SMOKE OK: Sq-Output rechtsbündig/Kürzung-am-Anfang (nur dort); Combo: seqGrid-Ansicht (fg) drin, Data (seqMin) draußen, seqLen-Knob ('Step-Zahl') ganz normal dabei.")
