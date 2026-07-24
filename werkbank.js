@@ -13,6 +13,8 @@ import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js'
 import { factoryHint } from './lib/hints.js';
 import { hint } from './lib/i18n.js';
 import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
+import { PickMenu } from './lib/PickMenu.js';
+import { createEnsembleStore } from './lib/EnsembleStore.js';
 import { ElementSettings } from './lib/ElementSettings.js';
 import { taktMetroDefs } from './lib/taktmetro/defs.js';
 import { createTaktEngine } from './lib/taktmetro/engine.js';
@@ -644,7 +646,23 @@ if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // D
 // Derselbe Fehler wiederholt sich (gefunden 20260724 beim Combo-/Snapshot-Speicher-Umbau):
 // 'werkbank_stepseq' fehlte hier seit dessen Einführung — jeder Export/Reset ließ den
 // kompletten Sequenzer-Stand (inkl. seiner künftigen Combo-/Snapshot-Pools) außen vor.
-const LS_KEYS = ['werkbank_state', 'werkbank_taktmetro', 'werkbank_polysynth', 'werkbank_stepseq', 'werkbank_rec', 'werkbank_levelmeter', 'werkbank_master'];
+// 'werkbank_ensemble' (neu, s.u.) MUSS von Anfang an rein — genau dieser Fehler soll sich
+// kein drittes Mal wiederholen.
+const LS_KEYS = ['werkbank_state', 'werkbank_taktmetro', 'werkbank_polysynth', 'werkbank_stepseq', 'werkbank_rec', 'werkbank_levelmeter', 'werkbank_master', 'werkbank_ensemble'];
+
+// ── Ensemble-Snapshot (@dpa 20260724, ddw.md „header Ensemble Snapshots") — vierte und
+// äußerste Ebene des Combo-/Snapshot-Speichers: EIN benannter Zustand über mehrere
+// Instrumente hinweg. Master-Volume/LevelMeter bewusst NICHT dabei (@dpa: „Master Fader
+// bleibt extra") — sie fehlen einfach in der instruments-Liste, kein Sonderfall im Store.
+const ENSEMBLE_LS = 'werkbank_ensemble';
+const ensembleState = new MiniState({}, ENSEMBLE_LS);
+const ensembleStore = createEnsembleStore(ensembleState, [
+    { lsKey: TAKT_LS, state: taktState, allSoundValues: () => takt.allSoundValues() },
+    { lsKey: POLYSYNTH_LS, state: polySynthState, allSoundValues: () => polySynth.allSoundValues() },
+    { lsKey: STEPSEQ_LS, state: stepSeqState, allSoundValues: () => stepSeq.allSoundValues() },
+    { lsKey: REC_LS, state: recState, allSoundValues: () => rec.allSoundValues() },
+]);
+window.__ensemble = { state: ensembleState, store: ensembleStore };
 function buildConfig() {
     const ls = {};
     for (const k of LS_KEYS) { const v = localStorage.getItem(k); if (v != null) { try { ls[k] = JSON.parse(v); } catch { /* skip */ } } }
@@ -699,6 +717,26 @@ cfgBtn.addEventListener('click', () => {
     setTimeout(() => document.addEventListener('mousedown', cfgOutside, true), 0);
 });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
+
+// Ensemble-Snapshot-Menü im Header (@dpa 20260724) — direkt als PickMenu, kein eigener
+// Toggle-Knopf nötig (PickMenu bringt Knopf+Popup schon mit, wie beim Sq-Output-Menü).
+const ensembleMenu = new PickMenu({
+    label: '',
+    empty: '⭐ Ensemble',
+    title: 'Zustand mehrerer Instrumente zusammen speichern/laden (Master-Fader bleibt außen vor)',
+    list: () => ensembleStore.list(),
+    current: () => ensembleState.get('ensembleSnapSel') || '',
+    onPick: (i) => ensembleStore.recall(i),
+    onUpdate: (i) => ensembleStore.update(i),
+    onRename: (i, item, newName) => ensembleStore.rename(i, newName),
+    onDelete: (i) => ensembleStore.del(i),
+    foot: [['plus', '+ Neu', 'Aktuellen Zustand als neuen Ensemble-Snapshot speichern', () => {
+        const nm = prompt('Name für den neuen Ensemble-Snapshot?', 'Snapshot ' + (ensembleStore.list().length + 1));
+        if (nm && nm.trim()) ensembleStore.save(nm.trim());
+    }]],
+});
+document.querySelector('.topbar-right').appendChild(ensembleMenu.element);
+window.__ensemble.menu = ensembleMenu;
 
 // Sichtbarer Header-Button (PLAN_OPERA.md 1.3, @dpa 20260723: „Header/Reset: falsch verstanden!
 // Es soll hängendes Audio reseten! NICHT alles! Nur das momentane Audio" — der volle Wipe
