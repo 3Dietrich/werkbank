@@ -1135,4 +1135,12 @@ fehlende Übersetzungen:
 20260724_192304
     beim Combo speichern fiel mir doch wieder etwas auf:
         ![alt text](image-17.png) oberes gespeichert, in unterem recalled. die ANSICHT der Steps soll übernommen werden, also Farben, Breite und Höhe. Der Inhalt und min,max,stepsize bleibt.
+
+    StepSeq/StepSeq/ `Steps` (unnikat)
+        mouseover hier ohne hilfe, sondern stattdessen (auch bei Hint=off) die Step nummer und sein Value anzeigen
     
+    Metronom 
+        bei Beat=1 soll die Beat Anzeige auf der 1 pulsieren, also d-Env trigger auf der 1
+    
+    Bug:
+        bei 2 (oder mehr?) aktiven Step sequenzern kommt bei PolySynth - Note (KB) ein lautes Getöse.
