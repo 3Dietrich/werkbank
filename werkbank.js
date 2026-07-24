@@ -203,6 +203,10 @@ routing.registerModule('takt', {
         inputs: {
             ...knobWrites(taktState, taktDefs.KNOBS),
             ...buttonWrites(takt.keyMidi, Object.keys(taktDefs.BUTTONS)),
+            // Base-Frq als Modulations-Quelle (ddw.md 20260724_212747, teslacoil-Parität): der
+            // gefaltete Wert landet über setBaseFreqIn im Metro-Cutoff, sobald metroCutoffQuant an
+            // ist. Die Verbindung selbst wird direkt darunter hergestellt (routing.connect).
+            baseFreqIn: { write: (v) => taktEngine.setBaseFreqIn(v) },
         },
     }),
 });
@@ -431,6 +435,12 @@ routing.registerModule('polysynth', {
         },
     }),
 });
+// Base-Frq als Quelle fürs Metronom (ddw.md 20260724_212747, teslacoil-Parität): dauerhafte
+// VALUE-Verbindung polysynth.baseFreq → takt.baseFreqIn. Der Wert fließt jeden Frame über
+// flush() (billig), WIRKT aber nur, wenn das Metronom-Toggle „Cut⇢Base" (metroCutoffQuant) an
+// ist. connect() ist idempotent (dedupliziert gegen die persistierte Verbindungsliste), der
+// erste echte VALUE-Modulationsweg der Werkbank — sichtbar auch in der Struktur-Ansicht.
+routing.connect({ module: 'polysynth', port: 'baseFreq' }, { module: 'takt', port: 'baseFreqIn' });
 // Render-Loop steht GANZ UNTEN in dieser Datei (nach LevelMeter) — ruft sich beim ersten Mal
 // SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber
 // erst weiter unten gebaut wird (s. Kommentar dort, gleiches Muster wie oben bei baseKeyboard).
