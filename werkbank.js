@@ -1015,10 +1015,16 @@ mountBenchHelp('bench-rec', recState);
 // Einstellungen, erstmal gleich wie Gruppen") + Verschieben via Header ──────────────────
 // lib/InstrumentSettings.js ersetzt den früheren Einzelbau (nur für taktgeber): BG-Farbe +
 // Größe % wie bei Gruppen, dazu Drag am Header. Jedes Instrument bekommt das jetzt gleich.
-const taktInstr = mountInstrumentSettings(benchTakt, taktState, { bodySelector: '#taktgeber' });
-const polySynthInstr = mountInstrumentSettings(document.querySelector('#bench-polysynth'), polySynthState, { bodySelector: '#polysynth' });
-const stepSeqInstr = mountInstrumentSettings(document.querySelector('#bench-stepseq'), stepSeqState, { bodySelector: '#stepseq' });
-const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), recState, { bodySelector: '#rec' });
+// opts.host (@dpa 20260724, ISM-Snapshot): jedes Instrument reicht seine mountGroups()-
+// Rückgabe mit rein — InstrumentSettings.js nutzt host.allSoundValues() für den Snapshot.
+const taktInstr = mountInstrumentSettings(benchTakt, taktState, { bodySelector: '#taktgeber', host: takt });
+const polySynthInstr = mountInstrumentSettings(document.querySelector('#bench-polysynth'), polySynthState, { bodySelector: '#polysynth', host: polySynth });
+const stepSeqInstr = mountInstrumentSettings(document.querySelector('#bench-stepseq'), stepSeqState, { bodySelector: '#stepseq', host: stepSeq });
+const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), recState, { bodySelector: '#rec', host: rec });
+window.__takt.instr = taktInstr;
+window.__polysynth.instr = polySynthInstr;
+window.__stepseq.instr = stepSeqInstr;
+window.__rec.instr = recInstr;
 
 // „Zurücksetzen"-Knopf entfernt (@dpa 20260719_040136). Reset weiterhin über die Konsole:
 //   MiniState.reset(); MiniState.reset('werkbank_taktmetro'); location.reload();
