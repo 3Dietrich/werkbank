@@ -50,19 +50,37 @@ try:
         groups6 = pg.evaluate("() => window.__stepseq.host.groupNames().length")
         check(groups6 == 6, f"erwartet 6 Sq-Gruppen im DOM/Host, war {groups6}")
 
-        # Einen Marker-Wert in Sq 4 setzen (soll den Recall überleben).
+        # Marker-WERT in Sq 4 (Sound, soll den Recall überleben).
         pg.evaluate("() => window.__stepseq.state.set('seqMult_4', 5)")
+        # Marker-ANSICHT auf Sq 5 (Optik) — zwei Wege, beide sollen den 3→6-Recall überleben und
+        # am NEU gebauten Sq 5 wieder wirken:
+        #  · ctrlStyles am Fill-Button (u:seqFill_5): fg wird direkt als btn.style.color angewandt
+        #    (wireModeButton) → im DOM prüfbar.
+        #  · knobMeta am seqMult-Knob (k:seqMult_5): eigener Optik-Map, State-Roundtrip prüfbar.
+        pg.evaluate("""() => {
+            const s = window.__stepseq.state;
+            const cs = { ...(s.get('ctrlStyles') || {}) };
+            cs['u:seqFill_5'] = { ...(cs['u:seqFill_5'] || {}), fg: 'rgb(1, 2, 3)' };
+            s.set('ctrlStyles', cs);
+            const km = { ...(s.get('knobMeta') || {}) };
+            km['seqMult_5'] = { ...(km['seqMult_5'] || {}), viewSize: 42 };
+            s.set('knobMeta', km);
+        }""")
 
         # ── 2) ISM-Snapshot speichern ──
         list_len = pg.evaluate("() => window.__stepseq.instr.saveIsmSnap('sechser').length")
         check(list_len == 1, f"saveIsmSnap sollte 1 Eintrag liefern, war {list_len}")
-        # sqCount MUSS im Snapshot stecken (sonst kann der Recall die Anzahl nicht kennen).
-        snap_has_count = pg.evaluate(
-            "() => 'sqCount' in (window.__stepseq.state.get('ismSnaps')[0].values)")
-        check(snap_has_count, "Snapshot enthält kein sqCount (snapExtra greift nicht)")
+        # sqCount + sqViews MÜSSEN im Snapshot-extra stecken (sonst kennt der Recall weder
+        # Anzahl noch Ansicht).
         snap_count_val = pg.evaluate(
-            "() => window.__stepseq.state.get('ismSnaps')[0].values.sqCount")
-        check(snap_count_val == 6, f"Snapshot-sqCount sollte 6 sein, war {snap_count_val}")
+            "() => (window.__stepseq.state.get('ismSnaps')[0].extra || {}).sqCount")
+        check(snap_count_val == 6, f"Snapshot-extra.sqCount sollte 6 sein, war {snap_count_val}")
+        snap_view_fg = pg.evaluate(
+            "() => (((window.__stepseq.state.get('ismSnaps')[0].extra||{}).sqViews||{}).ctrlStyles||{})['u:seqFill_5']?.fg")
+        check(snap_view_fg == 'rgb(1, 2, 3)', f"Snapshot-extra.sqViews trägt die ctrlStyles-Ansicht nicht, fg={snap_view_fg}")
+        snap_view_meta = pg.evaluate(
+            "() => (((window.__stepseq.state.get('ismSnaps')[0].extra||{}).sqViews||{}).knobMeta||{})['seqMult_5']?.viewSize")
+        check(snap_view_meta == 42, f"Snapshot-extra.sqViews trägt die knobMeta-Ansicht nicht, viewSize={snap_view_meta}")
 
         # ── 3) Drei Sequenzer entfernen (wie ISM-Header '-') ──
         pg.evaluate("() => { for (let i = 0; i < 3; i++) window.__stepseq.mgr.removeSq(); }")
@@ -84,6 +102,22 @@ try:
         # Marker-Wert aus Sq 4 überlebte den Recall.
         mult4 = pg.evaluate("() => window.__stepseq.state.get('seqMult_4')")
         check(mult4 == 5, f"seqMult_4 sollte nach Recall 5 sein, war {mult4}")
+        # Marker-ANSICHT von Sq 5 (der Kern dieses zweiten Bugreports): im State zurück …
+        fg_state = pg.evaluate(
+            "() => (window.__stepseq.state.get('ctrlStyles')||{})['u:seqFill_5']?.fg")
+        check(fg_state == 'rgb(1, 2, 3)', f"ctrlStyles u:seqFill_5 im State nicht wiederhergestellt, war {fg_state}")
+        meta_state = pg.evaluate(
+            "() => (window.__stepseq.state.get('knobMeta')||{})['seqMult_5']?.viewSize")
+        check(meta_state == 42, f"knobMeta seqMult_5 im State nicht wiederhergestellt, war {meta_state}")
+        # … UND tatsächlich am neu gebauten DOM-Element angewendet (nicht nur im State): der
+        # Fill-Button hängt in [data-ctrl="u:seqFill_5"], applyStyle setzt btn.style.color = fg.
+        fg_dom = pg.evaluate("""() => {
+            const el = document.querySelector('[data-ctrl="u:seqFill_5"]');
+            if (!el) return 'KEIN-ELEMENT';
+            const btn = el.matches('button') ? el : el.querySelector('button');
+            return btn ? btn.style.color : 'KEIN-BUTTON';
+        }""")
+        check(fg_dom == 'rgb(1, 2, 3)', f"Ansicht am neu gebauten Sq-5-Fill-Button nicht sichtbar angewendet, war {fg_dom}")
 
         # ── 5) Gegenrichtung: aktuell 6, Snapshot mit 3 → Recall baut AB auf 3 ──
         pg.evaluate("() => window.__stepseq.instr.saveIsmSnap('dreier')")  # noch bei 6? nein, wir sind bei 6

@@ -707,13 +707,13 @@ const ensembleState = new MiniState({}, ENSEMBLE_LS);
 const ensembleStore = createEnsembleStore(ensembleState, [
     { lsKey: TAKT_LS, state: taktState, allSoundValues: () => takt.allSoundValues() },
     { lsKey: POLYSYNTH_LS, state: polySynthState, allSoundValues: () => polySynth.allSoundValues() },
-    // Stepseq: sqCount ist ISM-weit (keine Gruppe) → mit sichern, und nach dem Recall die
-    // Sq-Gruppen reconcilen (sonst käme die Sequenzer-Anzahl aus dem Ensemble-Snapshot
-    // ebenso wenig zurück wie beim ISM-Snapshot, @dpa 20260725).
+    // Stepseq: Anzahl + Ansicht der Sqs sind ISM-weit (keine Gruppe) → mit sichern, und nach
+    // dem Recall Struktur+Optik angleichen (sonst käme aus dem Ensemble-Snapshot die Sequenzer-
+    // Anzahl/Ansicht ebenso wenig zurück wie beim ISM-Snapshot, @dpa 20260725).
     {
         lsKey: STEPSEQ_LS, state: stepSeqState, allSoundValues: () => stepSeq.allSoundValues(),
-        snapExtra: () => ({ sqCount: stepSeqState.get('sqCount') }),
-        onRecalled: () => sqManager.reconcile(),
+        snapExtra: () => sqManager.snapshotExtra(),
+        onRecalled: (extra) => sqManager.recallSnapshot(extra),
     },
     { lsKey: REC_LS, state: recState, allSoundValues: () => rec.allSoundValues() },
 ]);
@@ -1215,12 +1215,12 @@ const taktInstr = mountInstrumentSettings(benchTakt, taktState, { bodySelector: 
 const polySynthInstr = mountInstrumentSettings(document.querySelector('#bench-polysynth'), polySynthState, { bodySelector: '#polysynth', host: polySynth });
 const stepSeqInstr = mountInstrumentSettings(document.querySelector('#bench-stepseq'), stepSeqState, {
     bodySelector: '#stepseq', host: stepSeq,
-    // sqCount gehört zu keiner Gruppe (ISM-weit) → allSoundValues() erfasst es nicht; ohne
-    // es käme nach dem Recall die Sq-ANZAHL nicht zurück. onSnapRecalled reconcilet danach
-    // die tatsächlich gebauten Sq-Gruppen an den geladenen sqCount (@dpa 20260725: Snapshot
-    // stellte gelöschte Sequenzer nicht wieder her).
-    snapExtra: () => ({ sqCount: stepSeqState.get('sqCount') }),
-    onSnapRecalled: () => sqManager.reconcile(),
+    // sqCount + volle Sq-Ansicht gehören zu keiner Gruppe (ISM-weit) → allSoundValues() erfasst
+    // sie nicht. Ohne sie käme nach dem Recall weder die Sq-ANZAHL noch die ANSICHT der neu
+    // gebauten Sequenzer zurück (@dpa 20260725: Snapshot stellte gelöschte Sequenzer + deren
+    // Ansichten nicht wieder her). recallSnapshot() setzt Anzahl, stellt die Optik her und baut.
+    snapExtra: () => sqManager.snapshotExtra(),
+    onSnapRecalled: (extra) => sqManager.recallSnapshot(extra),
 });
 const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), recState, { bodySelector: '#rec', host: rec });
 window.__takt.instr = taktInstr;
