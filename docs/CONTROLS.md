@@ -94,13 +94,14 @@ trifft nie, es heißt `[data-ctrl='k:bpm']`.
 
 ### Button-Modi (`b:`)
 
-Ein Button kennt drei Verhalten (Feld **Modus**, Default kommt aus `cfg.mode` in den defs):
+Ein Button kennt vier Verhalten (Feld **Modus**, Default kommt aus `cfg.mode` in den defs):
 
 | Modus | Verhalten | Optik |
 |---|---|---|
 | **Trigger** | Impuls, feuert einmal | Farbe snappt AN und **fadet** nach AUS (D-Env-Gefühl) |
 | **Gate** | aktiv **solange gedrückt** (Maus-Halten) | AN während des Drucks, sonst AUS |
 | **Umschalter** | an/aus je Klick, Zustand bleibt | AN/AUS |
+| **nix** | Impuls wie Trigger, feuert beim Drücken/Aktivieren | **bleibt immer AUS** (kein ON-Flash, keine BG-Änderung) |
 
 Der ON-Zustand hat **keinen Rahmen** mehr: er zeigt sich über den Hintergrund – ohne eigene
 „BG an"-Farbe eine dezente Akzent-Tönung, sonst die gesetzte Farbe. Extern getriebene Buttons

@@ -11,7 +11,9 @@ import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
 import { HintBubble } from './lib/HintBubble.js';
 import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js';
 import { factoryHint } from './lib/hints.js';
-import { hint } from './lib/i18n.js';
+import { hint, text as i18nText, setLang, lang as curLang } from './lib/i18n.js';
+import { MiniSettings } from './lib/MiniSettings.js';
+import { wireGlobalLook } from './lib/globalLook.js';
 import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
 import { PickMenu } from './lib/PickMenu.js';
 import { createEnsembleStore } from './lib/EnsembleStore.js';
@@ -44,6 +46,14 @@ import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
 // Globaler Fallback-State: wird von hintResolve() weiter unten genutzt, wenn ein Control
 // zu keinem der eigenen Instrumenten-States gehört (s. Kommentar dort).
 const state = new MiniState();
+// Sprache SOFORT setzen, bevor irgendein hint()/text() weiter unten aufgerufen wird (@dpa
+// ddw.md 20260724, main Config „Deutsch/Englisch") — jedes Element entsteht dann gleich in
+// der richtigen Sprache, kein Nachzeichnen nötig. state.get('lang') war schon vor dieser
+// Funktion als LAYOUT_KEY reserviert (PresetManager.js), aber nie tatsächlich gelesen.
+setLang(state.get('lang') || 'de');
+// Label-Farbe/-Größe/Wert-BG + Gruppen-Header-Größe/-Höhe (@dpa ddw.md 20260724): CSS-Vars
+// sofort + bei jeder Änderung anwenden (s. lib/globalLook.js).
+wireGlobalLook(state);
 
 // ── Header-Button-Settings (@dpa 20260723_1500ff: „die Header-Buttons bitte mit `Button`
 // settings") ─────────────────────────────────────────────────────────────────────────
@@ -242,6 +252,7 @@ taktState.subscribe((k) => { if (k === 'bpm' || k === '*') polySynthEngine.notif
 const baseKeyboard = new BaseKeyboard(polySynthState, () => polySynthEngine.baseFreq());
 polySynth.mountInGroup('Base-Frq', baseKeyboard.element, 'u:baseKb');
 polySynth.registerCtrlStyle('u:baseKb', 'keyboard', baseKeyboard.element, kbStyle(baseKeyboard.element), 'Ton-Wahl');
+hint(baseKeyboard.element, 'Nur bei Quelle „Ton" bedienbar: wählt die Tonklasse der Basis. Sonst reine Anzeige, wo die klingende Base-Frq liegt.');
 // „Besonderer" MIDI-Learn genau wie bei u:playKb (@dpa 20260722_203201: „genauso wie in
 // Keyboard/Keyboard" — kein eigener „MIDI lernen"-Button im Panel mehr): im normalen Tasten-/
 // MIDI-Overlay auf das Ton-Wahl-Control gelernt, die EINE gelernte Note kalibriert die
@@ -327,6 +338,7 @@ polySynthState.subscribe((k) => { if (k === 'oscEngine' || k === '*') syncOscKno
 const polySynthKeyboard = new PlayKeyboard(polySynthState, polySynthEngine);
 polySynth.mountInGroup('Keyboard', polySynthKeyboard.element, 'u:playKb');
 polySynth.registerCtrlStyle('u:playKb', 'keyboard', polySynthKeyboard.element, kbStyle(polySynthKeyboard.element), 'Keyboard');
+hint(polySynthKeyboard.element, 'Spiel-Tastatur — klicken oder MIDI spielt eine Note. Bereich/Oktaven in den Settings.');
 // „Besonderer" MIDI-Learn (@dpa 20260722_155726: „nur eine Note eingegeben werden muss,
 // statt jede Taste einzeln … im MIDI-learn mode, nicht als extra Button"): im normalen
 // Tasten-/MIDI-Overlay (⌨/🎹-Header) auf das Keyboard-Control selbst gelernt — die EINE
@@ -374,6 +386,7 @@ polySynthState.subscribe((k) => {
 const chordMemory = new ChordMemory(polySynthState, polySynthKeyboard, polySynth.keyMidi);
 polySynth.mountInGroup('Keyboard', chordMemory.element, 'u:speicher');
 polySynth.registerCtrlStyle('u:speicher', 'speicher', chordMemory.element, (s) => chordMemory.applyStyle(s), 'Speicher');
+hint(chordMemory.element, 'Akkord-Speicher: leerer Slot merkt den gerade gespielten Akkord, belegter Slot ist ein Gate (halten = klingt). [R] schaltet das Verhalten um.');
 // Positions-Nachzügler (@dpa 20260722_013727: „packt nach dem Reload die Tastatur ganz links
 // hin, ein kurzer Gang in e-Mode bereinigt das"): applyCtrlPos() lief beim Seitenaufbau schon
 // VOR diesen beiden mountInGroup()-Aufrufen (die Gruppe „Keyboard" war zu dem Zeitpunkt also
@@ -560,6 +573,7 @@ const levelMeterRoot = document.querySelector('#levelmeter');
 const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, { GROUPS: [{ name: 'Meter' }] });
 const levelMeter = new LevelMeter(() => getBusAnalyser());
 levelMeterHost.mountInGroup('Meter', levelMeter.element, 'u:meter');
+hint(levelMeter.element, 'Ausgangspegel des gesamten Ensembles (dBFS, Peak-Hold).');
 levelMeterHost.registerCtrlStyle('u:meter', 'levelmeter', levelMeter.element, (s) => levelMeter.applyStyle(s), 'Level');
 levelMeterHost.refresh();
 window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter };
@@ -628,7 +642,11 @@ const hintResolve = (el) => {
                  : c.closest('#rec') ? recState
                  : state;
         const own = (st.get('hintText') || {})[id];
-        return own || factoryHint(id, 'de') || c.dataset.hint || (el.dataset && el.dataset.hint) || '';
+        // Bugfix (@dpa ddw.md 20260724_153349, „De/En: die Hilfstexte auch!"): hier stand fest
+        // 'de' — die Hover-Hilfe für Controls blieb deutsch, egal was in main Config/Sprache
+        // steht. ElementSettings.js/KnobMetaEditor.js riefen factoryHint() schon korrekt mit
+        // lang() auf, nur dieser Hover-Pfad nicht.
+        return own || factoryHint(id, curLang()) || c.dataset.hint || (el.dataset && el.dataset.hint) || '';
     }
     return (el.dataset && el.dataset.hint) || '';
 };
@@ -694,27 +712,66 @@ fileIn.addEventListener('change', () => {
     rd.onload = () => { try { const n = applyConfig(JSON.parse(rd.result)); if (n) location.reload(); else alert('Keine passenden Daten in der Datei.'); } catch (e) { alert('Import fehlgeschlagen: ' + e.message); } };
     rd.readAsText(f); fileIn.value = '';
 });
-let cfgPop = null;
-const closeCfg = () => { if (cfgPop) { cfgPop.remove(); cfgPop = null; document.removeEventListener('mousedown', cfgOutside, true); cfgBtn.classList.remove('active'); } };
-const cfgOutside = (e) => { if (cfgPop && !cfgPop.contains(e.target) && e.target !== cfgBtn) closeCfg(); };
 // Reset-Logik EINMAL (PLAN_OPERA.md 1.3): bisher nur versteckt unter ⚙ Config → ↺ Reset
 // erreichbar — jetzt zusätzlich ein sichtbarer Header-Button (s.u.), beide rufen dieselbe
 // Funktion, derselbe Bestätigungsdialog.
 function doReset() {
     if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) { LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload(); }
 }
+// main Config (@dpa ddw.md 20260724): „ist ja für das gesamte Ensemble da … mach daraus ein
+// Fenster, ähnlich den Settings, aufgeräumt nach Themen, halb kompakt" — aus dem schmalen
+// Export/Import/Reset-Popup wird ein MiniSettings-Panel (dieselbe Chrome wie Seq/Reflections/
+// Instrument-Settings) mit vier Themen-Abschnitten. Label-Farbe/-Größe/Wert-BG und Gruppen-
+// Header-Größe/-Höhe wirken sofort (lib/globalLook.js, State-Subscribe), Sprache über
+// lib/i18n.js.
+const cfgPanel = new MiniSettings('⚙ Config');
 cfgBtn.addEventListener('click', () => {
-    if (cfgPop) { closeCfg(); return; }
-    cfgPop = document.createElement('div'); cfgPop.className = 'cfg-pop';
-    const mk = (label, title, fn) => { const b = document.createElement('button'); b.className = 'pb-btn'; b.textContent = label; b.title = title; b.addEventListener('click', () => { fn(); }); return b; };
-    cfgPop.append(
-        mk('⭳ Export', 'Aktuellen Zustand als .json herunterladen', () => { exportConfig(); closeCfg(); }),
-        mk('⭱ Import', 'Zustand aus einer .json laden (Seite lädt neu)', () => { fileIn.click(); }),
-        mk('↺ Reset', 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)', doReset),
-    );
-    document.querySelector('.topbar-right').appendChild(cfgPop);
+    if (cfgPanel.isOpen) { cfgPanel.close(); return; }
     cfgBtn.classList.add('active');
-    setTimeout(() => document.addEventListener('mousedown', cfgOutside, true), 0);
+    cfgPanel.open(cfgBtn, ({ color, num, section, full }) => {
+        section('Beschriftung');
+        const colorField = color('Farbe', { get: () => state.get('labelColor') || '#8a94a6', set: (v) => state.set('labelColor', v) });
+        hint(colorField.closest('.kme-row'), 'Gilt für ALLE Beschriftungen und Werte-Anzeigen auf einmal. Leer bzw. ✕ = wie ausgeliefert. Einzelne Regler-Farben bleiben davon unberührt (Rechtsklick auf den Regler).');
+        const sizeField = num('Größe', { min: 6, max: 16, get: () => state.get('labelSize') || 10, set: (v) => state.set('labelSize', v) });
+        hint(sizeField, 'Schriftgröße der Beschriftungen (6–16 px)');
+        const bgField = color('Wert-BG', { get: () => state.get('valueBg') || '#000000', set: (v) => state.set('valueBg', v) });
+        hint(bgField.closest('.kme-row'), 'Hintergrund der Werte-Anzeige (Regler-Zahl)');
+        const clearBtn = document.createElement('button'); clearBtn.className = 'pb-btn';
+        clearBtn.textContent = '✕ Vorgabe entfernen'; hint(clearBtn, 'Vorgabe entfernen (wieder wie ausgeliefert)');
+        clearBtn.addEventListener('click', () => {
+            state.set('labelColor', ''); state.set('labelSize', ''); state.set('valueBg', '');
+            colorField.value = '#8a94a6'; sizeField.value = 10; bgField.value = '#000000';
+        });
+        full(clearBtn);
+
+        section('Gruppen-Kopf');
+        const ghSize = num('Größe', { min: 8, max: 16, get: () => state.get('grpHeadSize') || 10, set: (v) => state.set('grpHeadSize', v) });
+        hint(ghSize, 'Schriftgröße der Gruppen-Kopfzeile (8–16 px)');
+        const ghH = num('Höhe', { min: 0, max: 40, get: () => state.get('grpHeadH') || 0, set: (v) => state.set('grpHeadH', v) });
+        hint(ghH, 'Mindesthöhe der Gruppen-Kopfzeile in px (0 = wie ausgeliefert)');
+
+        section('Sprache');
+        const langRow = document.createElement('div'); langRow.className = 'cfg-btn-row';
+        const deBtn = document.createElement('button'); deBtn.className = 'pb-btn'; deBtn.textContent = 'Deutsch';
+        const enBtn = document.createElement('button'); enBtn.className = 'pb-btn'; enBtn.textContent = 'English';
+        const paintLang = () => { deBtn.classList.toggle('active', curLang() === 'de'); enBtn.classList.toggle('active', curLang() === 'en'); };
+        deBtn.addEventListener('click', () => { setLang('de'); state.set('lang', 'de'); paintLang(); });
+        enBtn.addEventListener('click', () => { setLang('en'); state.set('lang', 'en'); paintLang(); });
+        paintLang();
+        langRow.append(deBtn, enBtn);
+        full(langRow);
+        hint(langRow, 'Sprache der Hinweise und Beschriftungen (selbst vergebene Namen bleiben unverändert)');
+
+        section('Daten');
+        const btnRow = document.createElement('div'); btnRow.className = 'cfg-btn-row';
+        const mk = (label, title, fn) => { const b = document.createElement('button'); b.className = 'pb-btn'; b.textContent = label; hint(b, title); b.addEventListener('click', fn); return b; };
+        btnRow.append(
+            mk('⭳ Export', 'Aktuellen Zustand als .json herunterladen', () => exportConfig()),
+            mk('⭱ Import', 'Zustand aus einer .json laden (Seite lädt neu)', () => fileIn.click()),
+            mk('↺ Reset', 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)', doReset),
+        );
+        full(btnRow);
+    }, () => cfgBtn.classList.remove('active'));
 });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
 

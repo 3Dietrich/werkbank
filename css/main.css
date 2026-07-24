@@ -165,7 +165,7 @@ body {
    Ersetzt „<select> + Icon-Reihe daneben" (@dpa 20260716_132014: „zu lang, zu cryptisch,
    unansehlich"). Draußen steht nur noch der Name; die Aktionen wohnen im Menü. */
 .pickmenu { display: flex; align-items: center; gap: 5px; }
-.pm-label { color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 9px; }
+.pm-label { color: var(--lab-col, var(--muted)); text-transform: uppercase; letter-spacing: .06em; font-size: 9px; }
 .pm-btn {
   display: flex; align-items: center; gap: 6px; min-width: 140px; max-width: 260px;
   background: var(--panel); color: var(--text); border: 1px solid var(--line);
@@ -216,6 +216,15 @@ body {
 }
 .pm-name { flex: 1 1 auto; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pm-name.pm-none { color: var(--muted); }   /* nichts geladen */
+/* tailAlign (@dpa ddw.md 20260724, Sq-Output): Kürzung am ANFANG statt am Ende, Text
+   rechtsbündig. direction:rtl dreht die LOGISCHE Reihenfolge um – text-overflow:ellipsis
+   kürzt darum am logischen Ende, das jetzt links liegt (das ENDE des Namens, z.B.
+   "...-Dämpf", bleibt rechts sichtbar). text-align:right hält den Block bei kurzen Namen
+   rechtsbündig. KEIN unicode-bidi:plaintext — das würde bei lateinischem Text die
+   Embedding-Richtung wieder auf LTR zurückdrehen (Fund @dpa 20260724: zeigte noch
+   "Poly-Synt..." statt "...hen-Dämpf") und den ganzen Trick unwirksam machen. Die Zeichen
+   selbst bleiben trotzdem LTR lesbar – nur der TextLAUF (Kürzungsrichtung) ist rtl. */
+.pm-name.pm-name-tail { text-align: right; direction: rtl; }
 .pm-caret { flex: 0 0 auto; color: var(--muted); display: flex; --ico: 11px; }
 .pm-pop {
   /* MUSS über .knob-meta-editor/.elem-settings (z 1300) liegen (@dpa 20260722_013727,
@@ -393,9 +402,12 @@ body {
   background: var(--accent2); border-radius: 1px; box-shadow: 0 0 6px var(--accent2);
 }
 /* Titelleiste: Klapp-Button + ziehbarer Name + Settings */
-.group-title-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; cursor: grab; }
+/* Höhe/Schriftgröße global einstellbar (@dpa ddw.md 20260724, main Config: "Gruppen header
+   Schriftgröße und gruppen header Höhe einstellbar") — min-height statt height, damit ein
+   zu klein gesetzter Wert den Inhalt (Knöpfe/Icons) nicht abschneidet. */
+.group-title-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; cursor: grab; min-height: var(--grp-head-h, auto); }
 .group-title-bar:active { cursor: grabbing; }
-.group-title { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; flex: 1; user-select: none; }
+.group-title { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: var(--grp-head-size, 10px); flex: 1; user-select: none; }
 .group-collapse, .group-settings-btn {
   background: none; border: none; color: var(--muted); cursor: pointer; font-size: 10px;
   padding: 0 2px; opacity: .5; line-height: 1;
@@ -673,6 +685,13 @@ body {
 .kme-close:hover { color: var(--accent2); }
 .kme-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
 .kme-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; row-gap: 6px; }
+/* Themen-Trenner (@dpa ddw.md 20260724, main Config: "aufgeräumt nach Themen, halb kompakt"). */
+.cfg-section-title {
+  margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line);
+  color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 9px;
+}
+.cfg-section-title:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.cfg-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .kme-row { display: flex; justify-content: flex-start; align-items: center; gap: 6px; }
 /* Labelspalte auf einen festen Standardwert – die Beschriftungen sind absichtlich kurz
    gehalten ('Dez.', 'BG'), damit hier nichts unnötig Breite frisst (@dpa). */
@@ -1089,7 +1108,7 @@ body {
 
 /* ── Button-Control (BUTTONS) ── */
 .btn-field { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.btn-label { font-size: 11px; color: var(--text); min-height: 1em; }
+.btn-label { font-size: var(--lab-size, 11px); color: var(--lab-col, var(--text)); min-height: 1em; }
 .btn-container { display: flex; }
 /* Button-Label-Positionen (@dpa 20260719_120425): Label außen, Caption im Button zentriert. */
 .btn-field.btn-label-off .btn-label { display: none; }

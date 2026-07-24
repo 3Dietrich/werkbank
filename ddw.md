@@ -838,3 +838,283 @@ räum bitte auch den Ordner werkbank auf (bilder)
 !! funktioniert, immerhin, **aber dann bleibt der erste trigger 2 Zählzeiten auf erstem Step**! Man eh!! Was ist das für ein scheiß?!?!? in teslacoil ging das zack zack.. alles funktionierte direkt.. hier in Werkbank - nach einem 4 phasigenm allumfassenden, sehr teueren Restaurations-Durchgang ist der Sequenzer (das neuste ISM) so anfängerhaft..?? Was ist hier los??
 
 --
+20260723_145532
+    '!' ..fast! aber noch nicht perfekt, das wusstest du aber nicht:
+        '!' soll auf den BPM-Schlag-synchron syncen. 
+        Es ist jetzt so, dass du den sequencer in jeder geschwindigkeit direkt bei '!' neu startest. Es soll aber erst beim nächsten BPM Schlag zurücksetzen. So dass BpM Schlag und der Seq.-Anfang synchron ist.
+    dann mal weiter mit Sequenzer:
+        - Outputs: automatisch auf alle möglichen "Eingänge" wie 
+            - Poly-Synth/BaseFreq/Töne (0, 1-12)
+            - Poly-Synth/Keyboard/Töne (0,1 - ..)
+            - Poly-Synth/Speicher (0, 1 - n) Abrufen
+            - 0 bedeutet immer nichts/aus/ignore/lauf weiter
+            - Amp Env Gate (0,1-100%) <-- für Akkord gesamt
+            - ..?
+        - (nur damit Du es weist:) es funktioniert gerade wie folgt "Multiplikator" = Nenner, "Teiler" = Zähler. ok. Ich werde es händisch umbenennen.
+        - Bug: 1/3 läuft ungleichmäßig! ich fürchte das das tempo instrument mehr angaben über das tempo machen muss für die folginstrumente. Etwa die Sample Anzahl (incl.Restteil?) für den Beat. so können sequenzer und andere tempo basierte module ihr tempo korrekt ausrechnen und triggern. 
+    und mir noch wichtig für den Sound:
+        das Amp soll irgendwo zwischen OSZ und Output die hohen Frequenzen dämpfen. Ich schlage direkt am OSZ vor, dann bleibt die ENV möglich, eine einzige zu sein (statt n.o.voices)? Die Dämpfung soll von 0 (alle gleichlaut) über 100 (oberste = 0) bis 200 (nur tiefste hörbar) gehen. mit Oberste meine ich SR/2
+    Detailarbeit:
+        `Select` Settings: 
+            - hinzu: 'Label' wie in knob [Unten,Oben,Rechts,Links,Aus]
+            - hinzu: Länge (die Länge des Menus, 0=auto (default), >0 = Breite
+-- 
+ok, nochmal etwas korrekter und erweitert:
+Header/Reset: falsch Verstanden! Es soll hängendes Audio reseten! NICHT alles! Nur das momentane Audio
+
+die Header-Buttons bitte mit `Button` settings
+
+dann Sequenzer:
+    Outputs anpassen (ich beschrieb es schon in zeilen 845-852)
+    mach eine Funktion in Sequenzer ISM: 
+    [edit symbol] wenn an:
+        [-],[+] icon Buttons an jede Sequenzer-Gruppe (Sq) 
+            [-] entfernt den Sq (bis auf einen, *kein Sq* darf nicht vorkommen)
+            [+] fügt einen Sq hinzu
+        Die Sequenzer sollen so ![aussehen](image.png) (dazu auch die [config datei](../../../Downloads/werkbank-config-20260723140151.json)
+        Dabei ist noch eine "Kleinigkeit" hinzuzufügen: 'Steps' ist das oberste, was die 'An', Zähler, Nenner "dahinter" stellt, und damit verdeckt. Es wäre schön wenn man die Layerschicht bestimmen könnte, einfach in alles Settings einen Trigger "top Layer". Wie die Ordnung dann im einzelnen stattfindet ist "Users Lösung".
+
+-- 
+20260723_173132
+<!-- diese Zeichen --> sollen de-markieren, Du sollst den Inhalt ignorieren. (bitte merken)
+
+Sequenzer ISM Edit mode:
+    die zusätzlichen Sequenzer Gruppen sollen des Design vom ersten übernehmen.
+
+<!-- Hilfstexte:
+    bitte nicht mehr Hilfen über vergangenes schreiben (z.B.:"Eigener Trigger-Takt, an das Takt-Tempo gekoppelt **(nicht mehr an die Poly-Synth Base-Frq)**" oder:   -->
+<!-- Config: 
+    - als eigenes Fenster
+    - mit den 3 vorhandenen Einträgen in einer Sektion (platzsparend anordnen) -->
+
+ISM header:
+    - in der Höhe etwas kleiner von derzeit 32(?) auf 24
+    - mit dem auf/zu klapper links wie in Metronom
+    - diese Einstellungen sollen STANDARD sein, immer in zukünftig neuen ISMs.
+Gruppen header: 
+    - in der Höhe etwas kleiner von derzeit 32(?) auf 24
+    - (nur zur Sicherheit:) diese Veränderungen an header und Gruppen Grundeinstellungen sollen STANDARD werden, für zukünftig neue Gruppen.
+Control `wechsel`
+    - höhe und breite sollen die Höhe und Breite des Buttons setzen (tut's noch nicht)
+    - genau wie alle anderen settings.. (es funktionieren einige nicht.)
+    - 'Stufen [+]' weg/unsichtbar, weil das nichts bringt, die Stufen sind vorgegeben
+    
+20260723_192632 (Seq Out, Ton-Nummer antwort)
+gute Frage. Ich meine das hängt an den Output-Zielen. Also es müssen zunächst alle Ziele im "Ensemble" bekannt sein, diese Ziele "wissen" über die min, max, mögliche stepsizes usw. bescheid. Wenn man aus dem Menu eins davon aufruft werden passend dazu im `unikat` 'steps') Settings Sektion 'Data' mit:
+    - off? (Schalter [an,aus], default an)
+        - AN: step schaltbar, wie bisher, ein(vorheriger wert oder max), und ausschalten (=off, =clockfrei)
+        - AUS: es gibt vielleicht 0 (je nach Ziel) aber nicht mehr als "aus" sondern als den Wert 0. Die bedienung auf der seq Darstellung ist dann flüssiger ohne den (extra eingebauten) 4px Ausschluss, sondern jeder click und drag position geht direkt weiter..
+    - min 
+    - max
+    - stepsize
+
+KIFrage:
+Der überarbeitete Plan steht. Kernpunkte in Kurzfassung:
+
+Ziele deklarieren sich dezentral: jedes Modul trägt min/max/stepSize/offAllowed direkt an seinen ports.inputs-Einträgen (z.B. polysynth/defs.js beim trig-Port).
+Neue Registry-Funktionen inputTargets(srcType) (liefert alle kompatiblen Ziele über den bestehenden canConnect-Filter) und deliver() (gezielte Zustellung an genau ein gewähltes Ziel, statt Fan-out an alle connect()-Verbindungen).
+↪️-Reload-Button pro Sq neben dem seqOutput-Select, zieht die Liste neu aus routing.inputTargets(...).
+Persistenz als 'modul.port'-String (z.B. 'polysynth.trig'), tolerant falls das Zielmodul beim Neuladen noch fehlt — kein Datenverlust, nur ein No-op bis zum nächsten Reload.
+Grid-Skala (min/max/stepSize), Off-als-null-Sentinel und die Data-Sektion in ElementSettings bleiben wie im ersten Plan, beziehen ihre Werte jetzt nur aus dem dynamischen Lookup statt einer festen Tabelle.
+AskUserQuestion
+
+zu "in jedem seqOutput-Select, zieht die Liste neu aus routing.inputTargets(...).":
+seqOutput ist ein Menu wie die Speicher menus (für z.B.Combo) nur nicht beschreibar wie Combp, sondern aber mit einem ↪️-Reload-Button für die ganze List und anclicken=load.
+Damit hätten wie das relaod raus aus der Gruppenansicht, was mir wichtig ware, weil.. es gehört einfach nicht dazu..
+
+-- 
+20260723_210324
+OSZ-Höhen-Dämpfung: 
+    noch nicht zu hören! auch nicht nach neu trigger
+    auch gleich vorgewarnt: es soll sich live verändern können.. also beim spielen der Akkorde, live..
+
+('top Layer'): neues "Oben"-Feld in JEDEM Element-Settings-Panel 
+    Außer in den Sequenzern kann ich es noch nirgens finden.. (standard: `knob` ![irgendwo top oder layer?](image-1.png)
+    der ![Stepsequenzer output](image-2.png):
+        - überm Menu kommt auch bei rechter maustaste die Liste (soll: für diesen control angeschlossene `select` settings)
+        - die Ziele.. 
+            - bitte mit dem neu laden **alle Buttons, knobs, Speicher abrufe, Keyboards,... als Ziele** hinzufügen!
+            - alle Ziele/Controls entsprechend vorbereiten: Sie müssen sich via Sequenzer in vollem synch steuern lassen können (die optik der Buttons auch oder evtl. getrennt(dann mit einem remoteZeichen..?))
+            - im Moment sehe ich nur
+                - Poly-Synth > Trigger
+                - Rec > Clock
+        bei "Poly-Synth > Trigger" kommt ein "Notenhänger" bei sehr tiefer Freq..
+        bei Clock kommt (wie zu erwarten) nichts. Es scheint mir auch von der Bezeichnung her sinnlos. ../Tempo, ../Play: ja, aber 'Rec > Clock'?
+    Sequenzerbedienung:
+        gestoppt kann man Seq daten (unsichtbar) ändern, aber nur wärend des spiels dated die Sichbarkeit ab, soll: jederzeit
+
+
+Header "Reset" (und der Vollstandigkeithalber eigentlich auch "Struktur"): soll auch "learn" kriegen, haben sie noch nicht.
+
+dann:
+"Der alte Test test/phase4a_seqsync_smoke.py ist bereits seit dem Multi-Sq-Umbau (vor meiner Session) kaputt (window.__stepseq.engine existiert nicht mehr) — nicht von mir verursacht, aber wert, mal repariert zu werden."
+Was immer das heißt.. repariere :)
+
+20260723_230925
+    "oscTilt unhörbar": 
+        ok, SR/2 war sehr hoch :) ABER: die Lösung ist: 
+        0: ist alle 100%
+        >0 .. 100: übergang zu einer Verteilung die der Basefreq =1 ist und jeder höhere Oberton fadet im verhältnis zu seiner Nummer n Lautstärke ≈ 1/n aus, bei =100 die Verhältnisse wie bei einer *SAW Wave Obertonreihe*. 
+        >100 kann ich ja selbst herausfinden ob das Sinn macht
+
+    "'top Layer' fehlt bei Knobs":
+        ok. Dann mach Top überall wieder raus, vergessen wir dieses Thema
+
+    "Notenhänger [..] triggerFromEnv löst nur bei Tonklassenwechsel ein noteOff aus, beim Transport-Stopp gibt's keinen Release-Pfad.":
+        ja nee, keine NoteOff bei Stop! Das will ich nur unter besonderen Umständen, dann sag ich berscheid. Aber Stop Stoppt nur den "Transport", die Clocks. 
+        Es könnte ein all notes off (im OSZ?) geben.. der erledigt sollche Hängenbleiber. Aber das war ja auch eine ausnahme die auf mit reset weg ging, das wird ja nach dem Umbau ganz anders funktionieren, denke ich
+    
+    alles unerwähnte:
+        ok, zustimm
+    
+ohne mein Ohr: bitte im delegate-plan: neuer Chat? go 1 bis 7!
+
+20260724_003531
+Shit. Du hast meine Vorstellung über oscTilt falsch verstanden! Wenn die Die Oscillatoren verändert hast (additive, fft..?) dann mach die OsZ wieder rückgängig!
+Es soll nicht der Synth klang Obertöne ausgeben sondern die Töne selbst werden ja via Basefreq auf Obertonfreq gerundet (Das ist Das Coole an diesem Ensemble)
+Nochmal zum Regler: jede Frequenz vom Sine-FM oder Square PW Osz kommenden Ton hat ein Verhältnis zur BasisFreq. lass es 34.56 sein. dieser Ton kriegt bei OscTilt folgende Amp angaben 0: 1, 100:1/34.56, >100: <1/34.56 (logarithmisch, d.h. es kommt der null immer näher, aber erreicht sie nie.. OK?
+
+Learn: ![alt text](image-3.png)
+    ![alt text](image-4.png)
+    beide auf beidem nicht! ..?
+
+3b (alle Buttons/Knobs/Speicher/Keyboard als Sq-Ziele): blieb reine Architektur-Skizze, nicht umgesetzt.
+darauf freue ich mich: JETZT! Hier sind schon viele Details beschrieben. Brauchst Du noch mehr? Ansonsten mach es einfach funktionierend. Sequenzer zu den Zielen, die dann entsprechend sich verhalten. 
+zur Sicherheit, falls Du wissen willst wie's bei mir aussieht oder so..[mein letzter Export](../../../Downloads/werkbank-config-20260723224504.json)
+
+die anderen Fixes: gut! erstmal.
+
+-- 
+20260724_012823
+![2.Seq](image-5.png)
+Wow! Endlich! das ist mal super!
+mit den Sequenzen gibt es jetzt viel zu entdecken.. 
+aber dafür müssen wir noch weiter dran arbeiten:
+    - sie müssen (von mir) schlanker gemacht werden, dafür 
+        - muss ich auch die Seq-eigenen Elemente (sseq,steps,fill,reload) wie Controls ändern können
+    - die Gruppen (und auch ISMs) brauchen jew. eigene Combo- und Snapshotspeicher (siehe teslacoil)! Das muss eh mal rein, kannst Du Dir jetzt vornehmen. also 
+        - Gruppen (Combo und Snapshot)
+        - ISM UND (Snapshot)
+        - header Ensemble Snapshots
+        - Snapshot heißt: alles sound/musik-technische zusammen;
+        - Combo heißt: alles optische innerhalb des Bereiches
+dann muss SSeq settings einen Speicher für  und neue müssen diesem Vorbild folgen,
+
+-- 
+20260724_020619
+![Gruppe Stepsequenzer settings](image-6.png)
+![andere Grppe settings](image-8.png)
+![ISM settings](image-7.png)
+keins der settings hat Combos oder Snapshots. ![Teslacoil Beispiel](image-9.png)
+![Stepsequenzer](image-10.png) sind nich keine einzel-Elemente!
+
+so.. nichts getan?! Ich habe mehrfach ge resetet.. nix!
+
+1. read my prompt! 
+    - Gruppen (Combo und Snapshot)
+    - ISM UND (Snapshot)
+    - header Ensemble Snapshots
+    was war daran unmißverständlich? ISM Combo? Nein.
+2. Slot-Anzahl 
+    spricht irgendetwas gegen unbegrenzt? Wenn ja, dann wieviel max. ist gut? Nimm das.
+3. Nein, Master Fader bleibt extra
+4. alles dabei. Auch jeder Button, auch der Inhalt vom speicher.. alles was diesen teil (ISM, Gruppe, all) betrifft.
+5. wenn bz.B. 3 Seq. Gruppen aktiv sind, und ich speichere das ISM weiß  gespeichert die Gruppe 
+6. die Gruppen haben jeder die 2 Speicher, aber alle "Clone" haben gemeinsam den Pool an Speichern. So kann man z.B. die 3. Gruppe speichern, danach in die erste Gruppe gehen und diese Speicherung der 3. Gruppe laden. (Wenn Combo und Snap nicht auseinander gehalten werden *kann*, dann müssen beide in ein combosnap o.ä.
+klar soweit?
+
+--
+20260724_114012
+Bei Gruppen sehe ich Combo und Snapshot
+    - aber sie speichern nicht, sie klappen (samt den Settings) zu - danach ist noch leer.
+
+Bei ISMs 
+    - funktioniert Snapshot, 
+    - sieht aber noch unbeholfen aus ![alt text](image-11.png)  
+    "Snapshot SNAPSHOOT" ist zuviel Label, es könnte sogar kurz Snap heißen. und solllte so wie die anderen Einträge links sitzen.
+
+Ensemble Snapshot: geil!
+    - es sollte ach über rechte Mouse (`select`-) settings haben
+    - es soll rechts neben Werkbank sein 
+
+-- 
+Thx! funktioniert jetzt alles. Top!
+    Seq/Stepseq/`select` Output (settings): 
+        - Label-Pos und Länge funktioniert hier noch nicht (bei anderen `select` schon)
+        - Größe: ist auf min.11 beschränkt, würde ich gerne auch kleiner machen können. default kann bleiben, aber wenn man es kleiner setzt soll es bis 6 korrekt foglge.
+    Seq/Stepseq/Steps:  
+        bitte mach die Elemente im e-mode verschiebbar (Ich glaube, das habe ich schon mal verlangt, aber Die nicht vorhandenen Veränderungen noch nicht bemängelt)
+
+-- 
+20260724_122929
+super fixes! thx!
+    StepSeq/StepSeq/
+        - Steps control setting: mach einen Knob aus 'Steps' [1 -64]
+
+    `toggle` controls zeigen [Label-Pos = ohne] die Labels fälschlicherweise noch rechts an. 
+
+in Labelnamen werden leerzeichen beim labelanzeigen ignoriert. so steht das selbe, an der selben position
+A) '/'
+B) '/     '
+B sollte mehr Platz zeigen, als wenn space echte Buchstaben wären
+Show less
+
+    funktioniert noch nicht. zumindest in StepSeq/StepSeq/Multiplicator. Ich will das Label '/  ' (1-2 spaces rechts), aber die Leerzeichen sind immer wieder weg
+    
+`Button` Controls:
+    bei Modus Trigger sollen die Buttons sich so verhalten wie die Buttons in Takt+Metronom/Metronom/ --> '!', '!!'
+    Trigger: D Env von On zu Off BG, triggert On beim drücken/aktivieren
+    Gate: beim drücken On, release=Off
+    Umschalt: Button togglet on/off
+    (neu) nix: triggert On beim drücken/aktivieren, aber bleibt auf BG off
+
+Dein Plan(*): klngt sehr koompliziert. ist es nicht so dass Control settings, die man ändert, auf alle Controls anwendet?? Ich dachte es wäre so einfach..
+    *)"Zusammenfassung der nötigen Änderungen
+    werkbank/lib/group/GroupHost.js: in activate() (Zeile 537-542) und im click-Listener (Zeile 547) den neuen Fall mode === 'nix' behandeln: Aktion feuert (fire()), aber kein flashTrigger()/kein isOn=true/keine BG-Änderung.
+    werkbank/lib/ElementSettings.js: neue <option value="nix">...</option> im Dropdown (Zeile 100-107) ergänzen; Titel-Attribut (Zeile 102) und Kommentar (Zeile 98-99) entsprechend erweitern.
+    werkbank/docs/CONTROLS.md: Tabelle/Beschreibung um den vierten Modus ergänzen (Zeile 94-106).
+    Optional: Kommentare in werkbank/lib/taktmetro/defs.js (Zeile 23-26, dort wird der Modus-Wortlaut auch dokumentiert) und in werkbank/lib/group/GroupHost.js Zeile 489/512-518 aktualisieren, damit die Modus-Liste überall konsistent "toggle/trigger/gate/nix" nennt."
+
+`button` 
+    - Modus=Trigger: soll beim CLICKEN (Mouse DOWN) triggern! Überall woe Button Mode=trigger ist.
+    StepSeq/StepSeq/fill und set0 Sind noch nicht angeschlossen ..
+
+StepSeq/StepSeq/
+    output:
+        soll es mir bei der zusammengeklappten (normalen) Anzeige ![Anzeige](image-12.png) den Namen "rechts aligned" anzeigen. Damit meine ich (Beipsiel): wenn ich aus der ![Liste](image-13.png) "Poly-Synth --> Höhen-Dämpf" wähle, soll mir die zusammengeklappte Anzeige von 'Dämpf' das f rechts anzeigen und dann soweit wie es Größe zulässt den Namen nach links. Hintergrund:. Die Instrumente sind nicht so aussagekräftig wie die Control-Ziele Namen. 
+        (Das ist etwas besonderes nur für Output.. )
+    Combo:
+        soll nicht den 'Steps' inhalt speichern/recallen!
+
+main Config:
+    ist ja für das gesamte Ensemble da. Deswegen gehören ein paar Funktionen hier hinein. Bitte mach daraus ein Fenster, ähnlich den Settings, aufgeräumt nach Themen, aber halb compakt (muss also nicht super kompakt sein, aber ein bisschen..)
+    bitte folgende Controls hinzu:
+        - die Label Farben bestimmbar machen 
+        - und die Gruppen header Schriftgröße und gruppen header Höhe einstellbar (
+        - Deutsch / Englisch, Alle deutschen Worte auf der gesamten Oberfläche sollen (automatisch) übersetzt werden. Bei (deutschen) Veränderungen: bitte die Änderungen in's engliische übernehmen. Bei (zukünftigen) engllischen Veränderungen: beide sprachen getrennt halten.
+
+
+20260724_153349
+main Config sieht gut aus.
+De/En:
+    die Hilfstexte auch! vorallem! Die Labels können, wenn unklar, bleiben, aber die Hilfstexte sind dann wichtig! Übersetzten ist doch kein Ding - oder? das machst Du doch aus dem FF (die ganze Zeit)..? Lass uns diskutieren: Was ist an ID-Bau Overengineering? Die Hilfstexte werden als ID's (oder technische Quelleangabe) ausgelagert, Englisch begefügt.. fertig. -?
+    die "bekannten Lücken" sind demnach genau richtig: nicht verändern, nur die Hilfen dazu..
+
+StepSeq/StepSeq/ 
+    `steps` unikat Control
+        - settings 'Aus' bitte 'An/Aus' nennen
+        - bei An/Aus=off bitte in der Steps-Ansicht bei min immer unten noch einen schmalen Stepstreifen zeigen, der quasi anzeigt: "Minimum, nicht Off." verstehste?
+        - beim draggen bitte den aktuellen drag Wert anzeigen den man gerade zieht (in beien An/Aus modi)
+    `steps` knob:
+        - wird noch nicht in Combo gespeichert
+        - bei Stop: zeigt nicht die `steps`=Längenänderung an (bei start datet es ab - ok)
+  
+PolySynth/Keyboard/ 
+    R:
+        nur bei diesem speziell:
+        Over und kill sollen nach dem click auf einen Speicher automatisch auf Use zürückgehen
+
+
+
+Outputs:
+    es fehlt mir PolySynth-TonWahl! Der sollte auf 1 - 12 (moduloed?) reagieren können.
