@@ -107,7 +107,10 @@ try:
         check(avg_div2 is not None and abs(avg_div2 - 1000) < 45,
               f"seqDiv=2-Abstand erwartet ≈1000ms (±45ms), gemessen: {avg_div2}")
 
-        # ── 4) Transport-Stop → Puls endet, Position -1; erneuter Start beginnt bei Step 0 ──
+        # ── 4) Transport-Stop → Puls endet, Position -1; avv-Neustart ('|>'/startCont) bei Step 0 ──
+        # Hinweis: seit dem Semantik-Tausch (ddw.md 20260724_233253) ist 'start' ('>') = continue
+        # (weiter ab Position), 'startCont' ('|>') = avv (von vorne). Für „Neustart bei Step 0" ist
+        # daher startCont der richtige Knopf (vorher stand hier 'start', was jetzt continue wäre).
         pos_before_stop = pg.evaluate("() => window.__stepseq.mgr.engineAt(0).seqPos()")
         check(pos_before_stop >= 0, f"vor dem Stop sollte eine Position mitten im Muster stehen: {pos_before_stop}")
         pg.evaluate("() => window.__takt.engine.onAction('start')")   # stop
@@ -119,10 +122,10 @@ try:
         n_after_stop = pg.evaluate("() => window.__seqPulses.length")
         check(n_after_stop == 0, f"Puls NACH Transport-Stop (sollte 0 sein): {n_after_stop}")
 
-        pg.evaluate("() => window.__takt.engine.onAction('start')")   # restart
-        time.sleep(0.15)
+        pg.evaluate("() => window.__takt.engine.onAction('startCont')")   # avv-Neustart ('|>')
+        time.sleep(0.35)
         pos_after_restart = pg.evaluate("() => window.__stepseq.mgr.engineAt(0).seqPos()")
-        check(pos_after_restart == 0, f"nach Neustart erwartet Step 0, ist: {pos_after_restart}")
+        check(pos_after_restart == 0, f"nach avv-Neustart erwartet Step 0, ist: {pos_after_restart}")
 
         # Panik, damit keine Voice den Rest des Laufs durchklingt.
         pg.evaluate("""() => {

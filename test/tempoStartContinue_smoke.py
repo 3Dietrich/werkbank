@@ -75,6 +75,35 @@ with sync_playwright() as p:
     assert hi2 > 0, f"'|>' zaehlte nicht hoch (pos={hi2})"
     assert av in (0, 1), f"'|>' startete nicht von vorne (pos={av})"
 
-    print(f"SMOKE OK: '>' continue (frozen={frozen}->{cont}), '|>' avv (->{av}); Transport-Reihenfolge korrekt.")
+    # ── '>' continue triggert NICHT sofort (ddw.md 20260725_003258, Beat-Phasen-Modulo) ──
+    # seqDiv=8 => 8 Beats pro Step. Mitten im Intervall stoppen, dann '>': der naechste Trigger
+    # darf erst am phasenrichtigen Rasterpunkt kommen (Rest-Beats abwarten), NICHT sofort.
+    # Alter Bug (akkumulierte Zeit): '>' setzte nextAt=jetzt -> Step sprang sofort um frozen+1.
+    if pg.evaluate("()=>window.__takt.engine.running()"): click('b:startCont')  # aus Sektion 2 noch an? stoppen
+    pg.wait_for_timeout(120)
+    pg.evaluate("""()=>{const s=window.__stepseq.state,t=window.__takt.state;
+      s.set('seqLen_0',16); s.set('seqSteps_0',Array.from({length:16},(_,i)=>i+1));
+      s.set('seqMult_0',1); s.set('seqDiv_0',8); s.set('seqEnabled_0',true); t.set('bpm',240);}""")
+    # bpm=240 -> beatDur=250ms, div=8 -> Intervall = 2000ms.
+    click('b:startCont')             # '|>' avv: Step 0 faellt sofort
+    p0 = -1
+    for _ in range(30):
+        pg.wait_for_timeout(50)
+        p0 = pos()
+        if p0 == 0: break
+    assert p0 == 0, f"avv setzte Step 0 nicht (pos={p0})"
+    pg.wait_for_timeout(500)         # ~2 Beats ins 8-Beat-Intervall hinein (Step steht noch auf 0)
+    frozen8 = pos()
+    click('b:startCont')             # stop (Position friert ein)
+    pg.wait_for_timeout(120)
+    click('b:start')                 # '>' continue
+    pg.wait_for_timeout(300)         # << 1500ms Rest bis zum naechsten Rasterpunkt
+    cont8 = pos()
+    assert frozen8 == 0, f"Setup: Step haette noch 0 sein muessen (frozen8={frozen8})"
+    assert cont8 == frozen8, f"'>' continue triggerte SOFORT statt phasenrichtig zu warten (frozen8={frozen8}, cont8={cont8})"
+    click('b:start')                 # stop
+
+    print(f"SMOKE OK: '>' continue (frozen={frozen}->{cont}), '|>' avv (->{av}); "
+          f"div=8-continue wartet phasenrichtig (frozen8={frozen8}->{cont8}); Transport-Reihenfolge korrekt.")
     sys.stdout.flush()
     b.close(); os._exit(0)
