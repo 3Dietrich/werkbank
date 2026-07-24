@@ -641,7 +641,10 @@ if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // D
 // hier standen nur die ZWEI ursprünglichen MiniStates (Haupt + Takt/Metronom) — Poly-Synth/
 // Rec/LevelMeter/Master-Volume kamen alle SPÄTER dazu und wurden nie ergänzt, darum fehlten
 // sie in jedem Export UND beim „Zurücksetzen" (das damit auch nie vollständig zurücksetzte).
-const LS_KEYS = ['werkbank_state', 'werkbank_taktmetro', 'werkbank_polysynth', 'werkbank_rec', 'werkbank_levelmeter', 'werkbank_master'];
+// Derselbe Fehler wiederholt sich (gefunden 20260724 beim Combo-/Snapshot-Speicher-Umbau):
+// 'werkbank_stepseq' fehlte hier seit dessen Einführung — jeder Export/Reset ließ den
+// kompletten Sequenzer-Stand (inkl. seiner künftigen Combo-/Snapshot-Pools) außen vor.
+const LS_KEYS = ['werkbank_state', 'werkbank_taktmetro', 'werkbank_polysynth', 'werkbank_stepseq', 'werkbank_rec', 'werkbank_levelmeter', 'werkbank_master'];
 function buildConfig() {
     const ls = {};
     for (const k of LS_KEYS) { const v = localStorage.getItem(k); if (v != null) { try { ls[k] = JSON.parse(v); } catch { /* skip */ } } }
