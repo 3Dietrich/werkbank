@@ -1,80 +1,90 @@
 # Werkbank
 
-Sammlung der wiederverwendbaren Bausteine aus [teslacoil](../teslacoil/) – plus eine
-Seite, die sie live zeigt und bedienbar macht.
+Modularer Synth-Baukasten im Browser (Web Audio, reines ES-Modul-JS, kein Build-Step) –
+eine Seite, die die Bausteine live zeigt, bedienbar macht und zu eigenständigen Instrumenten
+zusammenwachsen lässt.
+
+> Für die Arbeit an der Werkbank: **[CLAUDE.md](CLAUDE.md)** (Projekt-Kontext, Workflow,
+> Test-Befehle) und **[ARCHITEKTUR.md](ARCHITEKTUR.md)** (Landkarte „UI-Bereich → Datei" +
+> Nähte) sind der Einstieg – gebaut, damit man für einen Auftrag nur Karte + Zieldatei laden
+> muss.
 
 ## Wofür
 
-@dpa (2026-07-15): *„die Gruppe würde ich aus teslacoil nehmen. Ich habe derzeit wenig
-daran zu meckern. Also bleibt alles. Auch die Knobs/Fader sind hier (teslacoil)
-entwickelt und werden 'rüber kopiert'. alles außer 'taktgeber' kommt erstmal in die
-Werkbank."*
+Ursprünglich (@dpa 2026-07-15) als **Sammlung der Bausteine aus [teslacoil](../teslacoil/)**
+gedacht – Knobs/Fader, Gruppen, Settings zum Rüberkopieren. Seit 20260718 ist der Auftrag
+größer: **Werkbank ist der neue, aktuelle Pool für die Module.** Was in teslacoil gefeilt und
+in [taktgeber](../taktgeber/) gebaut wurde, wird hier zusammengeführt und zu eigenständigen
+Instrumenten ausgebaut.
 
-Also:
+@dpa (20260721): *„Eine der Hauptaufgaben ist in Werkbank: modulare Synthesizer gebären."*
+Darum ist hier alles ein Modul mit klaren Nähten – nie ad hoc dazugestellt, sondern immer als
+**Control**, **Instrument (ism)** oder **DSP-Baustein** (s. [docs/CONTROLS.md](docs/CONTROLS.md)).
 
-- **teslacoil bleibt die Quelle.** Dort wird entwickelt, dort klingt es, dort wird gehört.
-- **Die Werkbank sammelt**, was auch ohne teslacoil Sinn ergibt – zum Rüberkopieren in
-  neue Projekte und zum Verfeinern in Ruhe (ohne Takt, ohne Sound drumherum).
-- **Der Taktgeber bleibt draußen** (`Clock.js`, `TriggerDivider.js`): eine Werkbank
-  braucht keine Zeit.
-
-  Nachtrag 20260717: draußen heißt nicht weg. @dpas Bild ist **ein Netzteil an einer
-  Werkbank** – es steht daneben und liefert Takt statt Strom, *„wobei das Netzteil auch
-  auf der Werkbank bearbeitet werden kann"*. Der [Taktgeber](../taktgeber/) ist seitdem
-  genau dafür geschnitten: `state.js` (SSOT mit `get/set/on/off`) + `modules.js`
-  (Manifest: jede Gruppe, jedes Control, jeder Bereich) + `ui.js` (kennt keinen Parameter
-  beim Namen). Wer das Manifest liest, kennt jeden Parameter und sein Automations-Ziel,
-  ohne eine Zeile seiner UI zu sehen – das ist die Nahtstelle. Was noch fehlt, ist auf
-  beiden Seiten dasselbe: **die Gruppe als eigener Baustein** (s. „Noch offen").
+Der **Taktgeber** war lange „draußen" (das Netzteil neben der Werkbank) – inzwischen sind
+Takt und Metronom als Instrument `lib/taktmetro/` hier eingezogen und liefern den Puls für
+die anderen Module.
 
 ## Starten
 
-Nur über einen lokalen Server (ES-Module, kein `file://`):
+Nur über einen lokalen Server (ES-Module, kein `file://`). **Port 8002:**
 
+```bash
+cd ~/Music/KI_html/werkbank && python3 -m http.server 8002 & sleep 1 && open http://localhost:8002/
 ```
-python3 -m http.server 8000
-```
 
-→ <http://localhost:8000/>
-
-**`Address already in use`** = der Port ist von einem früheren Server belegt. Beenden mit
-`kill $(lsof -ti :8000)` (Port anpassen) – oder einfach den laufenden weiterbenutzen.
+→ <http://localhost:8002/>. **`Address already in use`** = der Port ist von einem früheren
+Server belegt → `kill $(lsof -ti :8002)`, oder den laufenden weiterbenutzen.
 
 ## Was drin ist
 
-| Baustein | Datei | Hängt ab von |
-|---|---|---|
-| Knob / Fader (3 Gestalten, Länge, Farben, Label-Position) | `lib/Knob.js` | – |
-| Settings für Knob/Fader (Range, Kurve, Gestalt, Farb-Presets) | `lib/KnobMetaEditor.js` | `Knob.js` |
-| Settings für Select/Toggle/Readout (Label, Farben, Größe) | `lib/ElementSettings.js` | – |
-| Oszilloskop / Spektrum | `lib/Scopes.js` | – |
-| Step-Sequenzer | `lib/StepSeqUI.js`, `lib/stepSeq.js` | `Knob.js` |
-| Tasten-Zuständigkeit (Space/'e'/Pfeile) | `lib/keyRoute.js` | – |
+**Instrumente (ism)** – je eigener State + `defs.js` + `engine.js` + Settings:
 
-`css/main.css` ist noch **1:1 aus teslacoil** und enthält deshalb auch Regeln, die hier
-niemand braucht (Kette, PresetBar, Gruppen …). Bewusst ungekürzt: solange die Bausteine
-in beiden Projekten gleich aussehen sollen, ist eine identische Datei ehrlicher als eine
-handgetrimmte, die still auseinanderläuft. Kürzen, wenn klar ist, was wirklich bleibt.
+| Instrument | Ordner |
+|---|---|
+| Takt + Metronom (aus taktgeber) | `lib/taktmetro/` |
+| Step-Sequenzer | `lib/stepseq/` |
+| Poly-Synth (Voices, ADSR, Keyboard, Akkord-Speicher) | `lib/polysynth/` |
+
+**Controls & Infrastruktur** (Auswahl – vollständige Karte in [ARCHITEKTUR.md](ARCHITEKTUR.md)):
+
+| Baustein | Datei |
+|---|---|
+| Gruppen, e-Mode (Anordnen), Control-Fabriken | `lib/group/GroupHost.js` |
+| Knob / Fader (3 Gestalten, Länge, Farben) + Settings | `lib/Knob.js`, `lib/KnobMetaEditor.js` |
+| Settings für Select/Toggle/Button/Text/Readout | `lib/ElementSettings.js` |
+| Farbwähler | `lib/colorPick.js` |
+| Tasten + MIDI-Learn | `lib/keymidi/` |
+| State (get/set/subscribe + localStorage) | `lib/MiniState.js` |
+| Presets / Snapshots | `lib/PresetManager.js` |
+| Hilfe-Texte (DE/EN) | `lib/hints.js`, `lib/i18n.js` |
+| Oszilloskop | `lib/Scopes.js` |
 
 ## Die Nahtstellen (das Interessante)
 
-Was ein Baustein von außen braucht, ist genau das, was man beim Kopieren mitliefern muss:
+Was ein Baustein von außen braucht, ist genau das, was man beim Kopieren mitliefern muss –
+Details im Kopf-Kommentar jeder Datei und in [ARCHITEKTUR.md](ARCHITEKTUR.md#nähte-mini-verträge--gegenseite-muss-nicht-gelesen-werden):
 
-- **`Knob`** – nichts. Reines DOM + SVG.
-- **`KnobMetaEditor` / `ElementSettings`** – ein Objekt mit `get(key)` / `set(key, val)`.
-  Der teslacoil-State kann das, muss es aber nicht sein → `lib/MiniState.js` zeigt das
-  Minimum.
-- **`StepSeqUI`** – dazu eine Engine mit `running`, `seqPos(which)`, `resetSeq(which)`.
-  Mehr nicht. In `werkbank.js` ist das eine Attrappe mit laufendem Abspielkopf.
+- **State-Vertrag:** `get(key)` / `set(key,val)` / `subscribe(fn)` – `lib/MiniState.js` zeigt
+  das Minimum. Jedes Instrument bringt seinen eigenen State mit.
+- **`mountGroups(root, state, defs, opts)`** baut Controls generisch aus `defs`
+  (`KNOBS/SELECTS/SEGMENTS/TOGGLES/TEXTS/NOTES/BUTTONS/DEFAULTS/GROUPS`). Optik läuft über
+  eigene Persistenz-Keys, nie über Sound-Werte.
+- **UI ↔ Audio:** `onAction(id)` (Button → Engine) und `onApply(id, style)` (Settings →
+  Control-Optik). defs/GroupHost wissen nichts von Audio, engine nichts von UI.
 
-`MiniState.js` und `werkbank.js` sind **nicht** zum Kopieren gedacht – sie sind das
-Gerüst der Werkbank, nicht ihr Inhalt.
+`MiniState.js` und `werkbank.js` sind das **Gerüst** der Werkbank, nicht ihr Inhalt – nicht
+zum Rüberkopieren gedacht.
 
-## Noch offen
+## Testen
 
-- **Die Gruppe** ist noch kein eigener Baustein: Aufbau, Einfrieren (`freezeGroup`),
-  Gruppen-Settings und der Anordnen-Modus stecken in teslacoils `js/app.js`. Sie
-  herauszulösen ist der nächste sinnvolle Schritt – dann sind Oszilloskop, Spektrum und
-  die Crossfade-Anzeige je ein kurzer Fall davon statt drei Sonderlocken.
-- `Scopes.js` liegt zwar hier, hat auf der Seite aber noch keinen Platz (braucht eine
-  Audio-Quelle zum Anzeigen).
+- **Logik (Node):** `node --test lib/taktgeber/test/`
+- **UI/Integration (Playwright, headless):** je Feature ein `test/<thema>_smoke.py` mit
+  eigenem Watchdog (killt nach ~40 s). Einzeln: `python3 test/mainConfigPanel_smoke.py`.
+  Jeder Test nennt im Docstring seinen ddw.md-Bezug.
+
+## Stand & offene Punkte
+
+Aufträge und offene Fäden: [ddw.md](ddw.md) (neueste Prompts unten). Erledigtes lebt im
+git log (`git log --oneline`). Sanierungs-/Umbaupläne: [PLAN_OPERA.md](PLAN_OPERA.md),
+[todos.md](todos.md), [UMBAU_KONFLIKTE.md](UMBAU_KONFLIKTE.md).

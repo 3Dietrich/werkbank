@@ -292,7 +292,7 @@ Button-Optik + Modi" ist Klasse geworden! toll! Ich musste zunächst irgendetwas
 
 Jut! mach zuende !  ohne mir zu zeigen, mach einfach zuende
 
-
+# Übergang auf Werkbank..
 -- 
 20260719_235311
 cool danke.
@@ -1133,14 +1133,24 @@ fehlende Übersetzungen:
 
 -- 
 20260724_192304
+
     beim Combo speichern fiel mir doch wieder etwas auf:
         ![alt text](image-17.png) oberes gespeichert, in unterem recalled. die ANSICHT der Steps soll übernommen werden, also Farben, Breite und Höhe. Der Inhalt und min,max,stepsize bleibt.
 
     StepSeq/StepSeq/ `Steps` (unnikat)
         mouseover hier ohne hilfe, sondern stattdessen (auch bei Hint=off) die Step nummer und sein Value anzeigen
-    
+
+20260724_212747
+
+    Gesamtsound in Chrome:
+        beim Fokus auf anderen Tab: Der Sound ist klar und Metronom läuft durch, aber die Sequenzer 'senden' nichts mehr.. Das ist verdächtig.. das soll ein stabiler Bus sein! Wenn man zurück aufs BrowserTab geht wird direkt alles wieder aktualisiert.
+
     Metronom 
-        bei Beat=1 soll die Beat Anzeige auf der 1 pulsieren, also d-Env trigger auf der 1
+        - bei Beat=1 soll die Beat Anzeige auf der 1 pulsieren, also d-Env trigger auf der 1
+        - bei teslacoil ist in Metronom noch eine Funktion mit der Verbindung zur Base-Frq. Das muss auf der Werkbank auf möglich sein: Base-Frq (und Harmonice) als Quelle für andere Module
     
-    Bug:
-        bei 2 (oder mehr?) aktiven Step sequenzern kommt bei PolySynth - Note (KB) ein lautes Getöse.
+
+    Tempo:
+        bei "Start" wird automatisch der Sync ('!') mitgetriggert, also "alles von vorne" (avv). Das will ich aufteilen in "Go clock mit avv" und "continue ohne avv". Also zwei "Start"s 
+        einer '>' der andere '|>' 
+        Stop verhalten bleibt unverändert. und beide Starts sollen eigene learns kriegen.. also eifach zwei Start buttons.. oder?
