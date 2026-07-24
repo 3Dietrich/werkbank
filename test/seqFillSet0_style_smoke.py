@@ -42,8 +42,8 @@ try:
         check(pg.evaluate("() => !!window.__stepseq && !!window.__stepseq.mgr"), "window.__stepseq.mgr fehlt")
 
         group = pg.locator('.group[data-group="Stepsequenzer"]')
-        fill_btn = group.locator('.seq-head button.seq-ic:has-text("Fill")')
-        s0_btn = group.locator('.seq-head button.seq-ic:has-text("⟲")')
+        fill_btn = group.locator('button.seq-ic:has-text("Fill")')
+        s0_btn = group.locator('button.seq-ic:has-text("⟲")')
         check(fill_btn.count() == 1, f"Fill-Knopf fehlt, count={fill_btn.count()}")
         check(s0_btn.count() == 1, f"set0-Knopf fehlt, count={s0_btn.count()}")
 
@@ -59,16 +59,16 @@ try:
         panel.locator('.kme-close').click()
         time.sleep(0.05)
 
-        fill_bg = pg.evaluate("() => getComputedStyle(document.querySelector('.group[data-group=\"Stepsequenzer\"] .seq-head button.seq-ic')).backgroundColor")
+        fill_bg = pg.evaluate("() => getComputedStyle(document.querySelector('.group[data-group=\"Stepsequenzer\"] button.seq-ic')).backgroundColor")
         check("255, 0, 170" in fill_bg, f"Fill-Knopf sollte die neue Farbe zeigen, war {fill_bg!r}")
-        s0_bg = pg.evaluate("() => getComputedStyle(document.querySelectorAll('.group[data-group=\"Stepsequenzer\"] .seq-head button.seq-ic')[1]).backgroundColor")
+        s0_bg = pg.evaluate("() => getComputedStyle(document.querySelectorAll('.group[data-group=\"Stepsequenzer\"] button.seq-ic')[1]).backgroundColor")
         check("255, 0, 170" not in s0_bg, f"set0-Knopf sollte NICHT mitgefärbt sein, war {s0_bg!r}")
 
         # ── Persistenz: eigener ctrlStyles-Key, übersteht Reload ──
         saved = pg.evaluate("() => (window.__stepseq.state.get('ctrlStyles')||{})['u:seqFill_0']")
         check(bool(saved and saved.get('bg') == '#ff00aa'), f"ctrlStyles['u:seqFill_0'] sollte bg='#ff00aa' enthalten: {saved!r}")
         pg.reload(wait_until="networkidle")
-        fill_bg2 = pg.evaluate("() => getComputedStyle(document.querySelector('.group[data-group=\"Stepsequenzer\"] .seq-head button.seq-ic')).backgroundColor")
+        fill_bg2 = pg.evaluate("() => getComputedStyle(document.querySelector('.group[data-group=\"Stepsequenzer\"] button.seq-ic')).backgroundColor")
         check("255, 0, 170" in fill_bg2, f"Fill-Farbe sollte den Reload überstehen, war {fill_bg2!r}")
 
         # ── Aufräumen: Testfarbe wieder entfernen, damit @dpas echter State sauber bleibt ──
