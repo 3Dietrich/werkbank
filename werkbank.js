@@ -441,6 +441,11 @@ routing.registerModule('polysynth', {
             // auch Werte außerhalb des Ports-Bereichs (z.B. eine Sq-Skala mit anderem Min/Max)
             // eine gültige Tonklasse ergeben, statt am Rand einzurasten.
             tonWahl: { write: (v) => polySynthState.set('baseNote', NOTE_NAMES[((Math.round(v) - 1) % 12 + 12) % 12]) },
+            // Akkord-Frequenz-Modulation (ddw.md 20260725, Multi-ADSR Sonderwunsch):
+            // preQuantMod — VOR der Quantisierung (harmonicSnap), postQuantMod — NACH der
+            // Überblendung roh↔gerastet. Beide multiplizieren die Frequenz mit (1 + mod).
+            preQuantMod: { write: (v) => polySynthEngine.setPreMod(() => 1 + v) },
+            postQuantMod: { write: (v) => polySynthEngine.setPostMod(() => 1 + v) },
         },
     }),
 });
@@ -751,6 +756,7 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: lev
     levelMeter.tick();
     sqManager.tick(nowMs);
     routing.flush();   // verbundene VALUE-Ports sampeln (Phase 2.3) — Event-Ports laufen über emit()
+    envManager.flush();   // Multi-ADSR: Env-Werte an gewählte Ziele liefern (ddw.md 20260725)
     requestAnimationFrame(tick);
 })();
 
