@@ -1,6 +1,6 @@
 {
   "_werkbank": 1,
-  "saved": "2026-07-25T13:27:25.655Z",
+  "saved": "2026-07-25T13:35:06.604Z",
   "ls": {
     "werkbank_state": {
       "knobColorPresets": [],
@@ -616,7 +616,7 @@
       "metroM": 1,
       "metroLevel": 0.1,
       "metroMorph": 0.03,
-      "metroCutoff": 891,
+      "metroCutoff": 1838,
       "metroReso": 44,
       "keyStart": "space",
       "keyBang": "1",
@@ -1481,7 +1481,7 @@
       "baseNote": "C",
       "baseBand": 22,
       "kammerton": 440,
-      "harmonizeMix": 0,
+      "harmonizeMix": 0.95,
       "pitchSmooth": 0.5800000000000001,
       "oscEngine": "Sine-FM",
       "duty": 0.11780000000000002,
@@ -1489,7 +1489,7 @@
       "polyMax": 64,
       "voiceSteal": false,
       "osc2On": true,
-      "detune": 4.5562499999999995,
+      "detune": 5.7562500000000005,
       "oscTilt": 53,
       "ampAttack": 0.59,
       "ampDecay": 0,
@@ -1497,7 +1497,7 @@
       "ampRelease": 5.16,
       "kbStart": 1,
       "kbOctaves": 6,
-      "kbHold": true,
+      "kbHold": false,
       "kbMidiRange": true,
       "kbMidiOffset": 0,
       "kbMidiChannel": 0,
@@ -4821,10 +4821,7 @@
           "bg": "#1d1b25",
           "fg": "#82ba90",
           "boxSize": 315,
-          "boxH": 30,
-          "seqOff": true,
-          "seqMin": 0,
-          "seqMax": 1
+          "boxH": 30
         },
         "t:seqEnabled_3": {
           "label": "An",
@@ -8474,7 +8471,7 @@
       "designPresets": {},
       "ensembleSnaps": [
         {
-          "name": "Demo",
+          "name": "Space > Start",
           "ts": 1784973055317,
           "ls": {
             "werkbank_taktmetro": {
@@ -16754,7 +16751,7 @@
           }
         }
       ],
-      "ensembleSnapSel": "Demo"
+      "ensembleSnapSel": "Space > Start"
     }
   }
 }
