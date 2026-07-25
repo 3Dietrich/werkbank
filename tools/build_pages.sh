@@ -18,8 +18,11 @@ copy_tree() {
     find "$2" -name '*.bak' -delete
 }
 
-# main ins Root …
-copy_tree main _site
+# main ins Root — 'origin/main' mit 'main'-Fallback: beim Tag-Checkout existiert
+# lokal kein main-Branch (fatal: not a valid object name), beim main-Push schon.
+MAIN_REF=main
+git rev-parse --verify -q main >/dev/null || MAIN_REF=origin/main
+copy_tree "$MAIN_REF" _site
 
 # … und jeder Tag v* in seinen Unterordner.
 git tag -l 'v*' | while read -r TAG; do
