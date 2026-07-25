@@ -486,54 +486,71 @@ const _groupKindSettings = {
         // Trennlinie
         const sep = document.createElement('div'); sep.className = 'gs-sep'; pop.appendChild(sep);
 
+        // ── Compact-Grid: 2 Spalten (Toggles links, Selects rechts) ──────────
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
+
         // Toggles: A/D/S/R aktiv, Inv, Verlauf
+        const toggleCol = document.createElement('div');
         for (const [key, cfg] of Object.entries(_adsrSettingsToggles)) {
-            const r = document.createElement('div'); r.className = 'gs-row';
-            const l = document.createElement('span'); l.className = 'gs-lab'; l.textContent = cfg.label;
+            const r = document.createElement('label');
+            r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
             const cb = document.createElement('input'); cb.type = 'checkbox';
             cb.checked = get(key) ?? polySynthDefsObj.ADSR_DEFAULTS[key];
             cb.addEventListener('change', () => set(key, cb.checked));
-            r.appendChild(l); r.appendChild(cb);
-            pop.appendChild(r);
+            r.appendChild(cb);
+            r.appendChild(document.createTextNode(cfg.label));
+            toggleCol.appendChild(r);
         }
+        grid.appendChild(toggleCol);
 
         // Selects: Kurven, Modus, Len-Einheit
+        const selectCol = document.createElement('div');
         for (const [key, cfg] of Object.entries(_adsrSettingsSelects)) {
-            const r = document.createElement('div'); r.className = 'gs-row';
-            const l = document.createElement('span'); l.className = 'gs-lab'; l.textContent = cfg.label;
+            const r = document.createElement('label');
+            r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
             const sel = document.createElement('select');
+            sel.style.cssText = 'font-size:11px; padding:1px 4px;';
             for (const o of cfg.options) {
                 const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
                 sel.appendChild(opt);
             }
             sel.value = get(key) ?? polySynthDefsObj.ADSR_DEFAULTS[key];
             sel.addEventListener('change', () => set(key, sel.value));
-            r.appendChild(l); r.appendChild(sel);
-            pop.appendChild(r);
+            r.appendChild(sel);
+            r.appendChild(document.createTextNode(cfg.label));
+            selectCol.appendChild(r);
         }
+        grid.appendChild(selectCol);
+        pop.appendChild(grid);
 
-        // Skew-Felder (A/D/R) — Zahlenfelder wie Breite/Höhe im GroupHost-Panel
-        const skewGrid = document.createElement('div'); skewGrid.className = 'kme-grid gs-size-grid';
+        // ── Skew-Zeile: A/D/R-Skew als kompakte Zahlenfelder ──────────────────
+        const skewRow = document.createElement('div');
+        skewRow.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
+        const skewLabel = document.createElement('span'); skewLabel.textContent = 'Skew:'; skewRow.appendChild(skewLabel);
         for (const [key, cfg] of Object.entries(_adsrSettingsSkews)) {
-            const r = document.createElement('div'); r.className = 'kme-row';
-            const l = document.createElement('label'); l.textContent = cfg.label; r.appendChild(l);
+            const l = document.createElement('label');
+            l.style.cssText = 'display:flex; align-items:center; gap:2px;';
             const num = document.createElement('input'); num.type = 'number';
             num.min = cfg.min; num.max = cfg.max; num.step = 0.1;
             num.value = get(key) ?? cfg.default;
+            num.style.cssText = 'width:40px; font-size:11px; padding:1px 2px;';
             num.addEventListener('input', () => {
                 const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
                 set(key, v);
             });
-            r.appendChild(num); skewGrid.appendChild(r);
+            l.appendChild(num);
+            l.appendChild(document.createTextNode(cfg.label.replace('-Skew', '')));
+            skewRow.appendChild(l);
         }
-        pop.appendChild(skewGrid);
+        pop.appendChild(skewRow);
 
-        // Buttons: +➚ (Kopie) und 🚮 (löschen)
-        const btnRow = document.createElement('div'); btnRow.className = 'gs-row';
+        // ── Buttons: +➚ (Kopie) und 🚮 (löschen) ─────────────────────────────
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
         const copyBtn = document.createElement('button'); copyBtn.className = 'wb-help-btn'; copyBtn.textContent = '+➚';
         hint(copyBtn, 'Kopie dieser ADSR anlegen');
         copyBtn.addEventListener('click', () => {
-            const curIdx = parseInt(sfx.slice(1), 10);
             const curVals = {};
             for (const k of Object.keys(polySynthDefsObj.ADSR_DEFAULTS)) {
                 curVals[k] = polySynthState.get(k + sfx) ?? polySynthDefsObj.ADSR_DEFAULTS[k];
