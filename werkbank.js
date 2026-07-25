@@ -33,7 +33,6 @@ import { stepSeqDefs } from './lib/stepseq/defs.js';
 import { createStepSeqEngine } from './lib/stepseq/engine.js';
 import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
 import { createSqManager } from './lib/stepseq/multiSq.js';
-import { createAdsrManager } from './lib/polysynth/multiAdsr.js';
 import { makeWorkerTicker } from './lib/workerTicker.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
@@ -248,6 +247,7 @@ const polySynthDefsObj = polySynthDefs({
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
     instrumentScaled: () => polySynthInstr.scaled(),
+    groupKindSettings: (kind) => _groupKindSettings[kind],   // lazy: _groupKindSettings kommt später
 });
 // BUTTONS hängen (anders als TOGGLES) nicht automatisch am State — b:kbHold muss seinen
 // isOn-Zustand explizit nachgezogen bekommen, auch wenn kbHold NICHT per Klick, sondern
@@ -452,23 +452,103 @@ routing.registerModule('polysynth', {
 routing.connect({ module: 'polysynth', port: 'baseFreq' }, { module: 'takt', port: 'baseFreqIn' });
 
 // ── Multi-ADSR (ddw.md 20260725) ───────────────────────────────────────────────────────
-// Vervielfältigbare ADSR-Envelopes ALS TEIL des Poly-Synth (eigene Gruppe, gemeinsamer State).
-// Der AdsrManager baut/entfernt ADSR-Instanzen dynamisch (wie Multi-Sq), jede mit eigener
-// GroupHost-Gruppe + Engine. Template-Knobs/Toggles/Selects/Defaults aus defs.js.
+// Vervielfältigbare ADSR-Envelopes ALS TEIL des Poly-Synth (eigene Groups, gemeinsamer State).
+// Werte-Knobs (A,D,S,R,Peak,GateLen,Len) auf dem Panel; Settings (aktiv, Kurven, Verlauf,
+// Trig/Gate, Skew) im Gruppen-Rechtsklick-Panel via groupKindSettings-Hook.
+import { createEnvManager } from './lib/polysynth/multiEnv.js';
 const adsrTpl = {
     KNOBS: { ...polySynthDefsObj.ADSR_KNOBS },
-    TOGGLES: { ...polySynthDefsObj.ADSR_TOGGLES },
-    SELECTS: { ...polySynthDefsObj.ADSR_SELECTS },
     DEFAULTS: { ...polySynthDefsObj.ADSR_DEFAULTS },
 };
-const adsrManager = createAdsrManager({
+const envManager = createEnvManager({
     host: polySynth, state: polySynthState, defs: polySynthDefsObj,
     tpl: adsrTpl, routing,
     getBpm: () => taktState.get('bpm'),
 });
-adsrManager.init();
+envManager.init();
 polySynth.refresh();
-// Header-Buttons für Multi-ADSR (im Poly-Synth-Header)
+
+// groupKindSettings: ADSR-Settings ins Gruppen-Rechtsklick-Panel einhängen.
+const _adsrSettingsToggles = polySynthDefsObj.ADSR_SETTINGS_TOGGLES;
+const _adsrSettingsSelects = polySynthDefsObj.ADSR_SETTINGS_SELECTS;
+const _adsrSettingsSkews = polySynthDefsObj.ADSR_SETTINGS_SKEWS;
+const _groupKindSettings = {
+    ADSR: (name, pop, st, row, sfx) => {
+        if (!sfx) return;
+        const get = (k) => polySynthState.get(k + sfx);
+        const set = (k, v) => polySynthState.set(k + sfx, v);
+
+        // Trennlinie
+        const sep = document.createElement('div'); sep.className = 'gs-sep'; pop.appendChild(sep);
+
+        // Toggles: A/D/S/R aktiv, Inv, Verlauf
+        for (const [key, cfg] of Object.entries(_adsrSettingsToggles)) {
+            const r = document.createElement('div'); r.className = 'gs-row';
+            const l = document.createElement('span'); l.className = 'gs-lab'; l.textContent = cfg.label;
+            const cb = document.createElement('input'); cb.type = 'checkbox';
+            cb.checked = get(key) ?? polySynthDefsObj.ADSR_DEFAULTS[key];
+            cb.addEventListener('change', () => set(key, cb.checked));
+            r.appendChild(l); r.appendChild(cb);
+            pop.appendChild(r);
+        }
+
+        // Selects: Kurven, Modus, Len-Einheit
+        for (const [key, cfg] of Object.entries(_adsrSettingsSelects)) {
+            const r = document.createElement('div'); r.className = 'gs-row';
+            const l = document.createElement('span'); l.className = 'gs-lab'; l.textContent = cfg.label;
+            const sel = document.createElement('select');
+            for (const o of cfg.options) {
+                const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
+                sel.appendChild(opt);
+            }
+            sel.value = get(key) ?? polySynthDefsObj.ADSR_DEFAULTS[key];
+            sel.addEventListener('change', () => set(key, sel.value));
+            r.appendChild(l); r.appendChild(sel);
+            pop.appendChild(r);
+        }
+
+        // Skew-Felder (A/D/R) — Zahlenfelder wie Breite/Höhe im GroupHost-Panel
+        const skewGrid = document.createElement('div'); skewGrid.className = 'kme-grid gs-size-grid';
+        for (const [key, cfg] of Object.entries(_adsrSettingsSkews)) {
+            const r = document.createElement('div'); r.className = 'kme-row';
+            const l = document.createElement('label'); l.textContent = cfg.label; r.appendChild(l);
+            const num = document.createElement('input'); num.type = 'number';
+            num.min = cfg.min; num.max = cfg.max; num.step = 0.1;
+            num.value = get(key) ?? cfg.default;
+            num.addEventListener('input', () => {
+                const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
+                set(key, v);
+            });
+            r.appendChild(num); skewGrid.appendChild(r);
+        }
+        pop.appendChild(skewGrid);
+
+        // Buttons: +➚ (Kopie) und 🚮 (löschen)
+        const btnRow = document.createElement('div'); btnRow.className = 'gs-row';
+        const copyBtn = document.createElement('button'); copyBtn.className = 'wb-help-btn'; copyBtn.textContent = '+➚';
+        hint(copyBtn, 'Kopie dieser ADSR anlegen');
+        copyBtn.addEventListener('click', () => {
+            const curIdx = parseInt(sfx.slice(1), 10);
+            const curVals = {};
+            for (const k of Object.keys(polySynthDefsObj.ADSR_DEFAULTS)) {
+                curVals[k] = polySynthState.get(k + sfx) ?? polySynthDefsObj.ADSR_DEFAULTS[k];
+            }
+            envManager.addEnv();
+            const newSfx = '_' + (envManager.engines.length - 1);
+            for (const [k, v] of Object.entries(curVals)) polySynthState.set(k + newSfx, v);
+        });
+        const delBtn = document.createElement('button'); delBtn.className = 'wb-help-btn'; delBtn.textContent = '🚮';
+        hint(delBtn, 'Diese ADSR löschen (nach Bestätigung)');
+        delBtn.addEventListener('click', () => {
+            if (!confirm('ADSR wirklich löschen?')) return;
+            envManager.removeEnv();
+        });
+        btnRow.appendChild(copyBtn); btnRow.appendChild(delBtn);
+        pop.appendChild(btnRow);
+    },
+};
+
+// Header-Buttons für Multi-ADSR (im Poly-Synth-Header, wie Sq)
 (() => {
     const h2 = document.querySelector('#bench-polysynth h2');
     if (!h2) return;
@@ -481,19 +561,19 @@ polySynth.refresh();
     hint(remBtn, 'Letzte ADSR entfernen (mindestens eine bleibt)');
     addBtn.style.display = remBtn.style.display = 'none';
     let editing = false;
-    const sync = () => { remBtn.disabled = adsrManager.engines.length <= 1; };
+    const sync = () => { remBtn.disabled = envManager.engines.length <= 1; };
     editBtn.addEventListener('click', () => {
         editing = !editing;
         addBtn.style.display = remBtn.style.display = editing ? '' : 'none';
         editBtn.classList.toggle('active', editing);
         sync();
     });
-    addBtn.addEventListener('click', () => { adsrManager.addAdsr(); sync(); });
-    remBtn.addEventListener('click', () => { adsrManager.removeAdsr(); sync(); });
+    addBtn.addEventListener('click', () => { envManager.addEnv(); sync(); });
+    remBtn.addEventListener('click', () => { envManager.removeEnv(); sync(); });
     wrap.append(editBtn, addBtn, remBtn);
     h2.appendChild(wrap);
 })();
-window.__adsr = { mgr: adsrManager };
+window.__env = { mgr: envManager };
 
 // Render-Loop steht GANZ UNTEN in dieser Datei (nach LevelMeter) — ruft sich beim ersten Mal
 // SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber

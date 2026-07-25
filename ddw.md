@@ -1,11 +1,16 @@
-bitte nimm die Amp-Env als Beispiel, ändere diese Quelle (so dass man keinen Unterschied bei dieser sieht und hört) und verändere die Details (als späteres effektives Haupt-"ADSR Modul"):
-ein multi-ADSR mit diversen Untereinstellungen (Settings)
-Was sie macht ist klar? (SR/CR-) Clockbasierte Envelopes i.d.R. positiv
-vervielfältigbar
-    Damit meine ich die Funktion wie in der Vervielfältigbarkeit der  Sequencer/Sequenzer, blos für Envs.
+/Users/dpa/Music/KI_html/werkbank/ARCHITEKTUR.md
+bitte nimm die Amp-Env als Beispiel, ändere diese Quelle (so dass man keinen Unterschied bei dieser sieht und hört, sie muss so bleiben) und verändere die Details (als späteres effektives Haupt-"ADSR Modul") wie folgt:
+anpassbare-ADSR mit diversen Untereinstellungen (Settings):
+Was sie macht ist klar? (SR/CR-) Clockbasierte Envelopes rund um die null :)
 
-Die sonder `Gruppe` ADSR in PolySynth
-    `Settings`
+vervielfältig- und löschbar?
+    in den `settings`:      // "settings" scheint von manchen irngoriert zu werden, bitte achte besonders darauf!
+        Buttons: 
+            - neu "+➚", welches eine kopie von der derzeigen Zustand (auf dem Panel erzeugt..
+            - del "🚮" der auf nachfrage sich selbst löscht (die ADSR)
+
+Die Sonder `Gruppe` ADSR in PolySynth
+    `Settings` (rechteMaus
         A,D,S,R,inv aktiv: on/off;  //jew.
         A,D,R: lin/log;         //jew.,
             lin: mit skew       // log ist doch eigentlich auch controllierbar in der Seilheit? wenn, dann skew in beiden!
@@ -38,4 +43,8 @@ Die sonder `Gruppe` ADSR in PolySynth
                 fadet in 0.5ms linear auf 0
             ADR bei Trig
                 D ist überflüssig, es geht nach A direkt auf R
+        "In und Outputs":
+            Gate [0/>0-100) als Ziel 'annmelden' (quasi Inputs)
+            die selben Outputs wie bei den Sequenzer/Sequqenzern
+            Hier kommt mein Sonderwunsch: forsche dich durch die Reihe der Module, schreib die Kette auf (wenn es noch nicht genau dokumentiert ist) und füge vor und nach (also 2 Zugriffe) der Quantisierung der Freq der Akkordtöne und multpliziere deren Frequenzen mit 1 + dem Modulator (z.B. Seq, Env, ..)
         alles andere dürfte sich aus dem logischen Schluss und aus meinen Beschreibungen ergeben?
