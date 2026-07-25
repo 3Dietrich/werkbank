@@ -19,7 +19,9 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # NICHT abbrechen: ein Tag-Push direkt nach main-Push darf den main-Deploy nicht
+  # canceln (sonst fehlt danach der Root-Stand). Deploys laufen seriell hintereinander.
+  cancel-in-progress: false
 
 jobs:
   deploy:
