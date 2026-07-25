@@ -1165,8 +1165,8 @@ fehlende Übersetzungen:
         Band erstmal raus, (vielleicht aber auch wieder..)
 
 die Stepsequencer werden niicht korrekt upgedatet bei Snapshot aufrufen! z.B.
-    6 sind da. 
+    Stepsequenzer/ es werden 6 stepsequencer eingesetzt. (wie im zuvor attachten .json file)
     Snapshot gespeichert.
     3 weglöschen (ism header '-')
-    Snapshot aufrufen   
+    Snapshot wieder aufrufen
     --> die 6 sollten wieder da und ready to run sein (es sind aber 3 Seq (mit snap inhalt, aber nur die 3..) 
