@@ -463,6 +463,8 @@ const stepSeqDefsObj = stepSeqDefs();
 const sqTpl = {
     KNOBS: { ...stepSeqDefsObj.KNOBS }, SELECTS: { ...stepSeqDefsObj.SELECTS },
     TOGGLES: { ...stepSeqDefsObj.TOGGLES }, DEFAULTS: { ...stepSeqDefsObj.DEFAULTS },
+    // Default-Grid-Ansicht eines neuen Sq (@dpa 20260725, Seq-0-Optik) — buildSq() nutzt sie.
+    GRID_STYLE: { ...stepSeqDefsObj.GRID_STYLE },
 };
 stepSeqDefsObj.KNOBS = {}; stepSeqDefsObj.SELECTS = {}; stepSeqDefsObj.TOGGLES = {};
 stepSeqDefsObj.DEFAULTS = {}; stepSeqDefsObj.GROUPS = [];
