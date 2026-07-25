@@ -40,6 +40,18 @@
 | Takt-Styles (NICHT zusätzlich zu main.css laden — Kollision, s. Memory) | `css/takt.css` (210 Z.) | |
 | Alt-Original taktgeber (Referenz, nicht Ziel von Änderungen) | `lib/taktgeber/` | eigene ui.js/css bleiben ungenutzt |
 
+## Settings-Hierarchie (Rechtsklick-System)
+
+In der Werkbank gibt es keine sichtbaren ⚙-Icons. Alles wird über **Rechtsklick** auf den jeweiligen Header oder das Element gesteuert:
+
+| Ebene | Wo (Rechtsklick) | Modul | Inhalt |
+|---|---|---|---|
+| **Ensemble** | Header "Config" (Linksklick) | `werkbank.js` (`cfgPanel`) | Globale Optik (Labels, Gruppen-Köpfe), Sprache, Export/Import/Reset. |
+| **Instrument** (ISM) | ISM-Header (auf Name) | `lib/InstrumentSettings.js` | Name, BG-Farbe, Zoom, Position, **ISM-Snapshots** (Werte aller Gruppen). |
+| **Gruppe** | Gruppen-Header | `lib/group/GroupHost.js` | Name, BG/VG-Farbe, Breite/Höhe, **Combos** (Optik-Pool) + **Snapshots** (Werte-Pool). |
+| **Control (Knob)** | Auf den Regler | `lib/KnobMetaEditor.js` | Min/Max/Step, Kurve/Skew, Default, Einheit, Gestalt (Fader/Knob), Design-Presets. |
+| **Control (Rest)** | Auf das Element | `lib/ElementSettings.js` | Label-Position, Farben, Button-Modi, Design-Presets. |
+
 ## Nähte (Mini-Verträge — Gegenseite muss nicht gelesen werden)
 
 - **`mountGroups(root, state, defs, opts)`** (GroupHost.js, Kopf-Kommentar = volle Spezifikation):

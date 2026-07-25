@@ -76,6 +76,33 @@ Routing-Nähte (Ports/Registry/Latenz) im Detail: [PHASE2_SPEC.md](../PHASE2_SPE
 | **Tasten / MIDI** | die zwei Header-Schalter legen ein Overlay über ALLE Controls: pro Control ein Feld zum Tastenbelegen bzw. ein 🎹 zum MIDI-Learn ([KeyMidi.js](../lib/keymidi/KeyMidi.js)). |
 | **Optik** | Beschriftung, Farben und Maße liegen in der Optik-Ebene (`ctrlStyles` bzw. `knobMeta`) – sie überleben einen Snapshot-Recall unverändert. Settings verstellen **nie** einen Wert. |
 
+## Die Settings-Ebenen
+
+Die Werkbank ist konsequent auf **Rechtsklick-Bedienung** ausgelegt. Es gibt vier Ebenen von Einstellungen:
+
+### 1. Ensemble-Settings (Config)
+Der Button **Config** im Haupt-Header öffnet die globalen Einstellungen.
+*   **Inhalt:** Sprache (DE/EN), globale Label-Farbe/Größe, Wert-Hintergründe, Gruppen-Kopf-Optik.
+*   **Daten:** Hier liegen auch die Knöpfe für Export, Import und den totalen Reset.
+
+### 2. Instrument-Settings (ISM)
+Rechtsklick auf den Namen eines Instruments (z.B. "Poly-Synth" oder "Takt/Metronom").
+*   **Allgemein:** Jedes ISM hat seinen eigenen Namen, Hintergrundfarbe und Zoom-Faktor.
+*   **Verschieben:** Über den Header können Instrumente frei auf der Seite platziert werden (Position wird gespeichert).
+*   **ISM-Snapshot:** Speichert die Werte **aller** Gruppen dieses Instruments auf einmal.
+
+### 3. Gruppen-Settings
+Rechtsklick auf den Header einer Gruppe.
+*   **Standard-Ansicht:** Gruppen bringen beim Erstellen eine Standard-Optik und Funktionen mit.
+*   **Combos (Optik-Pool):** Speichert das Aussehen (Farben, Maße) einer Gruppe. Da Gruppen oft geklont werden (z.B. mehrere Oszillatoren), teilen sie sich einen Pool: Ein "Blaues Design" kann für alle Gruppen derselben Art abgerufen werden.
+*   **Snapshots (Werte-Pool):** Speichert nur die Regler-Werte dieser einen Gruppe.
+
+### 4. Control-Settings
+Rechtsklick direkt auf ein Bedienelement.
+*   **Knobs:** Nutzen den `KnobMetaEditor`. Hier werden technische Grenzen (Min/Max), die Kurvenform (Log/Exp) und das Design (Fader vs. Knob) festgelegt.
+*   **Andere:** Nutzen die `ElementSettings`. Hier geht es um Label-Positionen, Button-Modi (Trigger/Gate/Toggle) und Farben.
+*   **Design-Presets:** Wie bei den Gruppen-Combos können Designs (ohne den Textinhalt) gespeichert und auf andere Controls derselben Sorte übertragen werden.
+
 ## Die Sorten
 
 Jedes Control trägt ein typ-präfixiertes `data-ctrl` – ein Selektor `[data-ctrl='bpm']`

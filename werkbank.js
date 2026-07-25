@@ -33,6 +33,7 @@ import { stepSeqDefs } from './lib/stepseq/defs.js';
 import { createStepSeqEngine } from './lib/stepseq/engine.js';
 import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
 import { createSqManager } from './lib/stepseq/multiSq.js';
+import { createAdsrManager } from './lib/polysynth/multiAdsr.js';
 import { makeWorkerTicker } from './lib/workerTicker.js';
 import { recInstrumentDefs } from './lib/recInstrument/defs.js';
 import { createRecEngine } from './lib/recInstrument/engine.js';
@@ -449,6 +450,51 @@ routing.registerModule('polysynth', {
 // (dann rasten die Metro-Cutoffs auf Base-Frq-Vielfache). connect() ist idempotent (dedupliziert
 // gegen die persistierte Verbindungsliste), der erste echte VALUE-Modulationsweg der Werkbank.
 routing.connect({ module: 'polysynth', port: 'baseFreq' }, { module: 'takt', port: 'baseFreqIn' });
+
+// ── Multi-ADSR (ddw.md 20260725) ───────────────────────────────────────────────────────
+// Vervielfältigbare ADSR-Envelopes ALS TEIL des Poly-Synth (eigene Gruppe, gemeinsamer State).
+// Der AdsrManager baut/entfernt ADSR-Instanzen dynamisch (wie Multi-Sq), jede mit eigener
+// GroupHost-Gruppe + Engine. Template-Knobs/Toggles/Selects/Defaults aus defs.js.
+const adsrTpl = {
+    KNOBS: { ...polySynthDefsObj.ADSR_KNOBS },
+    TOGGLES: { ...polySynthDefsObj.ADSR_TOGGLES },
+    SELECTS: { ...polySynthDefsObj.ADSR_SELECTS },
+    DEFAULTS: { ...polySynthDefsObj.ADSR_DEFAULTS },
+};
+const adsrManager = createAdsrManager({
+    host: polySynth, state: polySynthState, defs: polySynthDefsObj,
+    tpl: adsrTpl, routing,
+    getBpm: () => taktState.get('bpm'),
+});
+adsrManager.init();
+polySynth.refresh();
+// Header-Buttons für Multi-ADSR (im Poly-Synth-Header)
+(() => {
+    const h2 = document.querySelector('#bench-polysynth h2');
+    if (!h2) return;
+    const wrap = document.createElement('span'); wrap.className = 'sq-edit-ctrls';
+    const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.className = 'wb-help-btn sq-edit-btn';
+    editBtn.appendChild(icon('edit', 12)); hint(editBtn, 'ADSR bearbeiten: hinzufügen/entfernen');
+    const addBtn = document.createElement('button'); addBtn.type = 'button'; addBtn.className = 'wb-help-btn sq-pm'; addBtn.textContent = '+';
+    hint(addBtn, 'ADSR hinzufügen');
+    const remBtn = document.createElement('button'); remBtn.type = 'button'; remBtn.className = 'wb-help-btn sq-pm'; remBtn.textContent = '−';
+    hint(remBtn, 'Letzte ADSR entfernen (mindestens eine bleibt)');
+    addBtn.style.display = remBtn.style.display = 'none';
+    let editing = false;
+    const sync = () => { remBtn.disabled = adsrManager.engines.length <= 1; };
+    editBtn.addEventListener('click', () => {
+        editing = !editing;
+        addBtn.style.display = remBtn.style.display = editing ? '' : 'none';
+        editBtn.classList.toggle('active', editing);
+        sync();
+    });
+    addBtn.addEventListener('click', () => { adsrManager.addAdsr(); sync(); });
+    remBtn.addEventListener('click', () => { adsrManager.removeAdsr(); sync(); });
+    wrap.append(editBtn, addBtn, remBtn);
+    h2.appendChild(wrap);
+})();
+window.__adsr = { mgr: adsrManager };
+
 // Render-Loop steht GANZ UNTEN in dieser Datei (nach LevelMeter) — ruft sich beim ersten Mal
 // SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber
 // erst weiter unten gebaut wird (s. Kommentar dort, gleiches Muster wie oben bei baseKeyboard).
