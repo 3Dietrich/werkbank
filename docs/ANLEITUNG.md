@@ -2,6 +2,14 @@
 
 > Live: **https://3dietrich.github.io/werkbank/** (einfach öffnen — alles läuft im Browser,
 > nichts wird hochgeladen; dein Zustand bleibt im localStorage deines Browsers).
+>
+> **Erster Besuch:** die Seite startet mit einem Beispiel-Stand (Demo-Snapshots im
+> Header → *Snapshots*). Zum Klingen: **▶** im Transport drücken. Willst du leer
+> starten: **🔇 Reset** im Header. Dein eigener Stand wird bei späteren Besuchen
+> **nie** überschrieben — nur ein völlig leerer Browser bekommt die Demo erneut.
+> (Die Demo-Config liegt auch als Datei:
+> [werkbank-config.json](https://3dietrich.github.io/werkbank/presets/default-config.json)
+> — über **⚙ Config → Import** lädst du sie in einem schon benutzten Browser nach.)
 
 Die Werkbank ist ein modularer Synth-Baukasten: mehrere **Instrumente** (ISMs) liegen auf
 einer frei anordbaren Fläche, werden vom zentralen **Takt** angetrieben und können über

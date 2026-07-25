@@ -44,6 +44,14 @@ import { LevelMeter } from './lib/LevelMeter.js';
 import { icon } from './lib/icons.js';
 import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
 
+// Erstbesuch-Demo-Stand (presets/default-config.json) abwarten, BEVOR der erste
+// MiniState den localStorage liest (@dpa 20260725: „man muss die config hinzu
+// speichern.. sonst klingt alles nichts"). Das Modul ist in index.html VOR dieser
+// Datei eingebunden und legt das Promise schon beim Import an; fehlt es (alte
+// index.html-Caches, Tests, die werkbank.js direkt laden), ist der Fallback ein
+// sofort erfülltes Promise — Verhalten wie bisher.
+await (window.__defaultConfigReady || Promise.resolve());
+
 // Globaler Fallback-State: wird von hintResolve() weiter unten genutzt, wenn ein Control
 // zu keinem der eigenen Instrumenten-States gehört (s. Kommentar dort).
 const state = new MiniState();
