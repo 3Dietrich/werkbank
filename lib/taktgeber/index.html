@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taktgeber</title>
+<link rel="stylesheet" href="css/takt.css">
+</head>
+<body>
+
+<div class="head">
+  <h1>Taktgeber</h1>
+  <span class="hint">Rechtsklick auf einen Gruppen-Titel = Settings · auf ein Control = Info / ausblenden / Reset</span>
+</div>
+
+<div id="modules"></div>
+
+<script type="module">
+import { TapTempo, foldBpm } from './tapTempo.js';
+import { state } from './state.js';
+import { MODULES } from './modules.js';
+import { Clock } from './clock.js';
+import { Metro } from './metro.js';
+import { Midi } from './midi.js';
+import { mount, keyLabel, closePanel, closeMenu, closeMidi } from './ui.js';
+
+// =========================================================================
+//  AUDIO  (Parameter kommen live aus dem State — SSOT)
+// =========================================================================
+let audio = null, metro = null, clock = null, metroClock = null;
+
+function ensureAudio() {
+    if (audio) { if (audio.state === 'suspended') audio.resume(); return; }
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+    audio.onstatechange = () => { if (running() && audio.state === 'suspended') audio.resume(); };
+    metro = new Metro(audio);
+    rebuildMetro();
+    metro.setLevel(state.get('metroLevel'));
+
+    // Zwei Uhren, wie in teslacoil: die eine ist der TAKT (Beat-Anzeige, Downbeat), die
+    // andere der KLICK – der darf über l/m eine eigene Periode haben (l=1,m=2 → doppelt
+    // so oft). Eine gemeinsame Uhr könnte das nicht, ohne die Anzeige mitzuverbiegen.
+    clock = new Clock(audio, (t, beat) => flashBeat(beat, t));
+    clock.bpmFn = effBpm;
+    clock.beatsPerBarFn = () => state.get('beatsPerBar');
+
+    metroClock = new Clock(audio, (t) => { if (state.get('metroOn')) metro.tick(t); });
+    metroClock.bpmFn = () => effBpm() * (Math.max(1, state.get('metroM')) / Math.max(1, state.get('metroL')));
+    metroClock.beatsPerBarFn = () => 1;
+}
+
+function rebuildMetro() {
+    if (!metro) return;
+    metro.rebuild({ morph: state.get('metroMorph'), cutoff: state.get('metroCutoff'), reso: state.get('metroReso') });
+}
+for (const k of ['metroMorph', 'metroCutoff', 'metroReso']) state.on(k, rebuildMetro);
+state.on('metroLevel', (v) => metro && metro.setLevel(v));
+
+const running = () => !!clock && clock.running;
+
+// Kommt der Tab zurück, ist die Kontext-Uhr evtl. eingefroren → Phase neu ankern.
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && running()) { audio.resume(); clock.reanchor(); metroClock.reanchor(); }
+});
+
+// =========================================================================
+//  TRANSPORT
+// =========================================================================
+function startClock() {
+    ensureAudio();
+    clock.start(); metroClock.start();
+    paintTransport();
+}
+function stopClock() {
+    if (clock) { clock.stop(); metroClock.stop(); }
+    paintTransport();
+}
+function toggleTransport() { running() ? stopClock() : startClock(); }
+
+/** ! und !! — wortgleich zu teslacoil (@dpa 20260717). Beide Uhren zusammen, sonst
+ *  liefen Anzeige und Klick nach dem Sync auseinander. */
+function resync(hard) {
+    if (!running()) return;
+    clock.resync(hard); metroClock.resync(hard);
+}
+
+// =========================================================================
+//  TEMPO / NUDGE / TAP
+// =========================================================================
+// Effektives Tempo = gespeicherter State-BPM + bend (transient). Der Nudge verändert NICHT
+// den gespeicherten Wert → beim Loslassen ist das Original sofort wieder da. Der Bend läuft
+// bewusst NICHT gegen maxBpm: das Maximum ist die Grenze fürs Eintippen/Tappen, nicht für
+// den Daumen am laufenden Takt.
+let bend = 0, bendTarget = 0, bendRAF = null, bendLast = 0;
+function effBpm() { return Math.max(1, state.get('bpm') + bend); }
+
+function bendStep(ts) {
+    if (!bendLast) bendLast = ts;
+    const dt = (ts - bendLast) / 1000; bendLast = ts;
+    const ramp = state.get('nudgeRampMs');
+    // Anlauf 0 = sofort (sonst teilte die Rate durch null).
+    const step = ramp <= 0 ? Infinity : (state.get('nudgeAmount') / (ramp / 1000)) * dt;
+    const diff = bendTarget - bend;
+    bend = Math.abs(diff) <= step ? bendTarget : bend + Math.sign(diff) * step;
+    paintBpm();
+    if (bend !== bendTarget) bendRAF = requestAnimationFrame(bendStep);
+    else { bendRAF = null; bendLast = 0; }
+}
+function startBend(dir) {
+    bendTarget = dir * state.get('nudgeAmount'); bendLast = 0;
+    if (!bendRAF) bendRAF = requestAnimationFrame(bendStep);
+    paintNudge(dir);
+}
+function endBend() {
+    bendTarget = 0; bend = 0;
+    if (bendRAF) { cancelAnimationFrame(bendRAF); bendRAF = null; }
+    bendLast = 0; paintBpm(); paintNudge(0);
+}
+
+const tapper = new TapTempo({
+    mode: state.get('tapMode'), tolerance: state.get('tapTol') / 100,
+    waitMs: state.get('tapWait'), windowBeats: state.get('tapWin'),
+});
+state.on('tapMode', (v) => tapper.mode = v);
+state.on('tapTol', (v) => tapper.tolerance = v / 100);
+state.on('tapWait', (v) => tapper.waitMs = v);
+state.on('tapWin', (v) => tapper.windowBeats = v);
+
+/**
+ * Tempo übernehmen — der EINE Weg für Tap und Eintippen. Beide falten über `foldBpm` auf
+ * die höchste Hälfte unter `maxBpm` und melden das mit genau dem Hinweis, den @dpa
+ * beschrieben hat: „277 BpM (*8)" (20260717).
+ */
+function applyBpm(raw) {
+    const { bpm, k } = foldBpm(raw, state.get('maxBpm'));
+    bend = 0; bendTarget = 0;    // laufende Rampe abbrechen: ein neues Tempo gewinnt
+    state.set('bpm', bpm);
+    return k;
+}
+function setHint(t) { const el = document.getElementById('tHint'); if (el) el.textContent = t; }
+const foldNote = (k, bpm) => k > 1 ? `${bpm.toFixed(0)} BpM (*${k})` : '';
+
+function doTap() {
+    const r = tapper.tap();
+    if (r.fresh) { setHint('neue Serie … weiter tippen'); return; }
+    if (r.rejected && tapper.mode === 1) { setHint('Ausreißer ignoriert'); return; }
+    if (!r.bpm) return;
+    const k = applyBpm(r.bpm);
+    const note = foldNote(k, state.get('bpm'));
+    setHint(note || `${r.tapCount} Klicks · k=${r.k}${r.rejected ? ' (Sprung)' : ''}`);
+    if (r.live && running()) resync(true);
+}
+
+// =========================================================================
+//  AKTIONS-BLÖCKE  (was der generische Renderer nicht aus dem Manifest bauen kann)
+// =========================================================================
+function btn(label, cls, title, onClick) {
+    const b = document.createElement('button');
+    b.textContent = label; b.className = cls; b.title = title; b.type = 'button';
+    if (onClick) b.onclick = onClick;
+    return b;
+}
+
+let startBtn = null, bang1 = null, bang2 = null, slowBtn = null, fastBtn = null;
+
+function transportBlock() {
+    const wrap = document.createElement('div'); wrap.className = 'row';
+
+    const tp = document.createElement('span'); tp.className = 'tp';
+    startBtn = btn('▶ Start', 'startbtn', '', toggleTransport);
+    bang1 = btn('!', 'bang', 'Sync: der nächste Schlag wird zur 1 – der Takt läuft unbeirrt weiter', () => resync(false));
+    bang2 = btn('!!', 'bang', 'Sofort-Sync: die 1 fällt jetzt – der Takt beginnt hier neu', () => resync(true));
+    tp.append(startBtn, bang1, bang2);
+
+    const nudge = document.createElement('span'); nudge.className = 'seg nudge';
+    slowBtn = btn('−', '', 'Bremsen, solange gedrückt', null);
+    fastBtn = btn('+', '', 'Anschieben, solange gedrückt', null);
+    nudge.append(slowBtn, fastBtn);
+    wireHold(slowBtn, -1); wireHold(fastBtn, +1);
+
+    const bpm = document.createElement('div'); bpm.className = 'bpm'; bpm.id = 'bpmView';
+    bpm.title = 'Doppelklick = Tempo eintippen';
+    bpm.addEventListener('dblclick', editBpm);
+
+    const beats = document.createElement('div'); beats.className = 'beats'; beats.id = 'beatsView';
+
+    wrap.append(tp, nudge, bpm, beats);
+    queueMicrotask(() => { buildBeats(); paintTransport(); paintBpm(); });
+    return wrap;
+}
+
+/** Die Zeile unter dem Transport: Tasten + der Falt-Hinweis. Sie sagt, was gerade gilt –
+ *  die Shortcuts sind einstellbar, ein fest getippter Text würde also lügen. */
+function transportHint() {
+    const h = document.createElement('div'); h.className = 'hint'; h.id = 'tHint';
+    const paint = () => {
+        if (h.dataset.sticky) return;
+        h.textContent = `${keyLabel(state.get('keyStart'))} = Start/Stop · ${keyLabel(state.get('keySlow'))} / ${keyLabel(state.get('keyFast'))} = bremsen / anschieben`;
+    };
+    paintHint = paint;
+    for (const k of ['keyStart', 'keySlow', 'keyFast']) state.on(k, paint);
+    paint();
+    return h;
+}
+
+/**
+ * Tap-Reset (@dpa 20260717_151145): „fürs tappen braucht es auch ein spontanes reset, was
+ * das vorherige Tempo ignoriert und 'von vorne' anfängt."
+ *
+ * Der Reset fasst das laufende Tempo NICHT an – er wirft nur die Klick-Serie weg. Genau
+ * @dpas Ablauf: [Tempo läuft] → reset [läuft unverändert weiter] → 1. Tab [läuft
+ * unverändert weiter, der Klick ist erst die Referenz] → 2. Tab [neues Tempo].
+ *
+ * Das ist derselbe Zustand, den sonst erst eine Pause > `wait` herstellt – nur eben sofort
+ * und ohne auf die Uhr zu warten.
+ */
+function doTapReset() {
+    tapper.reset();
+    setHint('Reset · ab jetzt von vorne (das Tempo ändert erst der 2. Tab)');
+}
+
+function tapBlock() {
+    const wrap = document.createElement('div'); wrap.className = 'row';
+    wrap.append(
+        btn('Tab 🎵', 'tapbtn', 'Im Takt mittippen', doTap),
+        btn('↺', 'tapreset', 'Tap-Serie verwerfen und von vorne anfangen – das laufende Tempo bleibt, bis der 2. Tab kommt', doTapReset),
+    );
+    return wrap;
+}
+
+// =========================================================================
+//  MIDI — Learn für ALLE Controls (@dpa 20260717)
+// =========================================================================
+// Die MIDI-Schicht (midi.js) kennt nur Bindungen und meldet gelernte Nachrichten hierher;
+// WAS ein Ziel damit tut, steht hier – genau wie die Aktions-Blöcke der UI. Wert-Ziele sind
+// die Manifest-Controls (nach Key), Auslöser-Ziele die `act`-ids der Knöpfe.
+const midi = new Midi(state);
+const MIDI_VALUES = {};
+for (const m of MODULES) for (const c of (m.controls || [])) if (c.type !== 'keybind') MIDI_VALUES[c.key] = c;
+
+function applyMidiValue(c, e) {
+    if (c.type === 'toggle') { if (e.on) state.set(c.key, !state.get(c.key)); return; }
+    if (c.type === 'segment') {
+        const i = Math.min(c.options.length - 1, Math.floor(e.value01 * c.options.length));
+        state.set(c.key, c.options[i].v); return;
+    }
+    // range: CC-/Velocity-Wert 0..1 → min..max, auf den Step gerastet.
+    const raw = c.min + e.value01 * (c.max - c.min);
+    const v = Math.round(raw / c.step) * c.step;
+    state.set(c.key, Math.max(c.min, Math.min(c.max, v)));
+}
+
+midi.onApply((id, e) => {
+    const c = MIDI_VALUES[id];
+    if (c) return applyMidiValue(c, e);
+    // Auslöser (Knöpfe): einmalige Aktionen nur auf der steigenden Flanke, damit ein
+    // gehaltener CC nicht dauerfeuert. Bremsen/Anschieben sind momentan (on = halten).
+    switch (id) {
+        case 'start': if (midi.rising(id, e.on)) toggleTransport(); break;
+        case 'bang': if (midi.rising(id, e.on)) resync(false); break;
+        case 'bang2': if (midi.rising(id, e.on)) resync(true); break;
+        case 'tap': if (midi.rising(id, e.on)) doTap(); break;
+        case 'tapReset': if (midi.rising(id, e.on)) doTapReset(); break;
+        case 'slow': e.on ? startBend(-1) : endBend(); break;
+        case 'fast': e.on ? startBend(+1) : endBend(); break;
+    }
+});
+
+/** Halten = kontinuierlich biegen; Loslassen = sofort zurück aufs Original. */
+function wireHold(el, dir) {
+    el.addEventListener('pointerdown', (e) => { e.preventDefault(); startBend(dir); });
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(ev, endBend);
+}
+
+/** Doppelklick auf die BPM-Anzeige = eintippen (@dpa 20260717). Enter übernimmt (durch
+ *  `applyBpm`, also inkl. Faltung), ESC und Fokus-Verlust verwerfen. */
+function editBpm() {
+    const view = document.getElementById('bpmView');
+    if (!view || view.querySelector('input')) return;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.min = 1; inp.step = 'any'; inp.value = state.get('bpm').toFixed(1);
+    view.textContent = ''; view.appendChild(inp);
+    inp.focus(); inp.select();
+    // `done` MUSS gegen den zweiten Aufruf gesichert sein: `inp.remove()` löst synchron
+    // ein `blur` aus, das hier wieder hereinkommt – und dessen zweites `remove()` warf
+    // („node is no longer a child"). Die Ausnahme flog mitten durch das erste `done`
+    // und riss `applyBpm` mit: Enter tat schlicht nichts. Erst der Riegel, dann räumen.
+    let finished = false;
+    const done = (ok) => {
+        if (finished) return;
+        finished = true;
+        const raw = parseFloat(inp.value);
+        inp.remove();
+        if (ok && raw > 0) stickyHint(foldNote(applyBpm(raw), state.get('bpm')));
+        paintBpm();
+    };
+    inp.addEventListener('keydown', (e) => {
+        e.stopPropagation();   // sonst schaltet die Leertaste den Transport, statt zu tippen
+        if (e.key === 'Enter') done(true);
+        else if (e.key === 'Escape') done(false);
+    });
+    inp.addEventListener('blur', () => done(false));
+}
+
+/** Ein Falt-Hinweis („277 BpM (*8)") bleibt stehen, bis das nächste Tempo kommt – leerer
+ *  Text gibt die Zeile an ihre Tasten-Anzeige zurück. */
+let paintHint = () => {};
+function stickyHint(text) {
+    const h = document.getElementById('tHint'); if (!h) return;
+    if (!text) { delete h.dataset.sticky; paintHint(); return; }
+    h.dataset.sticky = '1'; h.textContent = text;
+}
+
+// =========================================================================
+//  ANZEIGE
+// =========================================================================
+function paintBpm() {
+    const el = document.getElementById('bpmView');
+    if (!el || el.querySelector('input')) return;
+    el.innerHTML = '';
+    el.append(document.createTextNode(effBpm().toFixed(1)));
+    const s = document.createElement('small'); s.textContent = ' BPM'; el.appendChild(s);
+    el.classList.toggle('bent', bend !== 0);
+}
+state.on('bpm', () => { paintBpm(); if (!document.getElementById('tHint')?.dataset.sticky) stickyHint(''); });
+
+function paintTransport() {
+    if (!startBtn) return;
+    const on = running();
+    startBtn.textContent = on ? '⏸ Stop' : '▶ Start';
+    startBtn.classList.toggle('on', on);
+    // Gestoppt gibt es keine Phase, auf die man syncen könnte (s. Clock.resync).
+    bang1.disabled = !on; bang2.disabled = !on;
+}
+function paintNudge(dir) {
+    if (!slowBtn) return;
+    slowBtn.classList.toggle('act', dir < 0);
+    fastBtn.classList.toggle('act', dir > 0);
+}
+
+function buildBeats() {
+    const bv = document.getElementById('beatsView'); if (!bv) return;
+    bv.innerHTML = '';
+    for (let i = 0; i < state.get('beatsPerBar'); i++) {
+        const d = document.createElement('div'); d.className = 'beat' + (i === 0 ? ' acc' : '');
+        bv.appendChild(d);
+    }
+}
+function flashBeat(i, time) {
+    const delay = Math.max(0, (time - audio.currentTime) * 1000);
+    setTimeout(() => {
+        const bv = document.getElementById('beatsView'); if (!bv) return;
+        for (const d of bv.children) d.classList.remove('hit');
+        if (bv.children[i]) bv.children[i].classList.add('hit');
+    }, delay);
+}
+state.on('beatsPerBar', buildBeats);
+
+// =========================================================================
+//  TASTATUR
+// =========================================================================
+// Jede Taste kommt aus dem State (Settings → Technik). Gehaltene Tasten feuern
+// `keydown` wiederholt – der Nudge darf davon nur EINMAL anlaufen, sonst ruckelte die
+// Rampe bei jeder Wiederholung zurück auf Anfang.
+const heldNudge = { slow: false, fast: false };
+let beatsArmed = false;   // Präfix-Taste gedrückt → die nächste Ziffer setzt Beats/Takt
+
+// Roher `e.key` (nicht kleingemacht): „S" (Shift+s) ist eine andere Belegung als „s"
+// (@dpa 20260717_180719) – Belegung (ui.js) und Vergleich hier lesen denselben Wert.
+const evKey = (e) => e.code === 'Space' ? 'space' : e.key;
+const isKey = (e, stateKey) => { const k = state.get(stateKey); return !!k && evKey(e) === k; };
+
+window.addEventListener('keydown', (e) => {
+    // Echte Eingaben schlucken alles (teslacoil-Lehre: nicht am Tag des Ziels entscheiden,
+    // sondern ob es die Taste selbst braucht).
+    if (e.target.matches('input,select,textarea')) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    if (beatsArmed && /^[1-9]$/.test(e.key)) {
+        e.preventDefault(); beatsArmed = false;
+        state.set('beatsPerBar', parseInt(e.key, 10));
+        return;
+    }
+    beatsArmed = false;
+
+    if (isKey(e, 'keyStart')) { e.preventDefault(); toggleTransport(); }
+    else if (isKey(e, 'keyTap')) { e.preventDefault(); doTap(); }
+    else if (isKey(e, 'keyTapReset')) { e.preventDefault(); doTapReset(); }
+    else if (isKey(e, 'keyBang')) { e.preventDefault(); resync(false); }
+    else if (isKey(e, 'keyBang2')) { e.preventDefault(); resync(true); }
+    else if (isKey(e, 'keyBeats')) { e.preventDefault(); beatsArmed = true; setHint('Beats/Takt: jetzt 1–9 drücken'); }
+    else if (isKey(e, 'keySlow')) { e.preventDefault(); if (!heldNudge.slow) { heldNudge.slow = true; startBend(-1); } }
+    else if (isKey(e, 'keyFast')) { e.preventDefault(); if (!heldNudge.fast) { heldNudge.fast = true; startBend(+1); } }
+    // ESC nimmt eine Ebene nach der anderen: erst das MIDI-Banner, sonst Fenster/Menü.
+    else if (e.key === 'Escape') { if (!closeMidi()) { closePanel(); closeMenu(); } }
+});
+window.addEventListener('keyup', (e) => {
+    if (isKey(e, 'keySlow') && heldNudge.slow) { heldNudge.slow = false; endBend(); }
+    if (isKey(e, 'keyFast') && heldNudge.fast) { heldNudge.fast = false; endBend(); }
+});
+// Fenster weg (cmd-tab) → gehaltene Taste kommt nie als keyup zurück, der Bend bliebe hängen.
+window.addEventListener('blur', () => { heldNudge.slow = heldNudge.fast = false; endBend(); });
+
+// =========================================================================
+//  START
+// =========================================================================
+mount(document.getElementById('modules'), MODULES, {
+    transport: transportBlock,
+    'transport:after': transportHint,
+    tap: tapBlock,
+}, midi);
+</script>
+</body>
+</html>
