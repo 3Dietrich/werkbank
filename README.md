@@ -1,8 +1,14 @@
 # Werkbank
 
-Modularer Synth-Baukasten im Browser (Web Audio, reines ES-Modul-JS, kein Build-Step) –
-eine Seite, die die Bausteine live zeigt, bedienbar macht und zu eigenständigen Instrumenten
-zusammenwachsen lässt.
+**🎛 Live-Demo:** https://3dietrich.github.io/werkbank/ ·
+**📖 Anleitung:** [docs/ANLEITUNG.md](docs/ANLEITUNG.md) ·
+**🗂 Eingefrorene Stände:** [Releases](https://github.com/3Dietrich/werkbank/releases)
+
+Modularer Synth-Baukasten im Browser — **Takt/Metronom**, **Multi-Stepsequenzer** und
+**Poly-Synth** als eigenständige Instrumente (ISMs), frei anordbar, per Routing-Registry
+verdrahtbar, mit vier Ebenen von Snapshots (Control-Combo → Gruppen-Snapshot →
+ISM-Snapshot → Ensemble-Snapshot). Läuft komplett clientseitig: reine ES-Module,
+Web Audio, localStorage — **kein Build-Schritt, kein Server, kein Tracking**.
 
 > Für die Arbeit an der Werkbank: **[CLAUDE.md](CLAUDE.md)** (Projekt-Kontext, Workflow,
 > Test-Befehle) und **[ARCHITEKTUR.md](ARCHITEKTUR.md)** (Landkarte „UI-Bereich → Datei" +
