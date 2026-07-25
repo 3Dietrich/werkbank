@@ -43,15 +43,12 @@ jobs:
             # Seite (main + andere Tags) wird beim nächsten main-Deploy ohnehin
             # wieder vollständig aufgebaut; hier stellen wir die übrigen Stände
             # ebenfalls her, damit das Artifact komplett ist.
-            rsync -a $EXCLUDES ./ "_site/"
-            mv _site ".tagbuild"
             mkdir -p "_site/$GITHUB_REF_NAME"
-            rsync -a ".tagbuild/" "_site/$GITHUB_REF_NAME/"
-            rm -rf .tagbuild
+            rsync -a $EXCLUDES ./ "_site/$GITHUB_REF_NAME/"
             # main-Stand ins Root, andere Tags in ihre Unterordner:
             git archive main | tar -x -C _site
             rm -rf _site/.github _site/test-results
-            for TAG in $(git tag -l 'v*' | grep -v "^${GITHUB_REF_NAME}\$"); do
+            for TAG in $(git tag -l 'v*' | grep -vx "$GITHUB_REF_NAME" || true); do
               mkdir -p "_site/$TAG"
               git archive "$TAG" | tar -x -C "_site/$TAG"
               rm -rf "_site/$TAG/.github" "_site/$TAG/test-results"
