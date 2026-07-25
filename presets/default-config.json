@@ -1,6 +1,6 @@
 {
   "_werkbank": 1,
-  "saved": "2026-07-25T13:35:06.604Z",
+  "saved": "2026-07-25T13:38:19.553Z",
   "ls": {
     "werkbank_state": {
       "knobColorPresets": [],
@@ -616,7 +616,7 @@
       "metroM": 1,
       "metroLevel": 0.1,
       "metroMorph": 0.03,
-      "metroCutoff": 1838,
+      "metroCutoff": 2200,
       "metroReso": 44,
       "keyStart": "space",
       "keyBang": "1",
@@ -1481,7 +1481,7 @@
       "baseNote": "C",
       "baseBand": 22,
       "kammerton": 440,
-      "harmonizeMix": 0.95,
+      "harmonizeMix": 0,
       "pitchSmooth": 0.5800000000000001,
       "oscEngine": "Sine-FM",
       "duty": 0.11780000000000002,
@@ -1497,7 +1497,7 @@
       "ampRelease": 5.16,
       "kbStart": 1,
       "kbOctaves": 6,
-      "kbHold": false,
+      "kbHold": true,
       "kbMidiRange": true,
       "kbMidiOffset": 0,
       "kbMidiChannel": 0,
