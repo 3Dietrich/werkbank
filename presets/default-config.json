@@ -1,6 +1,6 @@
 {
   "_werkbank": 1,
-  "saved": "2026-07-25T12:51:06.590Z",
+  "saved": "2026-07-25T13:27:25.655Z",
   "ls": {
     "werkbank_state": {
       "knobColorPresets": [],
@@ -602,7 +602,7 @@
           }
         ]
       },
-      "bpm": 129.45000000000002,
+      "bpm": 127.30204532467982,
       "maxBpm": 340,
       "nudgeAmount": 5,
       "nudgeRampMs": 0,
@@ -610,14 +610,14 @@
       "tapWait": 2000,
       "tapTol": 15,
       "tapWin": 5,
-      "beatsPerBar": 4,
-      "metroOn": false,
+      "beatsPerBar": 2,
+      "metroOn": true,
       "metroL": 1,
       "metroM": 1,
-      "metroLevel": 0.6000000000000001,
-      "metroMorph": 0.31,
+      "metroLevel": 0.1,
+      "metroMorph": 0.03,
       "metroCutoff": 891,
-      "metroReso": 6.800000000000001,
+      "metroReso": 44,
       "keyStart": "space",
       "keyBang": "1",
       "keyBang2": "2",
@@ -668,7 +668,7 @@
           "ch": 2
         }
       },
-      "metroCutoffRatio": 0.66,
+      "metroCutoffRatio": 0.5,
       "metroCutoffQuant": true,
       "keyBindings": {
         "b:bang": "1",
@@ -1477,25 +1477,25 @@
         ]
       },
       "baseSrc": "Ton",
-      "baseHz": 33.39999999999999,
-      "baseNote": "A",
-      "baseBand": 42.0556640625,
-      "kammerton": 442.1,
-      "harmonizeMix": 0.9,
-      "pitchSmooth": 0.5,
+      "baseHz": 75.49999999999999,
+      "baseNote": "C",
+      "baseBand": 22,
+      "kammerton": 440,
+      "harmonizeMix": 0,
+      "pitchSmooth": 0.5800000000000001,
       "oscEngine": "Sine-FM",
-      "duty": 0.19130000000000003,
-      "fmFeedback": 0,
-      "polyMax": 48,
+      "duty": 0.11780000000000002,
+      "fmFeedback": 0.23,
+      "polyMax": 64,
       "voiceSteal": false,
       "osc2On": true,
-      "detune": 4,
-      "oscTilt": 51,
-      "ampAttack": 0.12000000000000005,
-      "ampDecay": 0.30000000000000004,
+      "detune": 4.5562499999999995,
+      "oscTilt": 53,
+      "ampAttack": 0.59,
+      "ampDecay": 0,
       "ampSustain": 1,
-      "ampRelease": 3.765,
-      "kbStart": 2,
+      "ampRelease": 5.16,
+      "kbStart": 1,
       "kbOctaves": 6,
       "kbHold": true,
       "kbMidiRange": true,
@@ -1508,23 +1508,15 @@
       "akMemory": [
         [
           {
-            "note": 25,
+            "note": 48,
             "vel": 127
           },
           {
-            "note": 46,
+            "note": 52,
             "vel": 127
           },
           {
-            "note": 51,
-            "vel": 127
-          },
-          {
-            "note": 56,
-            "vel": 127
-          },
-          {
-            "note": 58,
+            "note": 55,
             "vel": 127
           },
           {
@@ -1532,65 +1524,11 @@
             "vel": 127
           },
           {
-            "note": 67,
+            "note": 64,
             "vel": 127
           },
           {
-            "note": 73,
-            "vel": 127
-          },
-          {
-            "note": 75,
-            "vel": 127
-          },
-          {
-            "note": 80,
-            "vel": 127
-          },
-          {
-            "note": 83,
-            "vel": 127
-          },
-          {
-            "note": 87,
-            "vel": 127
-          },
-          {
-            "note": 93,
-            "vel": 127
-          }
-        ],
-        [
-          {
-            "note": 30,
-            "vel": 127
-          },
-          {
-            "note": 42,
-            "vel": 127
-          },
-          {
-            "note": 49,
-            "vel": 127
-          },
-          {
-            "note": 54,
-            "vel": 127
-          },
-          {
-            "note": 58,
-            "vel": 127
-          },
-          {
-            "note": 61,
-            "vel": 127
-          },
-          {
-            "note": 66,
-            "vel": 127
-          },
-          {
-            "note": 70,
+            "note": 69,
             "vel": 127
           },
           {
@@ -1598,11 +1536,115 @@
             "vel": 127
           },
           {
-            "note": 73,
+            "note": 75,
+            "vel": 127
+          }
+        ],
+        [
+          {
+            "note": 48,
             "vel": 127
           },
           {
-            "note": 75,
+            "note": 53,
+            "vel": 127
+          },
+          {
+            "note": 57,
+            "vel": 127
+          },
+          {
+            "note": 60,
+            "vel": 127
+          },
+          {
+            "note": 65,
+            "vel": 127
+          },
+          {
+            "note": 74,
+            "vel": 127
+          }
+        ],
+        [
+          {
+            "note": 47,
+            "vel": 127
+          },
+          {
+            "note": 55,
+            "vel": 127
+          },
+          {
+            "note": 59,
+            "vel": 127
+          },
+          {
+            "note": 62,
+            "vel": 127
+          },
+          {
+            "note": 65,
+            "vel": 127
+          },
+          {
+            "note": 74,
+            "vel": 127
+          }
+        ],
+        [
+          {
+            "note": 33,
+            "vel": 127
+          },
+          {
+            "note": 57,
+            "vel": 127
+          },
+          {
+            "note": 59,
+            "vel": 127
+          },
+          {
+            "note": 60,
+            "vel": 127
+          },
+          {
+            "note": 64,
+            "vel": 127
+          },
+          {
+            "note": 71,
+            "vel": 127
+          }
+        ],
+        [
+          {
+            "note": 38,
+            "vel": 127
+          },
+          {
+            "note": 53,
+            "vel": 127
+          },
+          {
+            "note": 57,
+            "vel": 127
+          },
+          {
+            "note": 67,
+            "vel": 127
+          },
+          {
+            "note": 77,
+            "vel": 127
+          },
+          {
+            "note": 81,
+            "vel": 127
+          },
+          {
+            "note": 84,
             "vel": 127
           }
         ],
@@ -1612,23 +1654,11 @@
             "vel": 127
           },
           {
-            "note": 38,
+            "note": 41,
             "vel": 127
           },
           {
-            "note": 45,
-            "vel": 127
-          },
-          {
-            "note": 50,
-            "vel": 127
-          },
-          {
-            "note": 52,
-            "vel": 127
-          },
-          {
-            "note": 54,
+            "note": 53,
             "vel": 127
           },
           {
@@ -1636,59 +1666,21 @@
             "vel": 127
           },
           {
-            "note": 64,
-            "vel": 127
-          }
-        ],
-        [
-          {
-            "note": 12,
-            "vel": 71
-          },
-          {
-            "note": 40,
-            "vel": 127
-          },
-          {
-            "note": 48,
-            "vel": 127
-          },
-          {
-            "note": 55,
-            "vel": 127
-          },
-          {
             "note": 62,
             "vel": 127
           },
           {
-            "note": 64,
+            "note": 65,
             "vel": 127
           },
           {
-            "note": 67,
-            "vel": 127
-          },
-          {
-            "note": 69,
-            "vel": 127
-          },
-          {
-            "note": 75,
+            "note": 81,
             "vel": 127
           }
         ],
         [
           {
-            "note": 31,
-            "vel": 127
-          },
-          {
-            "note": 40,
-            "vel": 127
-          },
-          {
-            "note": 48,
+            "note": 47,
             "vel": 127
           },
           {
@@ -1697,32 +1689,6 @@
           },
           {
             "note": 55,
-            "vel": 127
-          },
-          {
-            "note": 58,
-            "vel": 127
-          },
-          {
-            "note": 61,
-            "vel": 127
-          },
-          {
-            "note": 65,
-            "vel": 127
-          }
-        ],
-        [
-          {
-            "note": 43,
-            "vel": 127
-          },
-          {
-            "note": 48,
-            "vel": 127
-          },
-          {
-            "note": 54,
             "vel": 127
           },
           {
@@ -1738,10 +1704,174 @@
             "vel": 127
           },
           {
-            "note": 73,
+            "note": 70,
+            "vel": 127
+          },
+          {
+            "note": 71,
             "vel": 127
           }
         ],
+        null,
+        [
+          {
+            "note": 31,
+            "vel": 127
+          },
+          {
+            "note": 55,
+            "vel": 127
+          },
+          {
+            "note": 59,
+            "vel": 127
+          },
+          {
+            "note": 62,
+            "vel": 127
+          },
+          {
+            "note": 65,
+            "vel": 127
+          },
+          {
+            "note": 69,
+            "vel": 127
+          },
+          {
+            "note": 76,
+            "vel": 127
+          }
+        ],
+        [
+          {
+            "note": 26,
+            "vel": 127
+          },
+          {
+            "note": 53,
+            "vel": 127
+          },
+          {
+            "note": 60,
+            "vel": 127
+          },
+          {
+            "note": 62,
+            "vel": 127
+          },
+          {
+            "note": 65,
+            "vel": 127
+          },
+          {
+            "note": 69,
+            "vel": 127
+          },
+          {
+            "note": 80,
+            "vel": 127
+          },
+          {
+            "note": 86,
+            "vel": 127
+          }
+        ],
+        [
+          {
+            "note": 36,
+            "vel": 127
+          },
+          {
+            "note": 51,
+            "vel": 127
+          },
+          {
+            "note": 55,
+            "vel": 127
+          },
+          {
+            "note": 65,
+            "vel": 127
+          },
+          {
+            "note": 75,
+            "vel": 127
+          },
+          {
+            "note": 79,
+            "vel": 127
+          },
+          {
+            "note": 82,
+            "vel": 127
+          }
+        ],
+        [
+          {
+            "note": 26,
+            "vel": 127
+          },
+          {
+            "note": 47,
+            "vel": 127
+          },
+          {
+            "note": 52,
+            "vel": 127
+          },
+          {
+            "note": 64,
+            "vel": 127
+          },
+          {
+            "note": 67,
+            "vel": 127
+          },
+          {
+            "note": 81,
+            "vel": 127
+          },
+          {
+            "note": 83,
+            "vel": 127
+          }
+        ],
+        [
+          {
+            "note": 45,
+            "vel": 127
+          },
+          {
+            "note": 49,
+            "vel": 127
+          },
+          {
+            "note": 52,
+            "vel": 127
+          },
+          {
+            "note": 57,
+            "vel": 127
+          },
+          {
+            "note": 61,
+            "vel": 127
+          },
+          {
+            "note": 66,
+            "vel": 127
+          },
+          {
+            "note": 71,
+            "vel": 127
+          },
+          {
+            "note": 81,
+            "vel": 127
+          }
+        ],
+        null,
         [
           {
             "note": 48,
@@ -1752,228 +1882,6 @@
             "vel": 127
           },
           {
-            "note": 62,
-            "vel": 127
-          },
-          {
-            "note": 66,
-            "vel": 127
-          },
-          {
-            "note": 69,
-            "vel": 127
-          },
-          {
-            "note": 73,
-            "vel": 127
-          },
-          {
-            "note": 76,
-            "vel": 127
-          },
-          {
-            "note": 80,
-            "vel": 127
-          }
-        ],
-        [
-          {
-            "note": 49,
-            "vel": 8
-          },
-          {
-            "note": 53,
-            "vel": 64
-          },
-          {
-            "note": 57,
-            "vel": 70
-          },
-          {
-            "note": 65,
-            "vel": 80
-          },
-          {
-            "note": 69,
-            "vel": 40
-          },
-          {
-            "note": 72,
-            "vel": 65
-          },
-          {
-            "note": 79,
-            "vel": 88
-          },
-          {
-            "note": 85,
-            "vel": 127
-          },
-          {
-            "note": 93,
-            "vel": 127
-          },
-          {
-            "note": 94,
-            "vel": 127
-          }
-        ],
-        [
-          {
-            "note": 36,
-            "vel": 127
-          },
-          {
-            "note": 41,
-            "vel": 127
-          },
-          {
-            "note": 46,
-            "vel": 127
-          },
-          {
-            "note": 51,
-            "vel": 127
-          },
-          {
-            "note": 56,
-            "vel": 127
-          },
-          {
-            "note": 58,
-            "vel": 127
-          },
-          {
-            "note": 64,
-            "vel": 127
-          },
-          {
-            "note": 68,
-            "vel": 127
-          },
-          {
-            "note": 71,
-            "vel": 127
-          },
-          {
-            "note": 73,
-            "vel": 127
-          },
-          {
-            "note": 77,
-            "vel": 127
-          },
-          {
-            "note": 81,
-            "vel": 127
-          },
-          {
-            "note": 86,
-            "vel": 127
-          },
-          {
-            "note": 91,
-            "vel": 127
-          },
-          {
-            "note": 96,
-            "vel": 127
-          },
-          {
-            "note": 101,
-            "vel": 127
-          }
-        ],
-        [
-          {
-            "note": 61,
-            "vel": 127
-          },
-          {
-            "note": 63,
-            "vel": 127
-          },
-          {
-            "note": 65,
-            "vel": 127
-          },
-          {
-            "note": 84,
-            "vel": 127
-          },
-          {
-            "note": 89,
-            "vel": 127
-          },
-          {
-            "note": 94,
-            "vel": 127
-          },
-          {
-            "note": 97,
-            "vel": 127
-          },
-          {
-            "note": 100,
-            "vel": 127
-          },
-          {
-            "note": 103,
-            "vel": 127
-          },
-          {
-            "note": 105,
-            "vel": 127
-          },
-          {
-            "note": 107,
-            "vel": 127
-          }
-        ],
-        [
-          {
-            "note": 60,
-            "vel": 127
-          },
-          {
-            "note": 63,
-            "vel": 127
-          },
-          {
-            "note": 65,
-            "vel": 127
-          },
-          {
-            "note": 69,
-            "vel": 127
-          },
-          {
-            "note": 74,
-            "vel": 127
-          },
-          {
-            "note": 77,
-            "vel": 127
-          },
-          {
-            "note": 80,
-            "vel": 127
-          },
-          {
-            "note": 81,
-            "vel": 127
-          },
-          {
-            "note": 86,
-            "vel": 127
-          }
-        ],
-        [
-          {
-            "note": 57,
-            "vel": 127
-          },
-          {
             "note": 60,
             "vel": 127
           },
@@ -1986,29 +1894,10 @@
             "vel": 127
           },
           {
-            "note": 71,
-            "vel": 127
-          },
-          {
-            "note": 74,
-            "vel": 127
-          },
-          {
-            "note": 77,
-            "vel": 127
-          },
-          {
-            "note": 78,
-            "vel": 127
-          },
-          {
-            "note": 83,
+            "note": 69,
             "vel": 127
           }
         ],
-        null,
-        null,
-        null,
         null,
         null,
         null,
@@ -4860,10 +4749,10 @@
           "bg": "#1d1b25",
           "fg": "#82ba90",
           "boxSize": 315,
-          "boxH": 30,
+          "boxH": 50,
           "seqOff": false,
           "seqMin": 0,
-          "seqMax": 99,
+          "seqMax": 40,
           "seqStep": 0
         },
         "u:seqFill_1": {
@@ -4903,7 +4792,7 @@
           "bg": "#1d1b25",
           "fg": "#82ba90",
           "boxSize": 315,
-          "boxH": 30,
+          "boxH": 38,
           "seqOff": false,
           "seqMin": 1,
           "seqMax": 12,
@@ -4933,10 +4822,9 @@
           "fg": "#82ba90",
           "boxSize": 315,
           "boxH": 30,
-          "seqOff": false,
+          "seqOff": true,
           "seqMin": 0,
-          "seqMax": 99,
-          "seqStep": 1
+          "seqMax": 1
         },
         "t:seqEnabled_3": {
           "label": "An",
@@ -4970,6 +4858,49 @@
           "size": 12,
           "boxSize": 92,
           "pad": 2
+        },
+        "s:seqOutput_4": {
+          "label": "Out",
+          "labelPos": "off",
+          "fg": "#ff9696",
+          "bg0": "#000000",
+          "bg1": "#5ad1ff",
+          "size": 12,
+          "boxSize": 92,
+          "pad": 2
+        },
+        "t:seqEnabled_4": {
+          "label": "An",
+          "labelPos": "off"
+        },
+        "u:seqGrid_4": {
+          "bg": "#1d1b25",
+          "fg": "#82ba90",
+          "boxSize": 315,
+          "boxH": 30,
+          "seqOff": true,
+          "seqMin": 22,
+          "seqMax": 2223,
+          "seqStep": 1
+        },
+        "u:seqFill_4": {
+          "labelPos": "off",
+          "btnMode": "trigger",
+          "bg": "#525252",
+          "bgOn": "#ffffff",
+          "size": 12,
+          "pad": 4
+        },
+        "u:seqSet0_4": {
+          "label": "Reset",
+          "labelPos": "off",
+          "btnMode": "gate",
+          "bg": "#474747",
+          "bgOn": "#ffffff",
+          "textOn": "⇤",
+          "textOff": "⇤",
+          "size": 18,
+          "pad": 0
         }
       },
       "knobMeta": {
@@ -5107,7 +5038,7 @@
           "skew": 1,
           "unit": "",
           "decimals": 0,
-          "label": "/ ",
+          "label": "/",
           "viewSize": "none",
           "color": "",
           "labelPos": "left",
@@ -5122,7 +5053,7 @@
         },
         "seqDiv_2": {
           "min": 1,
-          "max": 24,
+          "max": 104,
           "step": 1,
           "curve": "linear",
           "skew": 1,
@@ -5224,6 +5155,69 @@
           "pad": null,
           "hideValue": false,
           "dragRange": 0
+        },
+        "seqMult_4": {
+          "min": 1,
+          "max": 32,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "/ ",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 1,
+          "valueFontSize": 20,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "seqDiv_4": {
+          "min": 1,
+          "max": 24,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "speed",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 16,
+          "valueFontSize": 20,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "seqLen_4": {
+          "min": 1,
+          "max": 64,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "Steps:",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 8,
+          "valueFontSize": 20,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
         }
       },
       "designPresets": {
@@ -5250,7 +5244,7 @@
         },
         "Sequenzer 2": {
           "x": 0,
-          "y": 130
+          "y": 122
         },
         "Sequenzer 3": {
           "x": 0,
@@ -5258,7 +5252,11 @@
         },
         "Sequenzer 4": {
           "x": 0,
-          "y": 354
+          "y": 360
+        },
+        "Sequenzer 5": {
+          "x": 0,
+          "y": 467
         }
       },
       "ctrlPos": {
@@ -5343,29 +5341,13 @@
             "x": 225,
             "y": 2
           },
-          "t:seqEnabled_2": {
-            "x": 0,
-            "y": 3
-          },
-          "k:seqMult_2": {
-            "x": 103,
-            "y": 2
-          },
-          "k:seqDiv_2": {
-            "x": 50,
-            "y": 2
-          },
           "u:seqGrid_2": {
             "x": 0,
             "y": 26
           },
-          "u:seqSteps_2": {
-            "x": 130,
-            "y": 8
-          },
-          "u:seqFill_2": {
-            "x": 194,
-            "y": 2
+          "t:seqEnabled_2": {
+            "x": 0,
+            "y": 3
           },
           "u:seqSet0_2": {
             "x": 20,
@@ -5373,6 +5355,22 @@
           },
           "k:seqLen_2": {
             "x": 135,
+            "y": 2
+          },
+          "k:seqDiv_2": {
+            "x": 43,
+            "y": 2
+          },
+          "k:seqMult_2": {
+            "x": 113,
+            "y": 2
+          },
+          "u:seqSteps_2": {
+            "x": 130,
+            "y": 8
+          },
+          "u:seqFill_2": {
+            "x": 194,
             "y": 2
           }
         },
@@ -5413,6 +5411,44 @@
             "x": 135,
             "y": 2
           }
+        },
+        "Sequenzer 5": {
+          "s:seqOutput_4": {
+            "x": 225,
+            "y": 2
+          },
+          "t:seqEnabled_4": {
+            "x": 0,
+            "y": 3
+          },
+          "k:seqMult_4": {
+            "x": 103,
+            "y": 2
+          },
+          "k:seqDiv_4": {
+            "x": 50,
+            "y": 2
+          },
+          "u:seqGrid_4": {
+            "x": 0,
+            "y": 26
+          },
+          "u:seqSteps_4": {
+            "x": 130,
+            "y": 8
+          },
+          "u:seqFill_4": {
+            "x": 194,
+            "y": 2
+          },
+          "u:seqSet0_4": {
+            "x": 20,
+            "y": 3
+          },
+          "k:seqLen_4": {
+            "x": 135,
+            "y": 2
+          }
         }
       },
       "instrPos": {
@@ -5436,9 +5472,14 @@
         },
         "Sequenzer 3": {
           "bg": "rgba(28,32,39,0.3)",
-          "headColor": "rgba(218,222,226,1)"
+          "headColor": "rgba(218,222,226,1)",
+          "collapsed": false
         },
         "Sequenzer 4": {
+          "bg": "rgba(28,32,39,0.3)",
+          "headColor": "rgba(218,222,226,1)"
+        },
+        "Sequenzer 5": {
           "bg": "rgba(28,32,39,0.3)",
           "headColor": "rgba(218,222,226,1)"
         }
@@ -5447,131 +5488,131 @@
       "seqEnabled_0": true,
       "seqOutput_0": "polysynth.speicher",
       "seqMult_0": 1,
-      "seqDiv_0": 2,
-      "seqLen_0": 8,
+      "seqDiv_0": 8,
+      "seqLen_0": 13,
       "seqSteps_0": [
+        1,
+        2,
+        3,
+        4,
         5,
-        8,
-        12,
-        7,
-        null,
+        6,
         9,
+        10,
+        11,
+        5,
+        3,
+        5,
+        7,
+        7,
+        8,
+        null,
+        2,
+        12,
         4,
         null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        1,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
+        null,
+        2,
+        12,
+        4,
+        null,
+        6,
+        7,
+        8,
         null
       ],
-      "sqCount": 4,
+      "sqCount": 5,
       "seqTargetMigrated": true,
       "ismSnaps": [
         {
@@ -7791,150 +7832,150 @@
       "instrScale": 100,
       "seqEnabled_1": true,
       "seqMult_1": 1,
-      "seqDiv_1": 8,
-      "seqLen_1": 13,
-      "seqOutput_1": "polysynth.baseBand",
+      "seqDiv_1": 1,
+      "seqLen_1": 64,
+      "seqOutput_1": "polysynth.detune",
       "seqSteps_1": [
-        57.5244140625,
-        29.6806640625,
-        66.8056640625,
-        94.6494140625,
-        35.8681640625,
-        60.6181640625,
-        88.4619140625,
-        45.1494140625,
-        14.2119140625,
-        8.0244140625,
-        42.0556640625,
-        79.1806640625,
-        42.0556640625,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
+        5.7562500000000005,
+        4.5562499999999995,
+        4.5562499999999995,
+        3.3562499999999984,
+        3.3562499999999984,
+        5.7562500000000005,
+        8.75625,
+        9.95625,
+        9.95625,
+        4.5562499999999995,
+        3.3562499999999984,
+        0,
+        0,
+        0,
+        0,
+        0,
+        17.15625,
+        10.556250000000002,
+        7.556249999999999,
+        7.556249999999999,
+        4.5562499999999995,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        9.356250000000001,
+        0,
+        0,
+        0,
+        14.756249999999998,
+        21.356250000000003,
+        14.756249999999998,
+        12.95625,
+        10.556250000000002,
+        8.75625,
+        6.956250000000002,
+        3.956249999999999,
+        2.7562500000000014,
+        0.35624999999999907,
+        0,
+        0,
+        11.156249999999998,
+        8.15625,
+        6.356250000000001,
+        6.356250000000001,
+        5.15625,
+        4.5562499999999995,
+        2.156250000000001,
+        0.35624999999999907,
+        0,
+        0,
+        1.1187499999999995,
+        1.3187499999999996,
+        1.5187499999999998,
+        6.956250000000002,
+        2.1187500000000004,
+        2.7562500000000014,
+        4.5562499999999995,
+        14.156250000000002,
+        11.156249999999998,
+        7.556249999999999,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
       ],
       "seqEnabled_2": true,
       "seqMult_2": 1,
-      "seqDiv_2": 8,
-      "seqLen_2": 6,
+      "seqDiv_2": 104,
+      "seqLen_2": 8,
       "seqOutput_2": "polysynth.tonWahl",
       "seqSteps_2": [
-        3,
-        10,
+        1,
+        1,
         6,
+        6,
+        4,
+        9,
         8,
-        11,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
+        4,
+        null,
+        null,
+        null,
+        null,
+        null,
         null,
         null,
         null,
@@ -8044,24 +8085,24 @@
         null
       ],
       "seqEnabled_3": true,
-      "seqOutput_3": "polysynth.oscTilt",
+      "seqOutput_3": "polysynth.harmonizeMix",
       "seqMult_3": 1,
-      "seqDiv_3": 8,
-      "seqLen_3": 13,
+      "seqDiv_3": 4,
+      "seqLen_3": 4,
       "seqSteps_3": [
-        45,
-        23,
-        64,
-        64,
-        36,
-        48,
-        67,
-        33,
-        27,
-        14,
-        39,
-        64,
-        51,
+        0,
+        0.95,
+        0.95,
+        0,
+        47,
+        37,
+        41,
+        55,
+        null,
+        null,
+        null,
+        null,
+        null,
         null,
         null,
         null,
@@ -8169,6 +8210,133 @@
         null,
         null,
         null
+      ],
+      "seqEnabled_4": true,
+      "seqMult_4": 1,
+      "seqDiv_4": 1,
+      "seqLen_4": 63,
+      "seqOutput_4": "takt.metroCutoff",
+      "seqSteps_4": [
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        2200,
+        662,
+        1167,
+        2200,
+        430,
+        825,
+        1771,
+        1100,
+        1972,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662,
+        2200,
+        891,
+        430,
+        825,
+        1100,
+        1838,
+        891,
+        662
       ]
     },
     "werkbank_rec": {
@@ -16586,7 +16754,7 @@
           }
         }
       ],
-      "ensembleSnapSel": "Demo 4"
+      "ensembleSnapSel": "Demo"
     }
   }
 }
