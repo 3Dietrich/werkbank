@@ -48,6 +48,7 @@ Die Sonder `Gruppe` ADSR in PolySynth
             die selben Outputs wie bei den Sequenzer/Sequqenzern
             Hier kommt mein Sonderwunsch: forsche dich durch die Reihe der Module, schreib die Kette auf (wenn es noch nicht genau dokumentiert ist) und füge vor und nach (also 2 Zugriffe) der Quantisierung der Freq der Akkordtöne und multpliziere deren Frequenzen mit 1 + dem Modulator (z.B. Seq, Env, ..)
         alles andere dürfte sich aus dem logischen Schluss und aus meinen Beschreibungen ergeben?
+        
 nach 1 Tag und 85,-€ KI Ausgaben (nur für das einfügen der Env!!)..
 nochmal 10,-€ in Openrouter eingeworfen, Opus gestartet und.. Ende.  ohne Ergebnis. Geld weg.
 scheiße, echt? für die eine Frage 10€ weg, ohne Antwort?? Man ist das plötzlich teuer²*teuer⁷⁹⁷ geworden! Ich habe im letzten Monat ein ganzes Modular System gebaut (für 18€) und jetzt will ich ein einzelnes Modul hinzu fügen und ich bin jetzt bei 95,-€ - und habe .. noch nichts (Neues funktionierendes)! Ihr nehmt mir die Hoffnung auf die Zukunft! 
