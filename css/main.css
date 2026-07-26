@@ -987,6 +987,14 @@ body {
 .scope-range-readout { font-variant-numeric: tabular-nums; color: var(--accent); min-width: 46px; text-align: right; }
 .scope-select { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 3px; padding: 3px 6px; font-size: 10px; }
 
+/* ── Signal-Scope (schmales Steuersignal-Meter zum Reinklinken, @dpa 20260726) ──
+   Eigener Namensraum (sigscope-*), damit die Maße NICHT vom großen Oszilloskop
+   (.scope-canvas: width:100%/height:140px) überschrieben werden. */
+.sigscope-field { display: inline-flex; flex-direction: column; gap: 1px; align-items: flex-start; }
+.sigscope-label { color: var(--muted); font-size: 10px; line-height: 1; }
+.sigscope-canvas { display: block; border-radius: 2px; border: 1px solid var(--line); }
+.sigscope-read { font-variant-numeric: tabular-nums; color: var(--accent); font-size: 10px; line-height: 1; }
+
 /* ── Settings-Fenster (Overlay on top) ── */
 .settings-overlay {
   position: fixed; inset: 0; z-index: 1000;

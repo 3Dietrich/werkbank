@@ -130,6 +130,46 @@ try:
         check(result2['f1'] < result2['f0'],
               f"Inv: Frequenz sollte fallen: {result2}")
 
+        # ── 6) KNOB-ZIEL (@dpa 20260726: „überall wo ich sie anschließe gehen die
+        #       Werte direkt auf Minimum, ob getriggert oder nicht") ──
+        # Env → takt.metroCutoff (120..9999). Erwartet:
+        #   a) UNGETRIGGERT bleibt der Knob, wo er ist (kein Dauer-Minimum),
+        #   b) GETRIGGERT wandert er deutlich nach oben (Skalierung in den Zielbereich).
+        knob = page.evaluate("""() => {
+            const st = window.__polysynth.state;
+            const tst = window.__takt.state;
+            st.set('adsrOutput_0', 'takt.metroCutoff');
+            st.set('adsrInv_0', false);
+            const mgr = window.__env.mgr;
+            const ctx = window.__audioBus.getContext();
+            const waitAudio = (sec) => { const t1 = ctx.currentTime + sec; while (ctx.currentTime < t1) {} };
+            // a) Ruhezustand: erst die Env aus den vorherigen Schritten ausklingen lassen,
+            //    dann von Hand auf 3000 stellen und mehrfach flushen — darf NICHT wandern
+            waitAudio(1.2);
+            tst.set('metroCutoff', 3000);
+            for (let k = 0; k < 20; k++) mgr.flush();
+            const ruhe = tst.get('metroCutoff');
+            // b) Trigger: Env läuft → Wert muss deutlich über min (120) landen
+            mgr.gateAt(0);
+            waitAudio(0.03);
+            mgr.flush();
+            const peak = tst.get('metroCutoff');
+            // c) nach dem Ausklingen: Env schweigt → handgesetzter Wert bleibt stehen
+            waitAudio(1.0);
+            const nachher = tst.get('metroCutoff');
+            tst.set('metroCutoff', 500);
+            for (let k = 0; k < 10; k++) mgr.flush();
+            const bleibt = tst.get('metroCutoff');
+            st.set('adsrOutput_0', '');
+            return { ruhe, peak, nachher, bleibt };
+        }""")
+        check(knob['ruhe'] == 3000,
+              f"Ungetriggert darf die Env den Knob nicht verstellen (war {knob['ruhe']}, erwartet 3000)")
+        check(knob['peak'] > 2000,
+              f"Getriggert muss der Knob in den Zielbereich skaliert werden (war {knob['peak']}, min ist 120)")
+        check(knob['bleibt'] == 500,
+              f"Nach dem Ausklingen muss ein handgesetzter Wert stehen bleiben (war {knob['bleibt']})")
+
         browser.close()
 finally:
     srv.terminate()

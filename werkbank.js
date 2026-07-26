@@ -41,6 +41,7 @@ import { createRoutingRegistry, bindPorts } from './lib/routing/Registry.js';
 import { knobWrites, buttonWrites } from './lib/routing/portGen.js';
 import { createStructureView } from './lib/routing/StructureView.js';
 import { LevelMeter } from './lib/LevelMeter.js';
+import { createScopeManager } from './lib/scope/multiScope.js';
 import { icon } from './lib/icons.js';
 import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
 
@@ -771,6 +772,128 @@ levelMeterHost.registerCtrlStyle('u:meter', 'levelmeter', levelMeter.element, (s
 levelMeterHost.refresh();
 window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter };
 
+// ── Signal-Scopes – eigenes ISM (@dpa 20260726) ────────────────────────────────────
+// Schmale Steuersignal-Oszilloskope zum „Reinklinken": Quelle → scope_i.in zeigt an,
+// scope_i.out reicht denselben Wert optional weiter (Passthrough), sodass eine
+// bestehende Verbindung NICHT unterbrochen werden muss. Vervielfältigbar wie ADSR,
+// Settings (Buffer/min/max/Auto-Range/Meter/Kurve/Maße/Farben + ➚/🚮) per Rechtsklick.
+const SCOPE_LS = 'werkbank_scope';
+const scopeState = new MiniState({ scopeCount: 1 }, SCOPE_LS);
+const scopeRoot = document.querySelector('#scopes');
+const scopeDefs = { GROUPS: [] };
+const scopeHost = mountGroups(scopeRoot, scopeState, scopeDefs, {
+    groupKindSettings: (kind) => _scopeKindSettings[kind],
+});
+const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing });
+scopeManager.init();
+mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
+
+// Scope-Settings im Gruppen-Rechtsklick-Panel (kompakt, 2-spaltig — wie ADSR)
+const _scopeKindSettings = {
+    Scope: (name, pop, st, row, sfx) => {
+        if (!sfx) return;
+        const i = parseInt(sfx.slice(1), 10);
+        const scope = scopeManager.scopes[i];
+        if (!scope) return;
+        const styles = () => ({ ...(scopeState.get('ctrlStyles') || {}) });
+        const cur = () => (styles()['u:scope' + sfx] || {});
+        const setStyle = (patch) => {
+            const all = styles();
+            all['u:scope' + sfx] = { ...(all['u:scope' + sfx] || {}), ...patch };
+            scopeState.set('ctrlStyles', all);
+            scope.applyStyle(all['u:scope' + sfx]);
+        };
+
+        pop.appendChild(Object.assign(document.createElement('div'), { className: 'gs-sep' }));
+
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
+        const numField = (label, key, min, max, step, def) => {
+            const l = document.createElement('label');
+            l.style.cssText = 'display:flex; align-items:center; gap:4px; font-size:11px;';
+            const n = document.createElement('input'); n.type = 'number';
+            n.min = min; n.max = max; n.step = step;
+            n.value = cur()[key] ?? def;
+            n.style.cssText = 'width:56px; font-size:11px; padding:1px 2px;';
+            n.addEventListener('input', () => {
+                const v = Math.max(min, Math.min(max, parseFloat(n.value)));
+                if (Number.isFinite(v)) setStyle({ [key]: v });
+            });
+            l.append(n, document.createTextNode(label));
+            grid.appendChild(l);
+        };
+        const boolField = (label, key, def) => {
+            const l = document.createElement('label');
+            l.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
+            const cb = document.createElement('input'); cb.type = 'checkbox';
+            cb.checked = cur()[key] ?? def;
+            cb.addEventListener('change', () => setStyle({ [key]: cb.checked }));
+            l.append(cb, document.createTextNode(label));
+            grid.appendChild(l);
+        };
+        numField('Buffer ms', 'bufferMs', 2, 2000, 1, 40);
+        numField('Breite', 'width', 24, 600, 2, 120);
+        numField('Höhe', 'height', 12, 300, 2, 34);
+        numField('min', 'minVal', -1000, 1000, 0.1, 0);
+        numField('max', 'maxVal', -1000, 10000, 0.1, 1);
+        boolField('Auto-Range', 'autoRange', true);
+        boolField('Meter', 'showMeter', true);
+        boolField('Kurve', 'showCurve', true);
+        pop.appendChild(grid);
+
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+        const copyBtn = document.createElement('button'); copyBtn.className = 'wb-help-btn'; copyBtn.textContent = '+➚';
+        hint(copyBtn, 'Kopie dieses Scopes anlegen (übernimmt die Optik)');
+        copyBtn.addEventListener('click', () => {
+            const src = cur();
+            scopeManager.addScope();
+            const all = styles();
+            all['u:scope_' + (scopeManager.count() - 1)] = { ...src };
+            scopeState.set('ctrlStyles', all);
+            scopeHost.reapplyCtrlStyles(['u:scope_' + (scopeManager.count() - 1)]);
+        });
+        const delBtn = document.createElement('button'); delBtn.className = 'wb-help-btn'; delBtn.textContent = '🚮';
+        hint(delBtn, 'Diesen Scope löschen (nach Bestätigung)');
+        delBtn.addEventListener('click', () => {
+            if (!confirm('Scope wirklich löschen?')) return;
+            scopeManager.removeScope();
+        });
+        const resetBtn = document.createElement('button'); resetBtn.className = 'wb-help-btn'; resetBtn.textContent = '⟲';
+        hint(resetBtn, 'Puffer + Auto-Range zurücksetzen');
+        resetBtn.addEventListener('click', () => scope.reset());
+        btnRow.append(copyBtn, delBtn, resetBtn);
+        pop.appendChild(btnRow);
+    },
+};
+
+// Header-Buttons (+/−) für die Scopes, wie bei Sq/ADSR
+(() => {
+    const h2 = document.querySelector('#bench-scope h2');
+    if (!h2) return;
+    const wrap = document.createElement('span'); wrap.className = 'sq-edit-ctrls';
+    const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.className = 'wb-help-btn sq-edit-btn';
+    editBtn.appendChild(icon('edit', 12)); hint(editBtn, 'Scopes bearbeiten: hinzufügen/entfernen');
+    const addBtn = document.createElement('button'); addBtn.type = 'button'; addBtn.className = 'wb-help-btn sq-pm'; addBtn.textContent = '+';
+    hint(addBtn, 'Scope hinzufügen');
+    const remBtn = document.createElement('button'); remBtn.type = 'button'; remBtn.className = 'wb-help-btn sq-pm'; remBtn.textContent = '−';
+    hint(remBtn, 'Letzten Scope entfernen (mindestens einer bleibt)');
+    addBtn.style.display = remBtn.style.display = 'none';
+    let editing = false;
+    const sync = () => { remBtn.disabled = scopeManager.count() <= 1; };
+    editBtn.addEventListener('click', () => {
+        editing = !editing;
+        addBtn.style.display = remBtn.style.display = editing ? '' : 'none';
+        editBtn.classList.toggle('active', editing);
+        sync();
+    });
+    addBtn.addEventListener('click', () => { scopeManager.addScope(); sync(); });
+    remBtn.addEventListener('click', () => { scopeManager.removeScope(); sync(); });
+    wrap.append(editBtn, addBtn, remBtn);
+    h2.appendChild(wrap);
+})();
+window.__scope = { state: scopeState, host: scopeHost, mgr: scopeManager };
+
 // Render-Loop: Base-Frq-Anzeigen (baseKeyboard/Tone-/Freq-Readout) UND LevelMeter zeichnen
 // sich nicht von allein — tickt wie in teslacoil.
 (function tick(nowMs) {
@@ -779,6 +902,7 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: lev
     sqManager.tick(nowMs);
     routing.flush();   // verbundene VALUE-Ports sampeln (Phase 2.3) — Event-Ports laufen über emit()
     envManager.flush();   // Multi-ADSR: Env-Werte an gewählte Ziele liefern (ddw.md 20260725)
+    scopeManager.tick();  // Signal-Scopes zeichnen + Passthrough (@dpa 20260726)
     requestAnimationFrame(tick);
 })();
 
