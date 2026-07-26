@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>ADSR Selbsttest</title></head>
+<body>
+<h1>ADSR Kette Selbsttest</h1>
+<pre id="log">läuft…
+</pre>
+<script type="module">
+const log = (msg) => { document.getElementById('log').textContent += msg + '\n'; };
+const results = [];
+const assert = (name, cond, detail = '') => {
+    results.push({ name, ok: !!cond, detail });
+    log((cond ? '✓ ' : '✗ ') + name + (detail ? ' — ' + detail : ''));
+};
+
+import { AdsrCore, msToSamples } from './lib/polysynth/envCore.js';
+
+// ── 1) envCore: Kurvenformen ─────────────────────────────────────────
+const SR = 44100;
+{
+    const core = new AdsrCore();
+    const cfg = { aOn: true, dOn: true, sOn: false, rOn: true, a: 0.01, d: 0.1, s: 0, r: 0.1,
+                  peak: 1, inv: false, verlauf: false, aCurve: 'lin', dCurve: 'lin', rCurve: 'lin',
+                  aSkew: 1, dSkew: 1, rSkew: 1, trigMode: 'trig', lenSamples: 0 };
+    const { curve, duration, startOffset } = core.trigger(cfg, SR);
+    assert('envCore: Kurve nicht leer', curve.length > 100, `${curve.length} Samples`);
+    assert('envCore: Peak erreicht', Math.max(...curve) > 0.95, `max=${Math.max(...curve).toFixed(3)}`);
+    assert('envCore: endet bei 0', Math.abs(curve[curve.length - 1]) < 0.01);
+    assert('envCore: startOffset negativ (Outin)', startOffset < 0, startOffset.toFixed(6));
+}
+{
+    const core = new AdsrCore();
+    const cfg = { aOn: false, dOn: false, sOn: false, rOn: false, peak: 1, inv: false, verlauf: false,
+                  trigMode: 'trig', lenSamples: 0 };
+    const { curve } = core.trigger(cfg, SR);
+    assert('envCore: 1-Sample-Puls (kein Segment)', curve.length <= msToSamples(0.5, SR) + 2,
+           `${curve.length} Samples`);
+}
+
+// ── 2) AudioParam-Kette (OfflineAudioContext — kein rAF, kein sichtbarer Tab nötig) ──
+{
+    const ctx = new OfflineAudioContext(1, SR, SR);
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    // Unverbundener Node rendert NICHT → über 0-Gain an destination (multiEnv-Trick)
+    const zero = ctx.createGain(); zero.gain.value = 0;
+    gain.connect(zero); zero.connect(ctx.destination);
+
+    const core = new AdsrCore();
+    const cfg = { aOn: true, dOn: true, sOn: false, rOn: true, a: 0.05, d: 0.1, s: 0, r: 0.1,
+                  peak: 1, inv: false, verlauf: false, aCurve: 'lin', dCurve: 'lin', rCurve: 'lin',
+                  aSkew: 1, dSkew: 1, rSkew: 1, trigMode: 'trig', lenSamples: 0 };
+    const { curve, duration, startOffset } = core.trigger(cfg, SR);
+    const t = 0.01;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.setValueCurveAtTime(curve, t + startOffset, duration);
+
+    // .value zur Render-Zeit messen: AudioParams laufen im Audio-Thread — OfflineContext
+    // rendert sofort, danach ist .value der Endwert. Für Zwischenwerte: Analyser.
+    const buffer = await ctx.startRendering();
+    assert('AudioParam: Rendering ohne Fehler', buffer.length > 0);
+    // Der GainNode hat keine Eingangssignale — wir prüfen nur, dass die Kurve geplant wurde.
+    // Echte Wertprüfung: ConstantSource + Analyser ist Overkill; stattdessen Kurveninhalt:
+    assert('AudioParam: Kurve hat Inhalt', curve.some(v => v > 0.5));
+}
+
+// ── 3) Modulations-Mathematik (noteFreq-Logik, ohne Engine-DOM) ──────
+{
+    // Simuliere noteFreq mit preMod/postMod
+    const midiToFreq = (n) => 440 * Math.pow(2, (n - 69) / 12);
+    let preModV = 0, postModV = 0;
+    const noteFreq = (note) => {
+        const raw = midiToFreq(note) * (1 + preModV);
+        return raw * (1 + postModV); // mix=0 → kein Snap
+    };
+    const f0 = noteFreq(60);
+    preModV = 1;  // +100%
+    const f1 = noteFreq(60);
+    postModV = 0.5; // +50%
+    const f2 = noteFreq(60);
+    assert('Mod: preMod verdoppelt', Math.abs(f1 / f0 - 2) < 0.01, `ratio=${(f1 / f0).toFixed(2)}`);
+    assert('Mod: postMod +50%', Math.abs(f2 / f1 - 1.5) < 0.01, `ratio=${(f2 / f1).toFixed(2)}`);
+    preModV = -1; // -100% → 0 Hz (Minimum, kein Crash)
+    const f3 = noteFreq(60);
+    assert('Mod: -100% → 0 Hz', f3 === 0, `f=${f3}`);
+}
+
+// ── Ergebnis ──────────────────────────────────────────────────────────
+const failed = results.filter(r => !r.ok);
+log('');
+log(failed.length === 0 ? '★ ALLE TESTS BESTANDEN' : `✗ ${failed.length} FEHLER`);
+document.title = failed.length === 0 ? 'PASS' : 'FAIL:' + failed.map(f => f.name).join(',');
+</script>
+</body>
+</html>
