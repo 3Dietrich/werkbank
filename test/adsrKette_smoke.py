@@ -170,6 +170,48 @@ try:
         check(knob['bleibt'] == 500,
               f"Nach dem Ausklingen muss ein handgesetzter Wert stehen bleiben (war {knob['bleibt']})")
 
+        # ── 7) @dpas EXAKTE Config (20260726, „nur Nullen, egal was ich tue"):
+        #      Peak>1 (wird auf 1 geklemmt) + Inv=true. ROOT CAUSE war: GainNode.gain.value
+        #      liefert nach einer automatisierten NEGATIVEN Zuweisung dauerhaft 0 zurück
+        #      (Chromium-Quirk) — jede invertierte Env stand damit für immer auf 0.
+        #      Fix: ConstantSourceNode.offset statt GainNode.gain als Werteträger.
+        #      Mehrfach hintereinander triggern (auch >2s gehalten), weil genau das
+        #      @dpas Beobachtung war ("auch lange gedrückt... alles null").
+        dpaConfig = page.evaluate("""() => {
+            const st = window.__polysynth.state;
+            st.set('adsrA_0', 0.00289982140011021);
+            st.set('adsrD_0', 2.5750000000000006);
+            st.set('adsrS_0', 0.79);
+            st.set('adsrR_0', 1.25);
+            st.set('adsrPeak_0', 3.5099);       // > 1, wird auf 1 geklemmt
+            st.set('adsrGateLen_0', 0.8);
+            st.set('adsrAOn_0', true);
+            st.set('adsrDOn_0', true);
+            st.set('adsrSOn_0', true);
+            st.set('adsrROn_0', true);
+            st.set('adsrInv_0', true);          // der entscheidende Faktor
+            st.set('adsrACurve_0', 'lin');
+            st.set('adsrDCurve_0', 'log');
+            st.set('adsrRCurve_0', 'log');
+            st.set('adsrVerlauf_0', false);
+            st.set('adsrTrigMode_0', 'gate');    // „lange gedrückt" = Gate-Modus
+            st.set('adsrLenUnit_0', 'ms');
+
+window.__env.mgr.gateAt(0);   // Gate an (einmal — toggelt sonst sofort wieder aus)
+            return { started: true };
+        }""")
+        page.wait_for_timeout(60)
+        v1 = page.evaluate("() => window.__env.mgr.engines[0].read()")
+        page.wait_for_timeout(150)
+        v2 = page.evaluate("() => window.__env.mgr.engines[0].read()")
+        # Gate lösen (Release starten), dann nochmal messen
+        page.evaluate("() => window.__env.mgr.gateAt(0)")
+        page.wait_for_timeout(60)
+        v3 = page.evaluate("() => window.__env.mgr.engines[0].read()")
+        check(v1 != 0, f"@dpa-Repro: Env steht bei Inv+Peak>1 weiterhin auf 0 (v1={v1})")
+        check(v2 < 0, f"@dpa-Repro: Env sollte negativ sein (v2={v2})")
+        page.evaluate("() => window.__polysynth.state.set('adsrInv_0', false)")
+
         browser.close()
 finally:
     srv.terminate()
