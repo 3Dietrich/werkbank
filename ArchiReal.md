@@ -5,6 +5,11 @@
 
 ## Web Audio Fallstricke
 
+- **`setValueCurveAtTime` mit negativer Startzeit wirft `RangeError`** („Time must be a
+  finite non-negative number") — wenn `t + startOffset < 0` (frischer AudioContext,
+  `currentTime` < 0.5 ms). Der Outin-Fade-Vorgriff muss auf 0 geklemmt werden:
+  `Math.max(0, t + startOffset)`. Der Fehler schlägt lautlos durch (try/catch fehlt
+  im Trigger-Pfad) → „nichts zu hören" ohne Console-Hinweis. (20260726, multiEnv.js)
 - **Unverbundene Nodes rendern ihre AudioParams nicht.** Ein `GainNode`, der nirgends
   angeschlossen ist, aktualisiert `.value` nicht — bleibt starr auf dem Initialwert.
   Lösung (multiEnv.js): über einen 0-Gain an `destination` hängen → unhörbar, aber der
@@ -77,9 +82,17 @@
 ## Vorgehen, das sich bewährt hat
 
 1. Erst reine DSP testbar machen (envCore.js, 11 Unit-Tests, `node --test`).
-2. UI-Verkabelung im Browser mit CDP-Cache-Clear + Audio-Clock-Messung prüfen.
-3. Bei „funktioniert nicht" zuerst prüfen: kommt der neue Code an (Cache)? läuft der
+2. **Ketten-Selbsttest als Python-Playwright-Smoke** (`test/adsrKette_smoke.py`):
+   headless, Watchdog, und — entscheidend — **Messpunkte synchron über
+   `ctx.currentTime` + busy-wait** statt setTimeout/rAF. Damit spielt die
+   Hintergrund-Drosselung keine Rolle, und der Test prüft die KOMPLETTE Kette
+   (Gate → Env → flush → preQuantMod → Frequenz an gehaltener Note) in einem
+   einzigen `page.evaluate`.
+3. UI-Verkabelung im Browser mit CDP-Cache-Clear + Audio-Clock-Messung prüfen.
+4. Bei „funktioniert nicht" zuerst prüfen: kommt der neue Code an (Cache)? läuft der
    Render-Loop (sichtbarer Tab)? ist der Wert zum Messzeitpunkt überhaupt noch da?
-4. Erfolgreiche Muster (multiSq) 1:1 kopieren statt Varianten erfinden — die Details
+   **Wirft eine Web-Audio-Methode still eine Exception?** (RangeError an Grenzen —
+   ohne try/catch im Trigger-Pfad sieht man das nur im pageerror-Handler des Tests.)
+5. Erfolgreiche Muster (multiSq) 1:1 kopieren statt Varianten erfinden — die Details
    (registerCtrlStyle, noContextOpen, tailAlign, PickMenu-current-Semantik) sind
    genau die Stellen, an denen Abweichungen sofort auffallen.
