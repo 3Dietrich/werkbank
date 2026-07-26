@@ -3,6 +3,23 @@
 > Ergänzung zu ARCHITEKTUR.md: Dinge, die beim Bau der Multi-ADSR **tatsächlich**
 > schiefgingen oder überraschend waren. Keine Spezifikation — gelernte Fallstricke.
 
+## Meter/Scope vs. Modulator — NICHT verwechseln (@dpa 20260726)
+
+- **Ein Meter/Scope ist eine reine ANZEIGE, kein Signalweg-Teilnehmer.** Er braucht
+  KEINEN Output-Port, KEIN `write()`, KEIN Registrieren als Routing-Modul. Er liest
+  eine bestehende Quelle passiv mit `routing.getValue({module, port})` — der exakt
+  gleiche Mechanismus, mit dem `flush()` verbundene Ports sampelt. Ein Modulator
+  (ADSR, Seq, LFO) dagegen IST Teil des Signalwegs und braucht `write()`/Ziele.
+  Fehlversuch (20260726): der Scope wurde erst wie ein Modulator mit eigenem
+  Input+Output+Passthrough gebaut → derselbe Klemm-Bug wie beim ADSR-`flush()`
+  (Werte auf Minimum), nur an einer Stelle wiederholt, wo er semantisch nie hingehört.
+  Symptom war identisch: „Wert springt auf Minimum" — weil ein fremder `write()`-Port
+  ungefragt mit einem rohen 0..1-Wert überschrieben wurde.
+- **Vor dem Bauen fragen: schreibt dieses Ding irgendwo hin, oder liest es nur?**
+  Schreiben → braucht Ziel-Port mit `min`/`max`, Skalierung, Ruhezustand-Handling
+  (s.u.). Lesen → braucht nur eine Quellen-Liste (`outputSources()`) + `getValue()`,
+  NIE `deliver()`/`write()`.
+
 ## Web Audio Fallstricke
 
 - **`setValueCurveAtTime` mit negativer Startzeit wirft `RangeError`** („Time must be a
