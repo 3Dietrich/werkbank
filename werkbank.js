@@ -243,6 +243,10 @@ const polySynthDefsObj = polySynthDefs({
         // — TDZ-sicher wie chordMemory, die Closure liest erst beim Klick).
         else if (id === 'chordUp') polySynthKeyboard.transposeActive(1);
         else if (id === 'chordDown') polySynthKeyboard.transposeActive(-1);
+        // ADSR-Gate-Buttons (ddw.md 20260725): indiziert 'adsrGate_i' → envManager.gateAt(i).
+        // TDZ-sicher wie polySynthKeyboard: envManager wird weiter unten gebaut, die Closure
+        // greift erst beim Klick zu.
+        else if (id.startsWith('adsrGate_')) envManager.gateAt(parseInt(id.slice(9), 10));
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
@@ -444,8 +448,8 @@ routing.registerModule('polysynth', {
             // Akkord-Frequenz-Modulation (ddw.md 20260725, Multi-ADSR Sonderwunsch):
             // preQuantMod — VOR der Quantisierung (harmonicSnap), postQuantMod — NACH der
             // Überblendung roh↔gerastet. Beide multiplizieren die Frequenz mit (1 + mod).
-            preQuantMod: { write: (v) => polySynthEngine.setPreMod(() => 1 + v) },
-            postQuantMod: { write: (v) => polySynthEngine.setPostMod(() => 1 + v) },
+            preQuantMod: { write: (v) => polySynthEngine.setPreModValue(v) },
+            postQuantMod: { write: (v) => polySynthEngine.setPostModValue(v) },
         },
     }),
 });
@@ -463,6 +467,7 @@ routing.connect({ module: 'polysynth', port: 'baseFreq' }, { module: 'takt', por
 import { createEnvManager } from './lib/polysynth/multiEnv.js';
 const adsrTpl = {
     KNOBS: { ...polySynthDefsObj.ADSR_KNOBS },
+    BUTTONS: { ...polySynthDefsObj.ADSR_BUTTONS },
     DEFAULTS: { ...polySynthDefsObj.ADSR_DEFAULTS },
 };
 const envManager = createEnvManager({
