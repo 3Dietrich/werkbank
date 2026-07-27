@@ -3,6 +3,11 @@
 Gate → Env-Kurve → flush/deliver → preQuantMod → hörbare Frequenzänderung
 an einer GEHALTENEN Note (retuneHeld).
 
+Nullpunktversatz (ddw.md 20260727, „Bug2"): preQuantMod/postQuantMod multiplizieren
+die Frequenz jetzt DIREKT mit dem gelieferten Wert (kein festes `1+mod` mehr in
+engine.js) — der Ruhepunkt 1 kommt vom adsrNullpunkt-Setting der sendenden ADSR
+(s. multiEnv.js flush()). Dieser Test setzt adsrNullpunkt_0=1 für die Pitch-Schritte.
+
 Lauf: python3 test/adsrKette_smoke.py
 Hart begrenzt (45s Watchdog), kein Pollen. Audio-Clock (ctx.currentTime) statt
 setTimeout für die Messpunkte — Hintergrund-Drosselung spielt keine Rolle,
@@ -47,6 +52,11 @@ try:
             st.set('adsrPeak_0', 1);    st.set('adsrInv_0', false);
             st.set('adsrTrigMode_0', 'trig');
             st.set('adsrOutput_0', 'polysynth.preQuantMod');
+            // Nullpunktversatz=1 (ddw.md 20260727 „Bug2"): preQuantMod ist ein Frequenz-
+            // Multiplikator (Ruhepunkt 1, nicht 0) — das alte fest verdrahtete `1+mod` in
+            // engine.js ist zurückgebaut, der Versatz kommt jetzt von hier (s. multiEnv.js
+            // flush()). Ohne das würde die Frequenz Richtung 0 statt Richtung Peak wandern.
+            st.set('adsrNullpunkt_0', 1);
         }""")
 
         # ── 2) Env-Modul registriert, Ziel-Port existiert ──
@@ -140,12 +150,21 @@ try:
             const tst = window.__takt.state;
             st.set('adsrOutput_0', 'takt.metroCutoff');
             st.set('adsrInv_0', false);
+            st.set('adsrNullpunkt_0', 0);   // metroCutoff ist kein Frequenz-Multiplikator-Ziel
             const mgr = window.__env.mgr;
             const ctx = window.__audioBus.getContext();
             const waitAudio = (sec) => { const t1 = ctx.currentTime + sec; while (ctx.currentTime < t1) {} };
             // a) Ruhezustand: erst die Env aus den vorherigen Schritten ausklingen lassen,
-            //    dann von Hand auf 3000 stellen und mehrfach flushen — darf NICHT wandern
+            //    dann von Hand auf 3000 stellen und mehrfach flushen — darf NICHT wandern.
+            //    ZWISCHEN-flush() nach dem Ausklingen (ddw.md 20260727-Fix „Release bleibt
+            //    hängen"): im echten Render-Loop läuft flush() DAUERND (jeden Frame) mit, holt
+            //    den aktiv→still-Übergang (genau EIN letzter Wert, s. multiEnv.js) also SOFORT
+            //    ab. Dieser Test simuliert reale Zeit nur über waitAudio (reiner busy-wait OHNE
+            //    flush()-Aufrufe) — ohne diesen einen Zwischen-flush() bliebe der Übergang aus
+            //    dem VORHERIGEN Testschritt hier stehen und würde erst beim gleich folgenden
+            //    Hand-Setzen „nachgeliefert", was den Ruhezustand-Test verfälschen würde.
             waitAudio(1.2);
+            mgr.flush();
             tst.set('metroCutoff', 3000);
             for (let k = 0; k < 20; k++) mgr.flush();
             const ruhe = tst.get('metroCutoff');
@@ -156,6 +175,7 @@ try:
             const peak = tst.get('metroCutoff');
             // c) nach dem Ausklingen: Env schweigt → handgesetzter Wert bleibt stehen
             waitAudio(1.0);
+            mgr.flush();   // Übergang aktiv→still abholen (s. Kommentar bei a) oben)
             const nachher = tst.get('metroCutoff');
             tst.set('metroCutoff', 500);
             for (let k = 0; k < 10; k++) mgr.flush();
@@ -184,7 +204,7 @@ try:
             st.set('adsrS_0', 0.79);
             st.set('adsrR_0', 1.25);
             st.set('adsrPeak_0', 3.5099);       // > 1, wird auf 1 geklemmt
-            st.set('adsrGateLen_0', 0.8);
+            st.set('adsrLenMs_0', 800);          // Gate+fest-Auto-Close (ersetzt das alte adsrGateLen)
             st.set('adsrAOn_0', true);
             st.set('adsrDOn_0', true);
             st.set('adsrSOn_0', true);

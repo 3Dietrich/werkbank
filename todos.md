@@ -1,5 +1,38 @@
 # Werkbank – TODOs / Ideen
 
+## Signal-Scope: Genauigkeit (AnalyserNode) + Sync/Freeze-Buttons (20260727_111500)
+Aus ddw.md, @dpa: „Die Darstellung scheint mir hin und wieder auch etwas ungenau: […]
+sehr kurze Env. sie zeigt bei jedem Trigger anders, meist vergleichsweise lange Attacks,
+das Dec auch, ist kaum von lin zu unterscheiden." Root Cause gefunden (lib/SignalScope.js
+`sample()`): der Scope liest den Env-Wert nur EINMAL PRO FRAME (~16ms, via
+`routing.getValue()` im rAF-Takt) — bei sehr kurzen Attack/Decay/Release (wenige ms, wie
+@dpas reale ADSR-Configs) kann ein KOMPLETTER Envelope-Zyklus zwischen zwei Sample-Punkten
+durchlaufen sein. Der Scope zeigt dann nur 1-2 zufällig getroffene Punkte der wahren Kurve
+— sieht deshalb bei jedem Trigger anders aus und verwischt Kurvenformen (lin/log kaum
+unterscheidbar). DAS „große" Oszilloskop (lib/Scopes.js:173) macht es richtig: ein echter
+`AnalyserNode` (audio-rate, `getFloatTimeDomainData`) statt Frame-Polling. Fix wäre:
+SignalScope pro Quelle (wenn es ein Audio-Node ist, z.B. die ADSR-ConstantSourceNode) an
+einen eigenen AnalyserNode hängen statt nur `routing.getValue()` zu pollen — größerer
+Umbau (SignalScope kennt aktuell KEINEN Audio-Graph, nur den generischen `read()`-Getter).
+
+Zusätzlich zwei neue Panel-Buttons für den Scope (@dpa):
+- **Sync**: zeigt bei jedem Beat-Schlag eine schwache senkrechte Linie im Scope; kann auch
+  die Zeitbasis/Trigger-Phase des Scopes auf den Beat synchronisieren.
+- **Freeze**: friert die aktuelle Scope-Ansicht ein (kein Weiterlaufen), Mouse-Over auf dem
+  eingefrorenen Bild liest die Werte an der Mausposition aus.
+
+Noch nicht geplant/umgesetzt — eigener Umbau (SignalScope.js + evtl. multiEnv.js/engine.js
+für den Audio-Node-Zugriff), sizable genug für einen eigenen Anlauf.
+
+## Spezialgruppen: Panel↔Settings-Umschalter je Control (20260726_221800)
+Eigenes Architektur-Thema (opera-Subagent?), aus ddw.txt: bei „Spezial-Gruppen" wie Seq
+oder ADSR soll jeder Control per Icon-Button umschaltbar sein zwischen A) auf dem Panel
+sichtbar und B) in den Settings (Rechtsklick-Popup) untergebracht. Heuristik für den
+Ausgangszustand: was schon immer „Gruppensetting" war (Breite/Höhe/Größe, VG/BG-Farbe
+usw.) bleibt in den Settings; alles andere ist „aufs Panel zuschaltbar", Default=off.
+@dpa offen: erst an einem Standard-Fall durchprobieren, bevor es überall umgesetzt wird,
+oder ist es dank Modularität gar nicht so viel Aufwand? Noch nicht bewertet/geplant.
+
 ## Maus-Wertänderung: horizontal UND vertikal (20260717_224105)
 Die „Knob ohne Knob"-Werte (drag-Werte, z.B. Transport-Settings `max. BPM`, `Anschieben`,
 `Anlauf`) verändern sich derzeit nur **horizontal** beim Ziehen. @dpa will die Werteänderung

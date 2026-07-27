@@ -248,6 +248,13 @@ const polySynthDefsObj = polySynthDefs({
         // TDZ-sicher wie polySynthKeyboard: envManager wird weiter unten gebaut, die Closure
         // greift erst beim Klick zu.
         else if (id.startsWith('adsrGate_')) envManager.gateAt(parseInt(id.slice(9), 10));
+        // Len: fest/offen (ddw.md 20260726): reiner Boolean-Flip im State — die Sichtbarkeits-
+        // und setCtrlOn-Nachführung übernimmt multiEnv.js (state.subscribe), wie bei kbHold.
+        else if (id.startsWith('adsrLenFest_')) {
+            const sfx = id.slice('adsrLenFest'.length);
+            const cur = polySynthState.get('adsrLenFest' + sfx) !== false;   // Default fest
+            polySynthState.set('adsrLenFest' + sfx, !cur);
+        }
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
@@ -483,6 +490,7 @@ polySynth.refresh();
 const _adsrSettingsToggles = polySynthDefsObj.ADSR_SETTINGS_TOGGLES;
 const _adsrSettingsSelects = polySynthDefsObj.ADSR_SETTINGS_SELECTS;
 const _adsrSettingsSkews = polySynthDefsObj.ADSR_SETTINGS_SKEWS;
+const _adsrSettingsNums = polySynthDefsObj.ADSR_SETTINGS_NUMS;
 const _groupKindSettings = {
     ADSR: (name, pop, st, row, sfx) => {
         if (!sfx) return;
@@ -550,6 +558,29 @@ const _groupKindSettings = {
             skewRow.appendChild(l);
         }
         pop.appendChild(skewRow);
+
+        // ── Nullpunktversatz-Zeile (ddw.md 20260727, „Bug2"): bewusst Setting statt
+        // Panel-Knob (@dpa: „was man später vielleicht auf das Panel schalten kann,
+        // siehe todos") — s. defs.js ADSR_SETTINGS_NUMS-Kommentar.
+        const numRow = document.createElement('div');
+        numRow.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
+        for (const [key, cfg] of Object.entries(_adsrSettingsNums)) {
+            const l = document.createElement('label');
+            l.style.cssText = 'display:flex; align-items:center; gap:4px;';
+            const num = document.createElement('input'); num.type = 'number';
+            num.min = cfg.min; num.max = cfg.max; num.step = 0.01;
+            num.value = get(key) ?? cfg.default;
+            num.style.cssText = 'width:56px; font-size:11px; padding:1px 2px;';
+            hint(l, 'Ruhepunkt der Env verschieben (0 = wie bisher; 1 = z.B. für Frequenz-Ziele, die um 1 statt 0 herum arbeiten).');
+            num.addEventListener('input', () => {
+                const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
+                set(key, v);
+            });
+            l.appendChild(document.createTextNode(cfg.label));
+            l.appendChild(num);
+            numRow.appendChild(l);
+        }
+        pop.appendChild(numRow);
 
         // ── Buttons: +➚ (Kopie) und 🚮 (löschen) ─────────────────────────────
         const btnRow = document.createElement('div');
@@ -1103,7 +1134,9 @@ cfgBtn.addEventListener('click', () => {
             mk('↺ Reset', 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)', doReset),
         );
         full(btnRow);
-    }, () => cfgBtn.classList.remove('active'));
+    }, () => cfgBtn.classList.remove('active'),
+    // Position merken (ddw.md 20260726): wie groupSettingsPos in GroupHost.js.
+    { get: () => state.get('cfgPanelPos'), set: (pos) => state.set('cfgPanelPos', pos) });
 });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
 
@@ -1175,7 +1208,11 @@ const structureBtn = document.createElement('button');
 structureBtn.className = 'pb-btn'; structureBtn.id = 'structurebtn'; structureBtn.type = 'button';
 structureBtn.textContent = '⧉ Struktur'; structureBtn.title = 'Struktur-Ansicht: Module + Verbindungen (nur ansehen)';
 document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:structurebtn', structureBtn, '⧉ Struktur'));
-const structureView = createStructureView(routing, { button: structureBtn });
+const structureView = createStructureView(routing, {
+    button: structureBtn,
+    // Position merken (ddw.md 20260726): wie groupSettingsPos in GroupHost.js.
+    posStore: { get: () => state.get('structureViewPos'), set: (pos) => state.set('structureViewPos', pos) },
+});
 const activateStructureBtn = () => { structureView.isOpen() ? structureView.close() : structureView.open(); };
 structureBtn.addEventListener('click', activateStructureBtn);
 // MIDI-/Tasten-Learn (@dpa ddw.md 20260723_210324) — `self:true`, s. Kommentar bei headerreset oben.
