@@ -870,13 +870,12 @@ const _scopeKindSettings = {
             l.append(cb, document.createTextNode(label));
             grid.appendChild(l);
         };
-        // Buffer/min/max sind Werte-Bereiche des beobachteten Signals (kein Layout) —
-        // @dpa 20260727: keine Reflex-Limits, großzügig statt "zur Sicherheit knapp".
+        // @dpa 20260727: keine Reflex-Limits, weder bei Werten NOCH bei Pixel-Maßen ("stell
+        // Dir ein 8k Display vor") — großzügig statt "zur Sicherheit knapp", überall.
         // bufferMs klemmt intern ohnehin an der Web-Audio-FFT-Grenze (SignalScope.js).
-        // Breite/Höhe bleiben Pixel-Layout-Grenzen (echte Bildschirm-Praxis, kein Wert-Deckel).
         numField('Buffer ms', 'bufferMs', 2, 1000000, 1, 40);
-        numField('Breite', 'width', 24, 600, 2, 120);
-        numField('Höhe', 'height', 12, 300, 2, 34);
+        numField('Breite', 'width', 24, 1000000, 2, 120);
+        numField('Höhe', 'height', 12, 1000000, 2, 34);
         numField('min', 'minVal', -1000000, 1000000, 0.1, 0);
         numField('max', 'maxVal', -1000000, 1000000, 0.1, 1);
         boolField('Auto-Range', 'autoRange', true);
@@ -1103,8 +1102,8 @@ cfgBtn.addEventListener('click', () => {
         section('Labels');
         const colorField = color('Farbe', { get: () => state.get('labelColor') || '#8a94a6', set: (v) => state.set('labelColor', v) });
         hint(colorField.closest('.kme-row'), 'Gilt für ALLE Beschriftungen und Werte-Anzeigen auf einmal. Leer bzw. ✕ = wie ausgeliefert. Einzelne Regler-Farben bleiben davon unberührt (Rechtsklick auf den Regler).');
-        const sizeField = num('Größe', { min: 6, max: 16, get: () => state.get('labelSize') || 10, set: (v) => state.set('labelSize', v) });
-        hint(sizeField, 'Schriftgröße der Beschriftungen (6–16 px)');
+        const sizeField = num('Größe', { min: 6, max: 1000000, get: () => state.get('labelSize') || 10, set: (v) => state.set('labelSize', v) });
+        hint(sizeField, 'Schriftgröße der Beschriftungen (px)');
         // Wert-BG jetzt mit Deckkraft (@dpa ddw.md 20260724_183901, "Wert-BG mit Deckkraft
         // (default=0)"): rgba() statt reinem Hex, Default-Alpha 0 — unsichtbar, bis @dpa sie
         // aufdreht (vorher: Default-Hintergrund #000000 sofort sichtbar, sogar unangefordert).
@@ -1120,9 +1119,9 @@ cfgBtn.addEventListener('click', () => {
         full(clearBtn);
 
         section('Gruppen-Kopf');
-        const ghSize = num('Größe', { min: 8, max: 16, get: () => state.get('grpHeadSize') || 10, set: (v) => state.set('grpHeadSize', v) });
-        hint(ghSize, 'Schriftgröße der Gruppen-Kopfzeile (8–16 px)');
-        const ghH = num('Höhe', { min: 0, max: 40, get: () => state.get('grpHeadH') || 0, set: (v) => state.set('grpHeadH', v) });
+        const ghSize = num('Größe', { min: 8, max: 1000000, get: () => state.get('grpHeadSize') || 10, set: (v) => state.set('grpHeadSize', v) });
+        hint(ghSize, 'Schriftgröße der Gruppen-Kopfzeile (px)');
+        const ghH = num('Höhe', { min: 0, max: 1000000, get: () => state.get('grpHeadH') || 0, set: (v) => state.set('grpHeadH', v) });
         hint(ghH, 'Mindesthöhe der Gruppen-Kopfzeile in px (0 = wie ausgeliefert)');
 
         section('Sprache');
