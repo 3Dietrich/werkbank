@@ -870,11 +870,15 @@ const _scopeKindSettings = {
             l.append(cb, document.createTextNode(label));
             grid.appendChild(l);
         };
-        numField('Buffer ms', 'bufferMs', 2, 2000, 1, 40);
+        // Buffer/min/max sind Werte-Bereiche des beobachteten Signals (kein Layout) —
+        // @dpa 20260727: keine Reflex-Limits, großzügig statt "zur Sicherheit knapp".
+        // bufferMs klemmt intern ohnehin an der Web-Audio-FFT-Grenze (SignalScope.js).
+        // Breite/Höhe bleiben Pixel-Layout-Grenzen (echte Bildschirm-Praxis, kein Wert-Deckel).
+        numField('Buffer ms', 'bufferMs', 2, 1000000, 1, 40);
         numField('Breite', 'width', 24, 600, 2, 120);
         numField('Höhe', 'height', 12, 300, 2, 34);
-        numField('min', 'minVal', -1000, 1000, 0.1, 0);
-        numField('max', 'maxVal', -1000, 10000, 0.1, 1);
+        numField('min', 'minVal', -1000000, 1000000, 0.1, 0);
+        numField('max', 'maxVal', -1000000, 1000000, 0.1, 1);
         boolField('Auto-Range', 'autoRange', true);
         boolField('Meter', 'showMeter', true);
         boolField('Kurve', 'showCurve', true);
