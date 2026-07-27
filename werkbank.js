@@ -232,7 +232,7 @@ const polySynthRoot = document.querySelector('#polysynth');
 // sein Klick fährt die ChordMemory-Methode an (chordMemory wird gleich darunter gebaut — die
 // Closure liest die Bindung erst beim Klick, also nach der Zuweisung, kein TDZ-Problem).
 const polySynthDefsObj = polySynthDefs({
-    onAction: (id) => {
+    onAction: (id, phase) => {
         // Hold ist jetzt ein Button statt einer Checkbox (@dpa 20260722, ddw.md), der
         // Zustand bleibt aber weiterhin der echte polySynthState-Key (kbHold), damit
         // PlayKeyboard/Config-Snapshot unverändert bleiben — nur der Klick flippt ihn hier.
@@ -246,8 +246,12 @@ const polySynthDefsObj = polySynthDefs({
         else if (id === 'chordDown') polySynthKeyboard.transposeActive(-1);
         // ADSR-Gate-Buttons (ddw.md 20260725): indiziert 'adsrGate_i' → envManager.gateAt(i).
         // TDZ-sicher wie polySynthKeyboard: envManager wird weiter unten gebaut, die Closure
-        // greift erst beim Klick zu.
-        else if (id.startsWith('adsrGate_')) envManager.gateAt(parseInt(id.slice(9), 10));
+        // greift erst beim Klick zu. phase ('down'/'up') MUSS durchgereicht werden (Bugfix
+        // ddw.md 20260727, „Button triggert bei Release statt Press"): steht der Button per
+        // Element-Settings auf btnMode='gate', feuert GroupHost fire() ZWEIMAL (down UND up)
+        // — ohne Phase triggerte gateAt() im Trig-Modus beide Male, wobei der zweite (Release-)
+        // Trigger die kaum begonnene erste Kurve per cancelScheduledValues() sofort wegwischte.
+        else if (id.startsWith('adsrGate_')) envManager.gateAt(parseInt(id.slice(9), 10), phase);
         // Len: fest/offen (ddw.md 20260726): reiner Boolean-Flip im State — die Sichtbarkeits-
         // und setCtrlOn-Nachführung übernimmt multiEnv.js (state.subscribe), wie bei kbHold.
         else if (id.startsWith('adsrLenFest_')) {
