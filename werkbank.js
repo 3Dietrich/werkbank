@@ -14,6 +14,7 @@ import { factoryHint } from './lib/hints.js';
 import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from './lib/i18n.js';
 import { MiniSettings } from './lib/MiniSettings.js';
 import { wireGlobalLook } from './lib/globalLook.js';
+import { installSelectOnFocus } from './lib/selectOnFocus.js';
 import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
 import { PickMenu } from './lib/PickMenu.js';
 import { createEnsembleStore } from './lib/EnsembleStore.js';
@@ -64,6 +65,9 @@ setLang(state.get('lang') || 'de');
 // Label-Farbe/-Größe/Wert-BG + Gruppen-Header-Größe/-Höhe (@dpa ddw.md 20260724): CSS-Vars
 // sofort + bei jeder Änderung anwenden (s. lib/globalLook.js).
 wireGlobalLook(state);
+// Zahl-/Text-Eingabefelder selektieren beim Fokussieren ihren ganzen Inhalt — auch beim
+// Anklicken, nicht nur per Tab (ddw.md 20260727_135331, s. lib/selectOnFocus.js).
+installSelectOnFocus();
 
 // ── Header-Button-Settings (@dpa 20260723_1500ff: „die Header-Buttons bitte mit `Button`
 // settings") ─────────────────────────────────────────────────────────────────────────
