@@ -3,7 +3,8 @@
 > **Zweck:** Eine KI (auch ein kleines Modell) soll für einen ddw.md-Punkt NUR diese Karte
 > + die 1–2 Zieldateien laden müssen — nicht das ganze Projekt. Die Modul-Köpfe (erste
 > ~30 Zeilen jeder Datei) sind ausführlich; bei Unklarheit zuerst dort lesen.
-> Stand: 2026-07-23. Zeilenangaben sind Richtwerte, nicht exakt.
+> Stand: 2026-07-27 (Routing/Scope-Zeilen ergänzt — Rest der Tabelle weiterhin vom 2026-07-23-
+> Stand, s. Hinweis am Tabellenende). Zeilenangaben sind Richtwerte, nicht exakt.
 
 ## Bereich → Datei
 
@@ -13,7 +14,7 @@
 | Gruppen, e-Mode (Anordnen), Control-Fabriken | `lib/group/GroupHost.js` (1055 Z.) | `mountGroups()`, Port aus teslacoil |
 | Knob/Fader-Control selbst (Zeichnung, Drag) | `lib/Knob.js` (707 Z.) | SVG-Knob, Kurven, Gestalten |
 | Knob-Settings-Panel (Gestalt/Größe/Farbe/Range) | `lib/KnobMetaEditor.js` (505 Z.) | Rechtsklick auf Knob |
-| Settings-Panel aller Nicht-Knob-Controls (button/select/toggle/text/note/readout) | `lib/ElementSettings.js` (517 Z.) | Rechtsklick; rein Optik, nie Werte |
+| Settings-Panel aller Nicht-Knob-Controls (button/select/toggle/text/note/readout/scope/…) | `lib/ElementSettings.js` | Rechtsklick; rein Optik, nie Werte; Typ-Feldliste in `_fieldsFor()` |
 | Farbwähler (Mischfeld, Regenbogen, RGB/Hex) | `lib/colorPick.js` (175 Z.) | `upgradeColorInputs()` |
 | Tasten + MIDI-Learn (Header-Overlay, Badges) | `lib/keymidi/KeyMidi.js` (315 Z.) | Overlay-Modus `.keyedit` |
 | MIDI-Verteiler (Web-MIDI) | `lib/keymidi/Midi.js` (92 Z.) | generisch, Ch-Lernen |
@@ -34,11 +35,21 @@
 | Datei-Export/-Import | `lib/fileIO.js` (64 Z.) | |
 | SELECT-Options-Notation (`label [a,b]~`) | `lib/optionNotation.js` (56 Z.) | |
 | Farb-Hilfsfunktionen | `lib/rgba.js` (31 Z.) | `parseHex`, `hexA` |
-| Oszilloskop | `lib/Scopes.js` (275 Z.) | |
+| Oszilloskop (großes, Master-Bus-gespeist) | `lib/Scopes.js` (275 Z.) | eigener `AnalyserNode` am `engine.master`, Vorbild fürs Signal-Scope-„sample" unten |
+| Routing-Registry (Modul↔Modul-Verdrahtung: `emit`/`flush`/`deliver`) | `lib/routing/Registry.js` | `registerModule()`, `outputSources()`/`inputTargets()`; Output-Ports optional mit `node`/`hasNode` (s. Nähte unten) |
+| Routing-Struktur-Ansicht | `lib/routing/StructureView.js` | zeigt `connections`, Live-Aktivität via `onActivity()` |
+| Poly-Synth (ISM): Control-Definitionen + Audio-Verdrahtung | `lib/polysynth/defs.js` · `lib/polysynth/engine.js` | Keyboard, Base-Frq, Chord-Memory |
+| Multi-ADSR (vervielfältigbare Envelopes, Multi-Sq-Muster) | `lib/polysynth/multiEnv.js` | `EnvEngine` (ConstantSourceNode-basiert) + `createEnvManager()`; einziger aktueller `hasNode`-Output (s. Nähte) |
+| Signal-Scope (schmales Steuersignal-Meter zum Reinklinken, frame/sample) | `lib/SignalScope.js` + `lib/scope/multiScope.js` | reine Anzeige, kein Routing-Modul; `accuracy:'sample'` hängt sich mit `AnalyserNode` audio-rate an Quellen mit `hasNode` |
 | Haupt-Styles (inkl. `:root`-Variablen) | `css/main.css` (1020 Z.) | Variablen Z. 1–25 |
 | Werkbank-Rahmen-Styles | `css/werkbank.css` (114 Z.) | |
 | Takt-Styles (NICHT zusätzlich zu main.css laden — Kollision, s. Memory) | `css/takt.css` (210 Z.) | |
 | Alt-Original taktgeber (Referenz, nicht Ziel von Änderungen) | `lib/taktgeber/` | eigene ui.js/css bleiben ungenutzt |
+
+> Lücke (doc-sync 20260727): `lib/stepseq/multiSq.js`, `lib/recInstrument/`, `lib/group/registry`-
+> nahe Multi-Instanz-Bausteine sind ebenfalls noch nicht in dieser Tabelle — vorbestehend seit
+> dem 2026-07-23-Stand, nicht Teil der heutigen Änderung. Eigener doc-sync-Durchgang empfohlen,
+> falls die Karte wieder vollständig sein soll.
 
 ## Settings-Hierarchie (Rechtsklick-System)
 
@@ -67,6 +78,13 @@ In der Werkbank gibt es keine sichtbaren ⚙-Icons. Alles wird über **Rechtskli
 - **KeyMidi:** `new KeyMidi(state, { panel, midi, keyOk })`; Controls per
   `register(id, el, label, activate)`. State-Keys: `keyBindings` (id→`e.key`),
   `midiBindings` (id→`{type,data1,ch}`).
+- **Output-Port → echter AudioNode (optional, ddw.md 20260727):** ein Output-Port in
+  `Registry.js` kann zusätzlich zu `read()` ein `hasNode:true` + lazy `node: () => AudioNode`
+  tragen — additiv, die meisten Value-Outputs (reine JS-Zahlen) lassen es einfach weg.
+  `hasNode` ist ein billiger, seiteneffektfreier Fähigkeits-Check (UI-Ausgrauen); `node()`
+  erzeugt den echten Node erst bei Bedarf. Einziger aktueller Anbieter: `multiEnv.js`
+  (`EnvEngine` → `ConstantSourceNode`). Konsument: `SignalScope.js`s `accuracy:'sample'`
+  (echter `AnalyserNode`-Tap statt Frame-Polling).
 
 ## Querschnitte (brauchen mehr als eine Datei)
 
