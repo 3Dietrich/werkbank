@@ -53,8 +53,11 @@ try:
         # ── Registry kennt alle vier Module ──
         mods = pg.evaluate("() => window.__routing.reg.modules()")
         ids = {m["id"] for m in mods}
-        check(ids == {"takt", "polysynth", "stepseq", "rec"},
-              f"erwartet takt/polysynth/stepseq/rec, gefunden: {ids}")
+        # Phase 2 sagt NUR zu, dass diese vier weiterhin da sind (additiv) — seit dem
+        # Multi-ADSR-Feature (ddw.md 20260725) registriert sich zusätzlich JEDE ADSR-Instanz
+        # als eigenes Modul ('polysynth.env_0', …), das ist kein Bruch der Phase-2-Zusage.
+        check({"takt", "polysynth", "stepseq", "rec"} <= ids,
+              f"erwartet mindestens takt/polysynth/stepseq/rec, gefunden: {ids}")
 
         by_id = {m["id"]: m for m in mods}
         poly_out = {p["id"]: p["type"] for p in by_id["polysynth"]["outputs"]}

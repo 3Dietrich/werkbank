@@ -71,6 +71,14 @@ try:
         chain = page.evaluate("""() => {
             window.__polysynth.state.set('adsrOutput_0', 'polysynth.preQuantMod');
             window.__polysynth.state.set('pitchSmooth', 0);
+            // Nullpunktversatz=1 (ddw.md 20260727, „Bug2"-Fix): preMod() multipliziert die
+            // Frequenz DIREKT (raw*mod, s. engine.js) — das alte, fest verdrahtete `1+mod` ist
+            // zurückgebaut. Ein Frequenz-Ziel (Ruhepunkt 1, nicht 0) braucht den Versatz jetzt
+            // EXPLIZIT an der Env, sonst multipliziert der Default-Nullpunkt (0) die Frequenz mit
+            // dem rohen 0..1-Envelope-Wert nach UNTEN statt nach oben — genau das ließ diesen Test
+            // fehlschlagen, obwohl der Signalweg selbst intakt war (Test war auf die alte, seither
+            // zurückgebaute Formel geeicht).
+            window.__polysynth.state.set('adsrNullpunkt_0', 1);
             const eng = window.__polysynth.engine;
             const scope = window.__scope.mgr.scopes[0];  // bleibt auf env_0 eingestellt
             eng.noteOn(60, 100);
@@ -85,6 +93,7 @@ try:
             const f1 = eng.debugDampGain(60)?.[0]?.freq;
             const scopeVal = scope._last;
             eng.allNotesOff(); eng.setPreModValue(0);
+            window.__polysynth.state.set('adsrNullpunkt_0', 0);
             return { f0, f1, scopeVal };
         }""")
         check(chain['f1'] > chain['f0'] * 1.1,

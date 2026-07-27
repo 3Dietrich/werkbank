@@ -49,6 +49,20 @@ try:
         page.goto(f"http://localhost:{PORT}/", wait_until="domcontentloaded")
         page.wait_for_function("window.__scope && window.__env && window.__routing && window.__polysynth", timeout=15000)
 
+        # Echter Mausklick (User-Geste) — OHNE die bleibt der AudioContext unter Chromiums
+        # Autoplay-Policy 'suspended', ctx.currentTime friert ein, AnalyserNode liefert nur
+        # Stille (Flakiness beobachtet @dpa 20260727-Rückfrage: erst 20/20 grün, dann 0/3 —
+        # Root Cause per Probe verifiziert: ctx.resume() aus reinem page.evaluate() greift
+        # NICHT ohne echte Geste, ein page.mouse.click() dagegen zuverlässig). Vgl.
+        # adsrGateButtonClick_smoke.py, das denselben Effekt über einen echten DOM-Klick löst.
+        # Der Klick allein reicht noch NICHT — resume() ist async, ohne explizites Abwarten
+        # lief das nachfolgende evaluate() dem 'running'-Übergang manchmal davon (weiterhin
+        # 'suspended' beobachtet trotz Klick) — darum hart auf den Context-State pollen.
+        page.evaluate("() => { window.__env.mgr.engines[0]._audio(); }")
+        page.mouse.click(5, 5)
+        page.wait_for_function(
+            "() => window.__env.mgr.engines[0]._audio().state === 'running'", timeout=5000)
+
         result = page.evaluate("""async () => {
             const scope = window.__scope.mgr.scopes[0];
             const reg = window.__routing.reg;

@@ -86,9 +86,19 @@ try:
                 st.set('adsrA_0', 0.01); st.set('adsrD_0', 0.01); st.set('adsrR_0', 0.2);
                 st.set('adsrLenUnit_0', 'ms'); st.set('adsrLenMs_0', 100);
                 const eng = window.__env.mgr.engines[0];
-                out.durationOffen = eng._core.trigger(eng._cfg(), 48000).duration;
+                // ECHTE Context-Samplerate statt hartcodierter 48000 (Bugfix @dpa 20260727-
+                // Rückfrage „musst nochmal ran"): eng._cfg() bäckt `lenSamples` bereits mit der
+                // REALEN AudioContext-Samplerate (this._audio().sampleRate — in diesem Chromium-
+                // Headless z.B. 44100, nicht 48000). Rief man .trigger(cfg, 48000) mit einer
+                // ABWEICHENDEN Samplerate auf, driftete NUR das lenSamples-Segment gegen alle
+                // anderen (a/d/r), die trigger() frisch MIT der übergebenen sr berechnet — reiner
+                // Testaufbau-Bug, keine Produktionsauswirkung (dort kommt sr immer aus DEMSELBEN
+                // ctx wie _cfg(), s. multiEnv.js EnvEngine.trigger()).
+                const sr = eng._audio().sampleRate;
+                out.durationOffen = eng._core.trigger(eng._cfg(), sr).duration;
                 st.set('adsrLenFest_0', true);
-                out.durationFest = eng._core.trigger(eng._cfg(), 48000).duration;
+                out.durationFest = eng._core.trigger(eng._cfg(), sr).duration;
+                out.sr = sr;
 
                 return out;
             }
