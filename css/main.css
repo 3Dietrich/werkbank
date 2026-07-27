@@ -739,6 +739,10 @@ body {
   background: none; border: 1px solid transparent; border-radius: 3px;
   color: var(--muted); font-size: 10px; cursor: pointer; }
 .kme-x:hover { color: var(--text); border-color: var(--line); }
+/* Genauigkeit-CPU-Hinweis (ddw.md 20260727): statisches Warn-Glyph, KEIN Knopf (nichts zum
+   Klicken) — nur sichtbar, solange 'sample' gewählt ist (JS toggelt display, s. open()/
+   _syncAccuracyWarn()). */
+.es-accuracy-warn { color: var(--accent2); font-weight: 700; font-size: 12px; cursor: default; }
 /* Hilfe-Text (@dpa 20260716_174111): mehrzeilig, füllt die Zeile, das ✕ daneben holt die
    Auslieferung zurück. Kein resize – das Panel soll seine Breite behalten. */
 .kme-help-row { align-items: flex-start; }
@@ -991,9 +995,14 @@ body {
    Eigener Namensraum (sigscope-*), damit die Maße NICHT vom großen Oszilloskop
    (.scope-canvas: width:100%/height:140px) überschrieben werden. */
 .sigscope-field { display: inline-flex; flex-direction: column; gap: 1px; align-items: flex-start; }
+.sigscope-head { display: inline-flex; align-items: center; gap: 4px; }
 .sigscope-label { color: var(--muted); font-size: 10px; line-height: 1; }
 .sigscope-canvas { display: block; border-radius: 2px; border: 1px solid var(--line); }
 .sigscope-read { font-variant-numeric: tabular-nums; color: var(--accent); font-size: 10px; line-height: 1; }
+/* Genauigkeits-Badge (ddw.md 20260727): F = frame (gedämpft, Default), S = sample (Akzentfarbe
+   wie das CPU-Warnhinweis-Icon in den Settings) — immer sichtbar, auf einen Blick erkennbar. */
+.sigscope-mode { font-size: 8px; line-height: 1; font-weight: 700; color: var(--muted); opacity: .6; }
+.sigscope-mode-sample { color: var(--accent2); opacity: 1; }
 
 /* ── Settings-Fenster (Overlay on top) ── */
 .settings-overlay {
