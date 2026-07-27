@@ -6,8 +6,10 @@
 Hart begrenzt (Watchdog killt nach 40s), kein Pollen.
   · Frischer State (localStorage geleert) → auch der ERSTE Sq bekommt die Default-Optik/Werte.
   · Werte-Default: seqDiv=8, seqLen=13, seqOutput='' (kein Ziel) — NICHT das alte 1/8/'trig'.
-  · Optik-Default: ctrlStyles['u:seqGrid_i'] = grün (bg #244f4b, boxSize 315, boxH 50) +
-    Skala seqMin 1 / seqMax 15.
+  · Optik-Default: ctrlStyles['u:seqGrid_i'] = grün (bg #244f4b, boxSize 315, boxH 50).
+  · BEWUSST OHNE seqMin/seqMax-Override (@dpa 20260727: „nie auf einen Default-Max
+    limitieren" — ein gebackener 1..15-Default hätte JEDES gewählte Ziel unsichtbar
+    gedeckelt, auch eins mit viel größerem Eigenbereich). Skala folgt der Ziel-Range.
   · seqSteps bleibt leer (nur Step 0 an) — KEIN festes Muster als Default.
   · addSq() baut einen zweiten Sq, der denselben Default erbt.
 """
@@ -48,7 +50,8 @@ def assert_sq(pg, i, tag):
     check(st["bg"] == "#244f4b", f"[{tag}] Grid-bg sollte #244f4b sein, war {st['bg']!r}")
     check(st["box"] == 315, f"[{tag}] Grid-boxSize sollte 315 sein, war {st['box']}")
     check(st["boxH"] == 50, f"[{tag}] Grid-boxH sollte 50 sein, war {st['boxH']}")
-    check(st["smin"] == 1 and st["smax"] == 15, f"[{tag}] Skala sollte 1..15 sein, war {st['smin']}..{st['smax']}")
+    check(st["smin"] is None and st["smax"] is None,
+          f"[{tag}] Skala darf KEINEN gebackenen Default haben (folgt der Ziel-Range), war {st['smin']}..{st['smax']}")
     check(st["step0"] == 1 and st["step1"] in (None, 0) or st["step1"] is None,
           f"[{tag}] seqSteps sollte leer (nur Step0=1) sein, war [0]={st['step0']} [1]={st['step1']}")
 
@@ -85,4 +88,4 @@ if fails:
     for f in fails:
         print(" -", f)
     sys.exit(1)
-print("SMOKE OK: [+]-Sequenzer erbt den Seq-0-Default (Optik #244f4b/315x50, Skala 1..15, Teiler 8, Step-Zahl 13, kein Ziel, leeres Muster).")
+print("SMOKE OK: [+]-Sequenzer erbt den Seq-0-Default (Optik #244f4b/315x50, KEIN Skala-Deckel, Teiler 8, Step-Zahl 13, kein Ziel, leeres Muster).")
