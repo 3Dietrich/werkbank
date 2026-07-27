@@ -15,9 +15,12 @@ GENAU EINMAL noch der aktuelle (dann faktisch settled) Wert ausgeliefert, bevor 
 wie zuvor dauerhaft verstummt.
 
 Repro exakt wie @dpas Setup: Seq (4 Steps [1.5,0,1,0], 1 Step/Beat) auf
-polysynth.env_0.gate, A/D=1ms, S=1, R=13.2ms, Gate-Modus, Nullpunktversatz=2,
-Ziel=postQuantMod (min -1/max 1) → Ruhepunkt MUSS exakt -1+2=1.0 sein, über
-mehrere Zyklen hinweg (nicht nur beim ersten Mal).
+polysynth.env_0.gate, A/D=1ms, S=1, R=13.2ms, Gate-Modus, Nullpunktversatz=1,
+Ziel=postQuantMod (min -1/max 1) → Ruhepunkt MUSS exakt 1.0 sein (Nullpunkt-Fix
+20260727_144x: Nullpunkt ist jetzt der EXAKTE Ruhepunkt, nicht mehr "Ziel-min +
+Nullpunkt" — @dpa: "ich verstehe nicht, warum ich für Frequenzänderungen auf
+Nullpunkt=2 setzen sollte? Es muss auf 1 enden"), über mehrere Zyklen hinweg
+(nicht nur beim ersten Mal).
 
 Lauf: python3 test/adsrReleaseSettle_smoke.py
 Hart begrenzt (45s Watchdog), kein Pollen. Audio-Clock (ctx.currentTime) statt
@@ -66,7 +69,7 @@ try:
             st.set('adsrPeak_0', 1); st.set('adsrInv_0', false);
             st.set('adsrTrigMode_0', 'gate');
             st.set('adsrLenFest_0', true); st.set('adsrLenUnit_0', 'beats'); st.set('adsrLenBeat_0', 1);
-            st.set('adsrNullpunkt_0', 2);
+            st.set('adsrNullpunkt_0', 1);
             st.set('adsrOutput_0', 'polysynth.postQuantMod');
             takt.set('bpm', 127.30204532467982);
 
