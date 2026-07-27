@@ -52,6 +52,15 @@ try:
             st.set('adsrPeak_0', 1);    st.set('adsrInv_0', false);
             st.set('adsrTrigMode_0', 'trig');
             st.set('adsrOutput_0', 'polysynth.preQuantMod');
+            // Kurven explizit linear (Bugfix ddw.md 20260727, "release auf log ist noch immer
+            // gleich der lin"): D/R-Default ist 'log', das griff bis zum Fix NIE (useLin fiel
+            // bei to===0 immer zurück) — jetzt WIRKT log wirklich (echte Exponentialkurve,
+            // s. envCore.test.mjs) und würde diesen Test krass anders timen (D wird bei diesem
+            // Preset übersprungen, R geht direkt von Attack aus — bei 400ms log-Release ist der
+            // Wert nach 50ms schon auf ~0.3 statt ~0.88 linear). Diese Kette testet den
+            // SIGNALWEG, nicht die Kurvenform — darum hier bewusst linear halten, exakte
+            // Kurvenform ist envCore.test.mjs' Aufgabe.
+            st.set('adsrDCurve_0', 'lin'); st.set('adsrRCurve_0', 'lin');
             // Nullpunktversatz=1 (ddw.md 20260727 „Bug2"): preQuantMod ist ein Frequenz-
             // Multiplikator (Ruhepunkt 1, nicht 0) — das alte fest verdrahtete `1+mod` in
             // engine.js ist zurückgebaut, der Versatz kommt jetzt von hier (s. multiEnv.js
