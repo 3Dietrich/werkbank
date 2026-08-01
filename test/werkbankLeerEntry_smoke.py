@@ -60,6 +60,22 @@ try:
         check(pg.locator("#bench-polysynth").count() == 0, "#bench-polysynth sollte NICHT existieren")
         check(pg.locator("#bench-stepseq").count() == 0, "#bench-stepseq sollte NICHT existieren")
 
+        # ── 3b. Eigener Datentopf (@dpa dd.md 20260801_2) ──
+        # Kern der Einstiegs-Trennung: dieser Einstieg schreibt AUSSCHLIESSLICH unter
+        # 'werkbank-leer_*'. Früher teilte er sich die Keys mit index.html, dadurch
+        # bestimmte ein Demo-Export von hier auch den Erstbesuch-Stand von dort mit.
+        check(pg.evaluate("() => document.documentElement.dataset.app") == "werkbank-leer",
+              "werkbank-leer.html braucht <html data-app='werkbank-leer'>")
+        own = pg.evaluate("() => Object.keys(localStorage).filter(k => k.startsWith('werkbank-leer_')).sort()")
+        check(len(own) >= 4, f"Es sollten eigene 'werkbank-leer_*'-Keys angelegt sein, waren {own!r}")
+        # Kein einziger index.html-Key darf durch diesen Einstieg entstehen. ('werkbank-leer_'
+        # beginnt selbst mit 'werkbank', darum gezielt gegen die konkreten index-Keys prüfen.)
+        foreign = pg.evaluate("""() => ['state','taktmetro','rec','levelmeter','master','ensemble','scope','polysynth','stepseq']
+            .map(n => 'werkbank_' + n).filter(k => localStorage.getItem(k) != null)""")
+        check(foreign == [], f"werkbank-leer.html darf keine index.html-Keys anlegen, tat es aber: {foreign!r}")
+        check(pg.evaluate("() => window.__takt.state._ls") == "werkbank-leer_taktmetro",
+              "taktState sollte am eigenen lsKey hängen")
+
         # ── 4a. Config öffnet ──
         pg.locator('#cfgmenu').click()
         time.sleep(0.15)
@@ -109,10 +125,10 @@ try:
         time.sleep(0.1)
 
         # ── 6. Ensemble-Menü + "+ Neu" legt Snapshot mit allen 4 ISMs an ──
-        # 'werkbank_ensemble' ist ABSICHTLICH derselbe localStorage-Key wie in index.html
-        # (State teilt sich zwischen den Pool-Einstiegen) — presets/default-config.json
-        # befüllt ihn beim Erstbesuch schon mit Demo-Snapshots aus dem VOLLEN Instrument-Satz
-        # (werkbank_polysynth/werkbank_stepseq etc.), darum hier gezielt den NEU gespeicherten
+        # Eigener Datentopf je Einstieg (@dpa dd.md 20260801_2): die Keys tragen hier das
+        # Präfix 'werkbank-leer_' (aus <html data-app>, s. lib/appId.js), index.html bleibt
+        # bei 'werkbank_'. Der Erstbesuch-Stand kommt aus presets/werkbank-leer-config.json
+        # und bringt schon Demo-Snapshots mit, darum hier gezielt den NEU gespeicherten
         # Eintrag am Namen suchen statt Index 0 anzunehmen.
         check(pg.evaluate("() => !!window.__ensemble && !!window.__ensemble.store"), "window.__ensemble.store fehlt")
         ensemble_btn = pg.locator('.topbar [data-ctrl="hdr:ensemble"] .pm-btn')
@@ -128,7 +144,7 @@ try:
         entry = pg.evaluate("() => window.__ensemble.store.list().find(e => e.name === 'Test-Snapshot')")
         check(entry is not None, "Neu gespeicherter Ensemble-Snapshot 'Test-Snapshot' fehlt in der Liste")
         ls_keys = sorted((entry or {}).get('ls', {}).keys())
-        expected = sorted(['werkbank_taktmetro', 'werkbank_rec', 'werkbank_levelmeter', 'werkbank_scope'])
+        expected = sorted(['werkbank-leer_taktmetro', 'werkbank-leer_rec', 'werkbank-leer_levelmeter', 'werkbank-leer_scope'])
         check(ls_keys == expected, f"Ensemble-Snapshot sollte GENAU die 4 ISM-lsKeys tragen (kein Poly-Synth/Stepseq), war {ls_keys!r}")
         del_idx = pg.evaluate("() => window.__ensemble.store.list().findIndex(e => e.name === 'Test-Snapshot')")
         pg.evaluate(f"() => window.__ensemble.store.del({del_idx})")   # aufräumen

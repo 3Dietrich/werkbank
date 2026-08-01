@@ -5,7 +5,12 @@
  * Alles Interessante steckt in lib/ (unverändert aus teslacoil). Diese Datei stellt die
  * Bausteine nur hin und hängt sie an den MiniState – sie ist selbst NICHT zum Kopieren
  * gedacht und darf deshalb kurz und schlicht bleiben.
+ *
+ * Eigener Datentopf je Einstieg (@dpa dd.md 20260801_2): die localStorage-Keys kommen aus
+ * lib/appId.js (`<html data-app>`). Für DIESE Seite ist das der Default 'werkbank', die
+ * Keys heißen also unverändert werkbank_* — die Trennung kostet index.html nichts.
  */
+import { lsKey, toOwnKey } from './lib/appId.js';
 import { MiniState } from './lib/MiniState.js';
 import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
 import { HintBubble } from './lib/HintBubble.js';
@@ -56,7 +61,7 @@ await (window.__defaultConfigReady || Promise.resolve());
 
 // Globaler Fallback-State: wird von hintResolve() weiter unten genutzt, wenn ein Control
 // zu keinem der eigenen Instrumenten-States gehört (s. Kommentar dort).
-const state = new MiniState();
+const state = new MiniState({}, lsKey('state'));
 // Sprache SOFORT setzen, bevor irgendein hint()/text() weiter unten aufgerufen wird (@dpa
 // ddw.md 20260724, main Config „Deutsch/Englisch") — jedes Element entsteht dann gleich in
 // der richtigen Sprache, kein Nachzeichnen nötig. state.get('lang') war schon vor dieser
@@ -125,7 +130,7 @@ function wireHeaderBtnSettings(id, btn, defLabel) {
 // den GEMEINSAMEN Master-Bus aller Instrumente). Muss vor den Instrumenten stehen: sie rufen
 // beim ersten Ton audioBus.ensureAudio() auf, createMasterVolume() legt die Volume/Limiter-
 // Kette mit den GESPEICHERTEN Werten an (statt später mit hart verdrahteten Defaults).
-const MASTER_LS = 'werkbank_master';
+const MASTER_LS = lsKey('master');
 const masterState = new MiniState(masterVolumeDefaults, MASTER_LS);
 const masterVolume = createMasterVolume(masterState);
 document.querySelector('#master-vol').appendChild(masterVolume.element);
@@ -148,7 +153,7 @@ window.__routing = { reg: routing };
 // P4: die Action-Buttons treiben jetzt die echte Audio-Engine (metro.js/clock.js aus
 // taktgeber). onAction(id, phase) — phase ('down'/'up') MUSS durchgereicht werden, sonst
 // wirken die Gate-Knöpfe −/+ nicht als gehaltener ASR-Nudge (@dpa 20260720, Punkt C).
-const TAKT_LS = 'werkbank_taktmetro';
+const TAKT_LS = lsKey('taktmetro');
 const taktState = new MiniState(taktMetroDefs().DEFAULTS, TAKT_LS);
 const taktRoot = document.querySelector('#taktgeber');
 const taktEngine = createTaktEngine(taktState);
@@ -229,7 +234,7 @@ routing.registerModule('takt', {
 // GroupHost-Fabrik. Der anfängliche Test-Ton (Übergangslösung, bevor die Voice-Engine
 // stand) ist wieder entfernt (@dpa 20260721_203557: „durch die echte Voice-Engine jetzt
 // überflüssig") — Base-Frq hört man jetzt direkt über gespielte Noten.
-const POLYSYNTH_LS = 'werkbank_polysynth';
+const POLYSYNTH_LS = lsKey('polysynth');
 const polySynthState = new MiniState(polySynthDefs().DEFAULTS, POLYSYNTH_LS);
 const polySynthRoot = document.querySelector('#polysynth');
 // [R] ist ein durchschaltbarer Button (@dpa 20260722_004312, Zyklus @dpa 20260722 ddw.md):
@@ -654,7 +659,7 @@ window.__env = { mgr: envManager };
 // Basisclock hängt jetzt am Takt-Tempo (getBeatDurMs-Closure, nur LESEND) statt an Poly-
 // Synths BaseFreq — @dpas Kern-Vorwurf „Null mit Tempo/Start/Sync verbunden" (ddw.md
 // 20260723_124045). Start/Stop-Kopplung (_onTaktRunning) und Beat-Anker (onClockBeat) s.u.
-const STEPSEQ_LS = 'werkbank_stepseq';
+const STEPSEQ_LS = lsKey('stepseq');
 const stepSeqDefsObj = stepSeqDefs();
 // Multi-Sq (@dpa 20260723_140151, Entscheidung „Sq = eigene Gruppe"): die flachen Template-
 // Einträge aus stepSeqDefs() werden zur PRO-SQ-VORLAGE (sqTpl); die Live-defs-Objekte, die
@@ -732,7 +737,7 @@ routing.connect({ module: 'stepseq', port: 'amp' }, { module: 'polysynth', port:
 // „alles Hörbare" abnehmen soll (lib/audioBus.js, gemeinsamer Master), nicht an EIN
 // Instrument gebunden. Start/Stop-Sync (Downbeat-Arming) hängt weiterhin am Takt: das
 // Taktmetro-Instrument liefert seine rohen Scheduler-Beats über onClockBeat() nach außen.
-const REC_LS = 'werkbank_rec';
+const REC_LS = lsKey('rec');
 const recState = new MiniState(recInstrumentDefs().DEFAULTS, REC_LS);
 const recRoot = document.querySelector('#rec');
 const recEngine = createRecEngine(recState, {
@@ -800,7 +805,7 @@ window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster, getAna
 // ein ECHTES GroupHost-Control (mountGroups mit genau einer, leeren Gruppe), damit es wie
 // jedes andere Control im e-Mode verschiebbar ist und Rechtsklick-Settings bekommt; Kopf-
 // zeile/Hintergrund sind nur weggestylt (css/werkbank.css #levelmeter/.wb-bare).
-const LEVELMETER_LS = 'werkbank_levelmeter';
+const LEVELMETER_LS = lsKey('levelmeter');
 const levelMeterState = new MiniState({}, LEVELMETER_LS);
 const levelMeterRoot = document.querySelector('#levelmeter');
 const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, { GROUPS: [{ name: 'Meter' }] });
@@ -816,7 +821,7 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: lev
 // scope_i.out reicht denselben Wert optional weiter (Passthrough), sodass eine
 // bestehende Verbindung NICHT unterbrochen werden muss. Vervielfältigbar wie ADSR,
 // Settings (Buffer/min/max/Auto-Range/Meter/Kurve/Maße/Farben + ➚/🚮) per Rechtsklick.
-const SCOPE_LS = 'werkbank_scope';
+const SCOPE_LS = lsKey('scope');
 const scopeState = new MiniState({ scopeCount: 1 }, SCOPE_LS);
 const scopeRoot = document.querySelector('#scopes');
 const scopeDefs = { GROUPS: [] };
@@ -1026,13 +1031,18 @@ if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // D
 // kompletten Sequenzer-Stand (inkl. seiner künftigen Combo-/Snapshot-Pools) außen vor.
 // 'werkbank_ensemble' (neu, s.u.) MUSS von Anfang an rein — genau dieser Fehler soll sich
 // kein drittes Mal wiederholen.
-const LS_KEYS = ['werkbank_state', 'werkbank_taktmetro', 'werkbank_polysynth', 'werkbank_stepseq', 'werkbank_rec', 'werkbank_levelmeter', 'werkbank_master', 'werkbank_ensemble'];
+// 'scope' war GENAU dieses dritte Mal (@dpa dd.md 20260801_2, beim Einstiegs-Trennen
+// aufgefallen): das Signal-Scope-ISM fehlte hier seit seiner Einführung, werkbank-leer.js
+// führt es von Anfang an mit. Jetzt auch hier — Export/Reset erfassen den Scope-Stand.
+// Die Keys tragen das Präfix DIESES Einstiegs (lsKey, s. lib/appId.js); für index.html ist
+// das unverändert 'werkbank_…', weil 'werkbank' der data-app-Default ist.
+const LS_KEYS = ['state', 'taktmetro', 'polysynth', 'stepseq', 'rec', 'levelmeter', 'master', 'ensemble', 'scope'].map(lsKey);
 
 // ── Ensemble-Snapshot (@dpa 20260724, ddw.md „header Ensemble Snapshots") — vierte und
 // äußerste Ebene des Combo-/Snapshot-Speichers: EIN benannter Zustand über mehrere
 // Instrumente hinweg. Master-Volume/LevelMeter bewusst NICHT dabei (@dpa: „Master Fader
 // bleibt extra") — sie fehlen einfach in der instruments-Liste, kein Sonderfall im Store.
-const ENSEMBLE_LS = 'werkbank_ensemble';
+const ENSEMBLE_LS = lsKey('ensemble');
 const ensembleState = new MiniState({}, ENSEMBLE_LS);
 const ensembleStore = createEnsembleStore(ensembleState, [
     { lsKey: TAKT_LS, state: taktState, allSoundValues: () => takt.allSoundValues() },
@@ -1055,8 +1065,15 @@ function buildConfig() {
 }
 function applyConfig(obj) {
     const ls = (obj && obj.ls) || obj || {};   // toleriert nacktes { key: data }
+    // Fremde Präfixe umbiegen (@dpa dd.md 20260801_2): eine Export-Datei trägt die Keys
+    // DER SEITE, auf der sie entstand (und jede Datei von vor der Einstiegs-Trennung
+    // durchweg 'werkbank_…'). Ohne das Umbiegen ließe sich ein Export nur dort wieder
+    // einlesen, wo er gemacht wurde. Erst auf die eigenen Keys normalisieren, dann wie
+    // gehabt nur die BEKANNTEN Bereiche übernehmen (nichts Fremdes in den localStorage).
+    const own = {};
+    for (const [k, v] of Object.entries(ls)) own[toOwnKey(k)] = v;
     let n = 0;
-    for (const k of LS_KEYS) if (ls[k] != null) { localStorage.setItem(k, JSON.stringify(ls[k])); n++; }
+    for (const k of LS_KEYS) if (own[k] != null) { localStorage.setItem(k, JSON.stringify(own[k])); n++; }
     return n;
 }
 function exportConfig() {

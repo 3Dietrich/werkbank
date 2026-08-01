@@ -12,10 +12,23 @@
 Werkbank ist ein Pool mehrerer HTML-Einstiege über gemeinsame `lib/`+`css/` (@dpa 20260801) –
 der Dateiname ist beliebig, keiner der Einstiege ist „der eine wahre":
 
-| Datei | Skript | Inhalt |
-|---|---|---|
-| `index.html` | `werkbank.js` | Voller Funktionsumfang: alle ISMs (Takt/Metronom, Poly-Synth, Stepsequenzer, Rec, LevelMeter, Signal-Scopes). |
-| `werkbank-leer.html` | `werkbank-leer.js` | Neutrales Basis-Scaffold: alle Header-Funktionen + nur Takt/Metronom, Rec, LevelMeter, Signal-Scopes (kein Poly-Synth, kein Stepsequenzer). Kopiervorlage für neue Projekte. |
+| Datei | `data-app` | Skript | Daten | Inhalt |
+|---|---|---|---|---|
+| `index.html` | `werkbank` | `werkbank.js` | `werkbank_*` · `presets/werkbank-config.json` | Voller Funktionsumfang: alle ISMs (Takt/Metronom, Poly-Synth, Stepsequenzer, Rec, LevelMeter, Signal-Scopes). |
+| `werkbank-leer.html` | `werkbank-leer` | `werkbank-leer.js` | `werkbank-leer_*` · `presets/werkbank-leer-config.json` | Neutrales Basis-Scaffold: alle Header-Funktionen + nur Takt/Metronom, Rec, LevelMeter, Signal-Scopes (kein Poly-Synth, kein Stepsequenzer). Kopiervorlage für neue Projekte. |
+
+**Jeder Einstieg hat seinen eigenen Datentopf** ([lib/appId.js](lib/appId.js), @dpa dd.md
+20260801_2). Früher trennte der **Port** die Projekte (localStorage hängt am Origin =
+Schema+Host+**Port**), darum brauchte es nie eigenen Code dafür. Seit mehrere HTMLs auf
+EINEM Port liegen, fällt das weg: gleicher Port = gleicher localStorage. Deshalb setzt
+jede Seite ihr `<html data-app="…">`, und `lsKey(name)` macht daraus ihre Key-Namen.
+
+Eine **neue Kopie** (z.B. `werkbank-drone.html`) braucht nur ein eigenes `data-app` — und
+hat damit automatisch eigene Instrumenten-Stände **und** eine eigene Demo-Datei
+`presets/<data-app>-config.json`. Keine Liste, die man dafür pflegen müsste. Der Default
+ist `werkbank`, damit `index.html` seine bisherigen Key-Namen behält (keine Migration).
+Import biegt fremde Präfixe über `toOwnKey()` auf den eigenen Einstieg um, sonst ließe
+sich ein Export nur dort einlesen, wo er entstanden ist.
 
 ## Bereich → Datei
 

@@ -12,6 +12,12 @@
 > alle teilen sich `lib/`+`css/`. `werkbank-leer.html` ist die neutrale Basis (Header-Funktionen
 > + Takt/Metronom/Rec/LevelMeter/Scope, kein Poly-Synth/Stepsequenzer) zum Kopieren für neue
 > Projekte – Details in [ARCHITEKTUR.md](ARCHITEKTUR.md#einstiegspunkte-pool).
+>
+> **Jeder Einstieg hat eigene Daten (@dpa dd.md 20260801_2):** `<html data-app="…">` bestimmt
+> über [lib/appId.js](lib/appId.js) die localStorage-Keys (`werkbank_*` / `werkbank-leer_*`)
+> UND die Erstbesuch-Datei `presets/<data-app>-config.json`. Nie wieder Key-Namen hart in eine
+> Einstiegsdatei schreiben – immer `lsKey('taktmetro')`. Eine neue Kopie braucht nur ein eigenes
+> `data-app` und hat damit automatisch eigenen Stand + eigene Demo-Datei.
 
 ## Zuerst lesen: die Karte
 

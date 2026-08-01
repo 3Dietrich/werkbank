@@ -14,11 +14,17 @@
  * Vorbild ändert (weniger ISMs → Header-Funktionen müssen entkoppelt alle VIER hier
  * vorhandenen ISMs bedienen, nicht nur die zwei aus dem Original-Beispiel).
  *
- * State teilt sich ABSICHTLICH mit index.html/werkbank.js: dieselben localStorage-Keys
- * (werkbank_state/werkbank_taktmetro/werkbank_rec/werkbank_levelmeter/werkbank_master/
- * werkbank_scope/werkbank_ensemble) — beide Einstiege zeigen denselben Zustand.
- * index.html/werkbank.js selbst bleiben UNANGETASTET.
+ * EIGENER State, eigene Demo-Datei (@dpa dd.md 20260801_2): alle localStorage-Keys tragen
+ * das Präfix dieses Einstiegs (werkbank-leer_*, aus <html data-app>, s. lib/appId.js), der
+ * Erstbesuch-Stand kommt aus presets/werkbank-leer-config.json. BIS DAHIN teilte sich
+ * dieser Einstieg seine Keys mit index.html — das war gewollt, solange alle Pool-Einstiege
+ * ohnehin in einem Datentopf lagen (gleicher Port = gleicher localStorage), hieß aber auch:
+ * ein Demo-Export von hier bestimmte den Erstbesuch von index.html gleich mit. Jetzt hat
+ * jede HTML ihre eigene Ansicht + Grundeinstellung, auch künftige Kopien dieser Datei.
+ * index.html/werkbank.js selbst bleiben UNANGETASTET (deren Keys heißen unverändert
+ * werkbank_*, weil 'werkbank' der Default von data-app ist — keine Migration nötig).
  */
+import { lsKey, toOwnKey } from './lib/appId.js';
 import { MiniState } from './lib/MiniState.js';
 import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
 import { HintBubble } from './lib/HintBubble.js';
@@ -57,7 +63,7 @@ await (window.__defaultConfigReady || Promise.resolve());
 
 // Globaler Fallback-State: von hintResolve() weiter unten genutzt, wenn ein Control zu
 // keinem der eigenen Instrumenten-States gehört.
-const state = new MiniState();
+const state = new MiniState({}, lsKey('state'));
 setLang(state.get('lang') || 'de');
 wireGlobalLook(state);
 installSelectOnFocus();
@@ -103,7 +109,7 @@ function wireHeaderBtnSettings(id, btn, defLabel) {
 }
 
 // ── Master Volume (1:1 aus werkbank.js) ────────────────────────────────────────────────
-const MASTER_LS = 'werkbank_master';
+const MASTER_LS = lsKey('master');
 const masterState = new MiniState(masterVolumeDefaults, MASTER_LS);
 const masterVolume = createMasterVolume(masterState);
 document.querySelector('#master-vol').appendChild(masterVolume.element);
@@ -115,7 +121,7 @@ window.__routing = { reg: routing };
 
 // ── Takt + Metronom (1:1 aus werkbank.js Z.143-231, minus Stepseq-Verweise: sqManager
 // existiert hier nicht, darum onAction nur noch Attrappe fürs Sq-Sync-Feintuning weglassen) ─
-const TAKT_LS = 'werkbank_taktmetro';
+const TAKT_LS = lsKey('taktmetro');
 const taktState = new MiniState(taktMetroDefs().DEFAULTS, TAKT_LS);
 const taktRoot = document.querySelector('#taktgeber');
 const taktEngine = createTaktEngine(taktState);
@@ -152,7 +158,7 @@ routing.registerModule('takt', {
 });
 
 // ── Rec – eigenes Instrument (1:1 aus werkbank.js Z.729-793, minus Stepseq-Fanout) ─────
-const REC_LS = 'werkbank_rec';
+const REC_LS = lsKey('rec');
 const recState = new MiniState(recInstrumentDefs().DEFAULTS, REC_LS);
 const recRoot = document.querySelector('#rec');
 const recEngine = createRecEngine(recState, {
@@ -181,7 +187,7 @@ routing.connect({ module: 'takt', port: 'beat' }, { module: 'rec', port: 'clock'
 window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser };
 
 // ── LevelMeter – eigenes Instrument (ISM), 1:1 aus werkbank.js Z.798-812 ───────────────
-const LEVELMETER_LS = 'werkbank_levelmeter';
+const LEVELMETER_LS = lsKey('levelmeter');
 const levelMeterState = new MiniState({}, LEVELMETER_LS);
 const levelMeterRoot = document.querySelector('#levelmeter');
 const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, { GROUPS: [{ name: 'Meter' }] });
@@ -193,7 +199,7 @@ levelMeterHost.refresh();
 window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter };
 
 // ── Signal-Scopes – eigenes ISM, 1:1 aus werkbank.js Z.814-937 ─────────────────────────
-const SCOPE_LS = 'werkbank_scope';
+const SCOPE_LS = lsKey('scope');
 const scopeState = new MiniState({ scopeCount: 1 }, SCOPE_LS);
 const scopeRoot = document.querySelector('#scopes');
 const scopeDefs = { GROUPS: [] };
@@ -372,9 +378,11 @@ const hintsBtn = mkHeaderToggle('hintsedit', '💬 Hints', 'Hilfe-Blasen bei Mau
 if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // Default: an
 
 // ── Config Export/Import (1:1-Muster aus werkbank.js Z.1018-1029) ─────────────────────
-// LS_KEYS enthält 'werkbank_scope' von Anfang an (@dpa-Auftrag: fehlt in index.html/
-// werkbank.js als Bug — hier von Anfang an korrekt, kein drittes Mal denselben Fehler).
-const LS_KEYS = ['werkbank_state', 'werkbank_taktmetro', 'werkbank_rec', 'werkbank_levelmeter', 'werkbank_master', 'werkbank_ensemble', 'werkbank_scope'];
+// LS_KEYS enthält 'scope' von Anfang an (@dpa-Auftrag: fehlt in index.html/werkbank.js
+// als Bug — hier von Anfang an korrekt, kein drittes Mal denselben Fehler).
+// Die Keys tragen das Präfix DIESES Einstiegs (lsKey, s. lib/appId.js) — ein Export von
+// hier fasst also nur werkbank-leer-Daten an, nicht die von index.html.
+const LS_KEYS = ['state', 'taktmetro', 'rec', 'levelmeter', 'master', 'ensemble', 'scope'].map(lsKey);
 
 // ── Ensemble-Snapshot (1:1-Muster aus werkbank.js Z.1031-1050) — @dpa-Auftrag: ALLE VIER
 // hier vorhandenen ISMs (Takt, Rec, LevelMeter, Scope) gehören rein, nicht nur eine
@@ -387,7 +395,7 @@ const LS_KEYS = ['werkbank_state', 'werkbank_taktmetro', 'werkbank_rec', 'werkba
 // erfasst nur die scopeSrc_i-Werte der GERADE existierenden Gruppen — ohne den Hook käme
 // nach dem Recall weder die Scope-ANZAHL zurück, noch würden zusätzliche/fehlende Scope-
 // Gruppen nachgebaut/abgebaut.
-const ENSEMBLE_LS = 'werkbank_ensemble';
+const ENSEMBLE_LS = lsKey('ensemble');
 const ensembleState = new MiniState({}, ENSEMBLE_LS);
 const ensembleStore = createEnsembleStore(ensembleState, [
     { lsKey: TAKT_LS, state: taktState, allSoundValues: () => takt.allSoundValues() },
@@ -407,8 +415,15 @@ function buildConfig() {
 }
 function applyConfig(obj) {
     const ls = (obj && obj.ls) || obj || {};   // toleriert nacktes { key: data }
+    // Fremde Präfixe umbiegen (@dpa dd.md 20260801_2): eine Export-Datei trägt die Keys
+    // DER SEITE, auf der sie entstand (und jede Datei von vor der Einstiegs-Trennung
+    // durchweg 'werkbank_…'). Ohne das Umbiegen ließe sich ein Export nur dort wieder
+    // einlesen, wo er gemacht wurde. Erst auf die eigenen Keys normalisieren, dann wie
+    // gehabt nur die BEKANNTEN Bereiche übernehmen (nichts Fremdes in den localStorage).
+    const own = {};
+    for (const [k, v] of Object.entries(ls)) own[toOwnKey(k)] = v;
     let n = 0;
-    for (const k of LS_KEYS) if (ls[k] != null) { localStorage.setItem(k, JSON.stringify(ls[k])); n++; }
+    for (const k of LS_KEYS) if (own[k] != null) { localStorage.setItem(k, JSON.stringify(own[k])); n++; }
     return n;
 }
 function exportConfig() {

@@ -7,9 +7,12 @@
 > Header → *Snapshots*). Zum Klingen: **▶** im Transport drücken. Willst du leer
 > starten: **🔇 Reset** im Header. Dein eigener Stand wird bei späteren Besuchen
 > **nie** überschrieben — nur ein völlig leerer Browser bekommt die Demo erneut.
-> (Die Demo-Config liegt auch als Datei:
-> [werkbank-config.json](https://3dietrich.github.io/werkbank/presets/default-config.json)
-> — über **⚙ Config → Import** lädst du sie in einem schon benutzten Browser nach.)
+> (Die Demo-Config liegt auch als Datei — je Einstiegsseite eine eigene:
+> [werkbank-config.json](https://3dietrich.github.io/werkbank/presets/werkbank-config.json)
+> für `index.html`,
+> [werkbank-leer-config.json](https://3dietrich.github.io/werkbank/presets/werkbank-leer-config.json)
+> für `werkbank-leer.html` — über **⚙ Config → Import** lädst du sie in einem schon
+> benutzten Browser nach.)
 
 Die Werkbank ist ein modularer Synth-Baukasten: mehrere **Instrumente** (ISMs) liegen auf
 einer frei anordbaren Fläche, werden vom zentralen **Takt** angetrieben und können über
