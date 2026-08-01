@@ -1,6 +1,11 @@
 /**
- * werkbank-leer.js – baut werkbank-leer.html auf: der ZWEITE, schlankere Pool-Einstieg
- * neben werkbank.js/index.html (@dpa 20260801, mit @dpa vorab durchgeplant).
+ * werkbank-leer.js – baut werkbank-leer/index.html auf (URL /werkbank-leer): der ZWEITE,
+ * schlankere Pool-Einstieg neben werkbank.js/index.html (@dpa 20260801, vorab durchgeplant).
+ *
+ * Liegt seit @dpa dd.md 20260801_3 in einem EIGENEN ORDNER (saubere URL ohne .html, Dateien
+ * eines Projekts beisammen). Die geteilten lib/+css/ liegen daher eine Ebene höher (../).
+ * Achtung: Unterordner trennen KEINE Daten – localStorage hängt am Origin (Port), nicht am
+ * Pfad. Die Trennung macht allein data-app/lsKey (s.u.).
  *
  * Bewusst ein NEUTRALES leeres Basis-Scaffold: nur die vier "immer dabei"-ISMs
  * (Takt/Metronom, Rec, LevelMeter, Signal-Scopes) + ALLE Header-Funktionen (Tasten/MIDI,
@@ -24,37 +29,37 @@
  * index.html/werkbank.js selbst bleiben UNANGETASTET (deren Keys heißen unverändert
  * werkbank_*, weil 'werkbank' der Default von data-app ist — keine Migration nötig).
  */
-import { lsKey, toOwnKey } from './lib/appId.js';
-import { MiniState } from './lib/MiniState.js';
-import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
-import { HintBubble } from './lib/HintBubble.js';
-import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js';
-import { factoryHint } from './lib/hints.js';
-import { hint, setLang, lang as curLang, onLangChange } from './lib/i18n.js';
-import { MiniSettings } from './lib/MiniSettings.js';
-import { wireGlobalLook } from './lib/globalLook.js';
-import { installSelectOnFocus } from './lib/selectOnFocus.js';
-import { mountGroups } from './lib/group/GroupHost.js';
-import { PickMenu } from './lib/PickMenu.js';
-import { createEnsembleStore } from './lib/EnsembleStore.js';
-import { ElementSettings } from './lib/ElementSettings.js';
-import { taktMetroDefs } from './lib/taktmetro/defs.js';
-import { createTaktEngine } from './lib/taktmetro/engine.js';
-import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
-import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from './lib/wavEncoder.js';
-import { recInstrumentDefs } from './lib/recInstrument/defs.js';
-import { createRecEngine } from './lib/recInstrument/engine.js';
+import { lsKey, toOwnKey } from '../lib/appId.js';
+import { MiniState } from '../lib/MiniState.js';
+import { mountInstrumentSettings } from '../lib/InstrumentSettings.js';
+import { HintBubble } from '../lib/HintBubble.js';
+import { createMasterVolume, masterVolumeDefaults } from '../lib/MasterVolume.js';
+import { factoryHint } from '../lib/hints.js';
+import { hint, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
+import { MiniSettings } from '../lib/MiniSettings.js';
+import { wireGlobalLook } from '../lib/globalLook.js';
+import { installSelectOnFocus } from '../lib/selectOnFocus.js';
+import { mountGroups } from '../lib/group/GroupHost.js';
+import { PickMenu } from '../lib/PickMenu.js';
+import { createEnsembleStore } from '../lib/EnsembleStore.js';
+import { ElementSettings } from '../lib/ElementSettings.js';
+import { taktMetroDefs } from '../lib/taktmetro/defs.js';
+import { createTaktEngine } from '../lib/taktmetro/engine.js';
+import { MP3_CBR_PRESETS } from '../lib/mp3Encoder.js';
+import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from '../lib/wavEncoder.js';
+import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
+import { createRecEngine } from '../lib/recInstrument/engine.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
     setMasterDb as setBusMasterDb,
-} from './lib/audioBus.js';
-import { createRoutingRegistry, bindPorts } from './lib/routing/Registry.js';
-import { knobWrites, buttonWrites } from './lib/routing/portGen.js';
-import { createStructureView } from './lib/routing/StructureView.js';
-import { LevelMeter } from './lib/LevelMeter.js';
-import { createScopeManager } from './lib/scope/multiScope.js';
-import { icon } from './lib/icons.js';
-import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
+} from '../lib/audioBus.js';
+import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
+import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
+import { createStructureView } from '../lib/routing/StructureView.js';
+import { LevelMeter } from '../lib/LevelMeter.js';
+import { createScopeManager } from '../lib/scope/multiScope.js';
+import { icon } from '../lib/icons.js';
+import { mdToHtml, htmlToMdApprox } from '../lib/miniMarkdown.js';
 
 // Erstbesuch-Demo-Stand (presets/default-config.json) abwarten, BEVOR der erste
 // MiniState den localStorage liest (s. werkbank.js-Vorbild, @dpa 20260725: „man muss die

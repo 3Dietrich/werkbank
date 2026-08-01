@@ -11,7 +11,7 @@
 > [werkbank-config.json](https://3dietrich.github.io/werkbank/presets/werkbank-config.json)
 > für `index.html`,
 > [werkbank-leer-config.json](https://3dietrich.github.io/werkbank/presets/werkbank-leer-config.json)
-> für `werkbank-leer.html` — über **⚙ Config → Import** lädst du sie in einem schon
+> für `/werkbank-leer` — über **⚙ Config → Import** lädst du sie in einem schon
 > benutzten Browser nach.)
 
 Die Werkbank ist ein modularer Synth-Baukasten: mehrere **Instrumente** (ISMs) liegen auf

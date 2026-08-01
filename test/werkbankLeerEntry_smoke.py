@@ -48,7 +48,7 @@ try:
         pg = b.new_page(viewport={"width": 1500, "height": 1000})
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
         pg.on("pageerror", lambda e: errors.append(str(e)))
-        pg.goto(f"http://localhost:{PORT}/werkbank-leer.html", wait_until="networkidle", timeout=15000)
+        pg.goto(f"http://localhost:{PORT}/werkbank-leer/", wait_until="networkidle", timeout=15000)
 
         # ── 2. Die vier ISM-Sektionen vorhanden + sichtbar ──
         for sec in ["#bench-taktgeber", "#bench-rec", "#bench-levelmeter", "#bench-scope"]:

@@ -9,20 +9,21 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Werkbank – leer</title>
-<link rel="stylesheet" href="css/main.css" />
-<link rel="stylesheet" href="css/werkbank.css" />
+<link rel="stylesheet" href="../css/main.css" />
+<link rel="stylesheet" href="../css/werkbank.css" />
 </head>
 <body>
-<!-- werkbank-leer.html – ZWEITER, schlankerer Pool-Einstieg neben index.html
-     (@dpa 20260801). Bewusst ein NEUTRALES leeres Basis-Scaffold: nur die vier
-     "immer dabei"-ISMs (Takt/Metronom, Rec, LevelMeter, Signal-Scopes) + alle
-     Header-Funktionen (Tasten/MIDI, Hints, Config, Ensemble, Struktur-Ansicht,
-     Rec-Format, Audio-Reset) — KEIN Poly-Synth, KEIN Stepsequenzer. Aus dieser
-     leeren Werkbank heraus kopiert @dpa künftig neue Projekt-HTMLs, wenn ein
-     neues Kernmodul ansteht (daher der Name "leer", nicht themenbezogen).
-     index.html/werkbank.js bleiben UNANGETASTET — eigener, gleichrangiger
-     Einstieg über dieselbe lib/+css/. State teilt sich ABSICHTLICH mit
-     index.html (dieselben localStorage-Keys, s. werkbank-leer.js Kopf). -->
+<!-- werkbank-leer/ – ZWEITER, schlankerer Pool-Einstieg neben index.html, erreichbar
+     unter /werkbank-leer (@dpa 20260801). Bewusst ein NEUTRALES leeres Basis-Scaffold:
+     nur die vier "immer dabei"-ISMs (Takt/Metronom, Rec, LevelMeter, Signal-Scopes) +
+     alle Header-Funktionen (Tasten/MIDI, Hints, Config, Ensemble, Struktur-Ansicht,
+     Rec-Format, Audio-Reset) — KEIN Poly-Synth, KEIN Stepsequenzer. Aus diesem Ordner
+     heraus kopiert @dpa künftig neue Projekte, wenn ein neues Kernmodul ansteht (daher
+     der Name "leer", nicht themenbezogen): Ordner kopieren, umbenennen, im data-app
+     oben denselben neuen Namen eintragen — fertig, eigener Stand + eigene Demo-Datei.
+     index.html/werkbank.js bleiben UNANGETASTET — eigener, gleichrangiger Einstieg über
+     dieselbe lib/+css/ (von hier aus per ../ erreichbar), aber mit EIGENEN Daten
+     (werkbank-leer_*, s. lib/appId.js + Kopf von werkbank-leer.js). -->
 <div class="topbar">
     <h1>Werkbank</h1>
     <div class="topbar-right">
@@ -85,10 +86,10 @@
 
 <!-- Klassisches Skript, VOR dem type=module-Skript: hängt globalThis.lamejs auf
      (siehe lib/vendor/lame.js, Rec-Instrument-TODO 3 – MP3-Encoder). -->
-<script src="lib/vendor/lame.js"></script>
+<script src="../lib/vendor/lame.js"></script>
 <!-- Erstbesuch-Demo-Stand (presets/default-config.json) VOR der App in den
      localStorage legen — nur leere Keys, nie überschreiben (s. Datei-Kopf). -->
-<script type="module" src="lib/defaultConfig.js"></script>
+<script type="module" src="../lib/defaultConfig.js"></script>
 <script type="module" src="werkbank-leer.js"></script>
 </body>
 </html>

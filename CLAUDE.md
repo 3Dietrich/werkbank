@@ -9,7 +9,7 @@
 > Synthesizer gebären." Alles hier ist ein Modul mit klaren Nähten – nie ad hoc dazustellen.
 >
 > **Mehrere HTML-Einstiege (@dpa 20260801):** `index.html` ist nur EIN Einstieg von mehreren,
-> alle teilen sich `lib/`+`css/`. `werkbank-leer.html` ist die neutrale Basis (Header-Funktionen
+> alle teilen sich `lib/`+`css/`. `werkbank-leer/` (URL `/werkbank-leer`) ist die neutrale Basis (Header-Funktionen
 > + Takt/Metronom/Rec/LevelMeter/Scope, kein Poly-Synth/Stepsequenzer) zum Kopieren für neue
 > Projekte – Details in [ARCHITEKTUR.md](ARCHITEKTUR.md#einstiegspunkte-pool).
 >

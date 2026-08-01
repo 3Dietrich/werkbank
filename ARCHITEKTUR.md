@@ -12,10 +12,22 @@
 Werkbank ist ein Pool mehrerer HTML-Einstiege über gemeinsame `lib/`+`css/` (@dpa 20260801) –
 der Dateiname ist beliebig, keiner der Einstiege ist „der eine wahre":
 
-| Datei | `data-app` | Skript | Daten | Inhalt |
+| URL | Datei | `data-app` | Daten | Inhalt |
 |---|---|---|---|---|
-| `index.html` | `werkbank` | `werkbank.js` | `werkbank_*` · `presets/werkbank-config.json` | Voller Funktionsumfang: alle ISMs (Takt/Metronom, Poly-Synth, Stepsequenzer, Rec, LevelMeter, Signal-Scopes). |
-| `werkbank-leer.html` | `werkbank-leer` | `werkbank-leer.js` | `werkbank-leer_*` · `presets/werkbank-leer-config.json` | Neutrales Basis-Scaffold: alle Header-Funktionen + nur Takt/Metronom, Rec, LevelMeter, Signal-Scopes (kein Poly-Synth, kein Stepsequenzer). Kopiervorlage für neue Projekte. |
+| `/` | `index.html` + `werkbank.js` | `werkbank` | `werkbank_*` · `presets/werkbank-config.json` | Voller Funktionsumfang: alle ISMs (Takt/Metronom, Poly-Synth, Stepsequenzer, Rec, LevelMeter, Signal-Scopes). |
+| `/werkbank-leer` | `werkbank-leer/index.html` + `werkbank-leer/werkbank-leer.js` | `werkbank-leer` | `werkbank-leer_*` · `presets/werkbank-leer-config.json` | Neutrales Basis-Scaffold: alle Header-Funktionen + nur Takt/Metronom, Rec, LevelMeter, Signal-Scopes (kein Poly-Synth, kein Stepsequenzer). Kopiervorlage für neue Projekte. |
+
+**Jeder Einstieg außer dem Root liegt in einem eigenen Unterordner** (@dpa dd.md
+20260801_3) – das gibt saubere URLs (`/werkbank-leer` statt `/werkbank-leer.html`) und hält
+die Dateien eines Projekts beisammen. `index.html` bleibt im Wurzelverzeichnis, es ist die
+Landing-Page. Aus einem Unterordner zeigen `css/`+`lib/` per `../` nach oben; die
+Demo-Datei löst [lib/appId.js](lib/appId.js) über `import.meta.url` auf, damit sie aus
+**jeder** Ordnertiefe im einen `presets/` landet (ein relativer Pfad würde sonst still zu
+`/werkbank-leer/presets/…` und der Erstbesuch bliebe ohne Demo-Stand).
+
+> **Unterordner trennen KEINE Daten.** localStorage hängt am Origin (Schema+Host+**Port**),
+> der Pfad zählt nicht mit – eine Seite in `/werkbank-leer/` sieht denselben Speicher wie
+> `/`. Die Datentrennung macht allein `data-app`/`lsKey()`, s. unten.
 
 **Jeder Einstieg hat seinen eigenen Datentopf** ([lib/appId.js](lib/appId.js), @dpa dd.md
 20260801_2). Früher trennte der **Port** die Projekte (localStorage hängt am Origin =

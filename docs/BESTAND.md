@@ -50,12 +50,12 @@ Rechtsklick-Settings (Name/BG/VG/Breite/Höhe), Combos (Optik-Pool) + Snapshots 
 
 | ISM | defs.js / engine.js | Kurz | In |
 |---|---|---|---|
-| **Takt/Metronom** | `lib/taktmetro/defs.js` / `engine.js` (`createTaktEngine`) | Transport (Start/Bang/Tap-Tempo) + Metronom-Klang (`lib/taktgeber/audio/`: clock, metro, tapTempo). Liefert `onClockBeat`, das Rec/Stepseq für Sync brauchen. | `index.html`, `werkbank-leer.html` |
+| **Takt/Metronom** | `lib/taktmetro/defs.js` / `engine.js` (`createTaktEngine`) | Transport (Start/Bang/Tap-Tempo) + Metronom-Klang (`lib/taktgeber/audio/`: clock, metro, tapTempo). Liefert `onClockBeat`, das Rec/Stepseq für Sync brauchen. | `index.html`, `werkbank-leer/` |
 | **Poly-Synth** | `lib/polysynth/defs.js` / `engine.js` | Polyphone Voice-Engine: Base-Frq/Kammerton, Osc2/Detune, ADSR pro Stimme, Spiel-Tastatur (`u:playKb`), Chord-Memory, Multi-ADSR (`lib/polysynth/multiEnv.js`, vervielfältigbare Envelopes). | nur `index.html` |
 | **Stepsequenzer** | `lib/stepseq/defs.js` / `engine.js` (`createStepSeqEngine`) | Eigener Trigger-Takt (an Takt-Tempo gekoppelt via Teiler/Multiplikator), feuert auf Poly-Synth. Step-Muster als `u:seqGrid`-Unikat-Control. | nur `index.html` |
-| **Rec** | `lib/recInstrument/defs.js` / `engine.js` (`createRecEngine`) | Nimmt den gemeinsamen Master-Bus auf (alle Instrumente zusammen). Start/Stop synct auf den nächsten Downbeat von Takt/Metronom. Formate webm/mp3/wav über Header-Menü. | `index.html`, `werkbank-leer.html` |
-| **LevelMeter / "Out-Meter"** | kein eigenes defs/engine — `lib/LevelMeter.js` + bare `mountGroups` (s. Sonder-Gruppe oben) | Senkrechter Canvas-Pegelbalken (RMS+Peak-Hold), zapft den Audio-Bus (`lib/audioBus.js`) nach dem Master-Fader ab. | `index.html`, `werkbank-leer.html` |
-| **Signal-Scopes** | `lib/scope/multiScope.js` (`createScopeManager`) + `lib/SignalScope.js` (s. Sonder-Gruppe oben) | Vervielfältigbare schmale Oszilloskope, wählen per Menü eine beliebige Routing-Quelle (`routing.outputSources()`) und zeigen sie passiv an (Buffer/Auto-Range/Kurve/Meter). | `index.html`, `werkbank-leer.html` |
+| **Rec** | `lib/recInstrument/defs.js` / `engine.js` (`createRecEngine`) | Nimmt den gemeinsamen Master-Bus auf (alle Instrumente zusammen). Start/Stop synct auf den nächsten Downbeat von Takt/Metronom. Formate webm/mp3/wav über Header-Menü. | `index.html`, `werkbank-leer/` |
+| **LevelMeter / "Out-Meter"** | kein eigenes defs/engine — `lib/LevelMeter.js` + bare `mountGroups` (s. Sonder-Gruppe oben) | Senkrechter Canvas-Pegelbalken (RMS+Peak-Hold), zapft den Audio-Bus (`lib/audioBus.js`) nach dem Master-Fader ab. | `index.html`, `werkbank-leer/` |
+| **Signal-Scopes** | `lib/scope/multiScope.js` (`createScopeManager`) + `lib/SignalScope.js` (s. Sonder-Gruppe oben) | Vervielfältigbare schmale Oszilloskope, wählen per Menü eine beliebige Routing-Quelle (`routing.outputSources()`) und zeigen sie passiv an (Buffer/Auto-Range/Kurve/Meter). | `index.html`, `werkbank-leer/` |
 
 **Toter Code:** `lib/Scopes.js` (Master-Bus-Oszilloskop+Spektrum, aus teslacoil) wird nirgends
 importiert — nicht verwechseln mit den aktiven Signal-Scopes oben.
