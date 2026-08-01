@@ -58,3 +58,31 @@ grill-me für offene Fragen
 
 Bug
 Der > Button triggert (plötzlich?) bei "release" ?? man drückt ihn - nichts passiert, man released ihn - trigger.. [in diesem config](../../../Downloads/werkbank-config-20260727094003.json)
+
+-- 
+"Offene Punkte, die dabei aufgefallen sind (nicht angefasst, da außerhalb des Auftrags):
+test/adsrLenFest_smoke.py schlägt bereits vor diesen Änderungen fehl (vorbestehend).
+signalScope_smoke.py und phase2_routing_smoke.py haben vorbestehende, unabhängige Fails."
+
+tja.. da musst Du nochmal ran.. oder was meinst Du? wozu hast Du angehalten?
+
+desweiteren:
+ADR sind immer linear
+die Kurven lin bei skew >1 (z.B. =2) sollen übrigens wie die Rampe [1 - 0]² verlaufen. bei kleiner (z.B.=0.5) wie ramp[0,1]^1/2. 
+Bei log sieht es so aus, als würde es sehr steil auf die 0 zulaufen.. es ist mir klar dass bei sehr kleinen Werten auf 0 abgerundet werden muss wegen bitungenauigkeiten - das ist klar und erst bei sehr kleinen Werten 'korrekt'. Aber.. das sieht gerade nicht danach aus.. ?
+Frage: machen skew bei 'log' Sinn? Wenn nicht, dann sollen sie nicht erscheinen wenn entsprechende Abschnitte auf log gestellt sind.
+
+"ADR sind immer linear" war ungenau, sorry. Ich meinte: ADR waren auch auf log immer linear geblieben. So klarer?
+Das ist noch immer so! trotz Deiner genauen beschreibung was log macht - release auf log ist noch immer gleich der lin; geradlinig herunter. linear.. wtf??
+
+-- 20260727_135331
+besser!
+    bug: 
+        - Peak ist noch gelimmittet, was mich befürchten lässt, dass alles mögliche noch derart gelimmitet ist ("zur sicherheit lieber auf default max wert limiten") **DAS IST FALSCH!!! Und soll so nicht mehr verbaut werden!!!!** es soll stattdessen ein möglicher (Minimal- oder) MAXIMALWERT gesetzt werden! Das ist wichtig, weil der User die Limits nicht sieht (Bsp. Peak), aber die controls beliebig ändern können soll!!. bei peak soll etwa 1000000 (vorsichtig) oder +NaN (quasi alles was möglich ist) oder ähnlich gesetzt werden! ÜBERALL! Ich werde mich schon (wahrscheinllich nicht) melden wenn es irgendwo dieser Limit zu hoch ist! Ich will aber nicht für jeden scheiß control durchprobieren ob Du wieder so ein enges Limit eingebaut hast..
+        - seq > ADSR-Gate übernimmt noch nicht die Werte der seq!
+
+settings: 
+    bisher: Enter = übernehmen, ESC = verlassen.
+        das soll so bleiben ABER alle Einstellungs veränderungen sollen **direkt übernommen** werden, ohne enter drücken zu müssen. (Enter nur noch für den User zur gewohnten Sicherheit)
+    die Edit Felder mit zahlen oder Text sollen bei iihrer Sellektion selektiert werden. also nicht so: ![alt text](image-2.png), sondern so: ![alt text](image-3.png). Das funktioniert bereits mit Tab taste, aber **noch nicht beim anklicken**.
+

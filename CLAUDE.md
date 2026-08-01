@@ -7,6 +7,11 @@
 >
 > **Kernauftrag (@dpa 20260721):** „Eine der Hauptaufgaben ist in Werkbank: modulare
 > Synthesizer gebären." Alles hier ist ein Modul mit klaren Nähten – nie ad hoc dazustellen.
+>
+> **Mehrere HTML-Einstiege (@dpa 20260801):** `index.html` ist nur EIN Einstieg von mehreren,
+> alle teilen sich `lib/`+`css/`. `werkbank-leer.html` ist die neutrale Basis (Header-Funktionen
+> + Takt/Metronom/Rec/LevelMeter/Scope, kein Poly-Synth/Stepsequenzer) zum Kopieren für neue
+> Projekte – Details in [ARCHITEKTUR.md](ARCHITEKTUR.md#einstiegspunkte-pool).
 
 ## Zuerst lesen: die Karte
 
@@ -28,7 +33,8 @@ bevor du Code suchst.** Die Modul-Köpfe (erste ~30 Zeilen jeder Datei) sind aus
 - **Fazit zuerst, knapp, Deutsch.** Am Anfang kurz das Modell nennen.
 - **Erst klassifizieren, dann bauen:** Jeder neue Teil ist **Control**, **Instrument (ism)**
   oder **DSP-Baustein** (Tabelle in [docs/CONTROLS.md](docs/CONTROLS.md#die-drei-modul-sorten-der-werkbank)).
-  Unklar? **Fragen statt raten** – ausdrücklich gewünscht (@dpa 20260721).
+  Unklar? **Fragen statt raten** – ausdrücklich gewünscht (@dpa 20260721). Was aktuell schon
+  existiert (Controls/Gruppen/ISMs im Überblick): [docs/BESTAND.md](docs/BESTAND.md).
 - **Gestaltung:** kompakt (Platz sparen), kleine Ecken-Radien, sanfte/kontrastarme Rahmen
   (Vorbild Settings-Fenster) – erst die CSS-Variable in `css/main.css:2–25` prüfen, bevor
   irgendwo ein harter Wert gesetzt wird.

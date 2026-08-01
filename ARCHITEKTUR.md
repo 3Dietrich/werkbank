@@ -5,6 +5,17 @@
 > ~30 Zeilen jeder Datei) sind ausführlich; bei Unklarheit zuerst dort lesen.
 > Stand: 2026-07-27 (Routing/Scope-Zeilen ergänzt — Rest der Tabelle weiterhin vom 2026-07-23-
 > Stand, s. Hinweis am Tabellenende). Zeilenangaben sind Richtwerte, nicht exakt.
+> Inventar (welche Controls/Gruppen/ISMs es aktuell gibt): [docs/BESTAND.md](docs/BESTAND.md).
+
+## Einstiegspunkte (Pool)
+
+Werkbank ist ein Pool mehrerer HTML-Einstiege über gemeinsame `lib/`+`css/` (@dpa 20260801) –
+der Dateiname ist beliebig, keiner der Einstiege ist „der eine wahre":
+
+| Datei | Skript | Inhalt |
+|---|---|---|
+| `index.html` | `werkbank.js` | Voller Funktionsumfang: alle ISMs (Takt/Metronom, Poly-Synth, Stepsequenzer, Rec, LevelMeter, Signal-Scopes). |
+| `werkbank-leer.html` | `werkbank-leer.js` | Neutrales Basis-Scaffold: alle Header-Funktionen + nur Takt/Metronom, Rec, LevelMeter, Signal-Scopes (kein Poly-Synth, kein Stepsequenzer). Kopiervorlage für neue Projekte. |
 
 ## Bereich → Datei
 
