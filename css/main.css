@@ -460,6 +460,36 @@ body {
 .group-settings .gs-size-grid .kme-row label { flex: 0 0 44px; color: var(--muted); font-size: 10px; }
 .gs-actions { display: flex; gap: 6px; margin-top: 2px; }
 .gs-actions .pb-btn { flex: 1; }
+/* ── Controls, die NICHT auf dem Panel sitzen (@dpa dd.md 20260801) ──────────────────
+   Zweite Heimat für jedes Control: statt frei designbar auf dem Panel liegt es hier in
+   einer einheitlichen, platzsparenden Liste - „Label, Value", sonst nichts. Bewusst
+   uniform: das ist der ganze Zweck der Umschaltung, jede Panel-Optik wäre hier falsch.
+   Rechtsklick auf eine Zeile öffnet weiterhin die normalen Control-Settings. */
+.gs-offpanel { display: flex; flex-direction: column; gap: 3px; margin-top: 4px;
+  border-top: 1px solid var(--line); padding-top: 5px; }
+.gs-offpanel:empty { display: none; border-top: none; margin-top: 0; padding-top: 0; }
+.gs-offpanel-head { color: var(--muted); font-size: 9.5px; letter-spacing: .4px; opacity: .8; }
+.gs-op-row { display: flex; align-items: center; gap: 6px; min-height: 20px; }
+.gs-op-lab { flex: 1 1 auto; min-width: 0; color: var(--text); font-size: 10.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gs-op-val { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; }
+/* Einheitliche Feldbreite für alle Sorten - die Liste soll wie eine Tabelle lesbar sein,
+   nicht wie ein zweites Panel mit unterschiedlich breiten Controls. */
+.gs-op-val input[type="number"], .gs-op-val input[type="text"], .gs-op-val select {
+  flex: 0 0 72px; width: 72px; min-width: 0; background: var(--bg); border: 1px solid var(--line);
+  border-radius: 3px; color: var(--text); padding: 2px 5px; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.gs-op-val select { padding-right: 2px; }
+.gs-op-val input[type="checkbox"] { flex: 0 0 auto; accent-color: var(--accent); margin: 0; }
+.gs-op-val .pb-btn { padding: 1px 8px; font-size: 10.5px; min-width: 40px; }
+.gs-op-unit { color: var(--muted); font-size: 9.5px; }
+/* Wertlose Sorten (Note, Anzeige): dezenter Strich statt eines leeren Lochs. */
+.gs-op-none { color: var(--muted); font-size: 10px; opacity: .6; }
+/* Control ist vom Panel in die Gruppen-Settings umgezogen (@dpa dd.md 20260801, State-Key
+   `ctrlOffPanel`). Es bleibt GEBAUT und im Gruppen-DOM stehen - nur unsichtbar. Grund:
+   Combos/Snapshots sammeln über `[data-ctrl]` innerhalb der Gruppe (GroupHost
+   _comboPayloadOf); ein herausgenommenes Element fiele still aus beidem heraus.
+   `!important`, weil einzelne Fabriken ihr display selbst setzen. */
+.ctrl-offpanel { display: none !important; }
 /* align-items:flex-start → jedes Control ist nur so hoch wie sein Inhalt (kein Strecken
    auf die Reihenhöhe; „ohne Knob" endet direkt unter dem Label, @dpa 20260713). */
 .knob-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: flex-start; }
@@ -626,8 +656,13 @@ body {
    `display:none` unsichtbar, die BG-Einstellung wirkte hier also bisher NIRGENDS. Die
    knob-has-bg-Klasse existierte dafür schon (wird in Knob.js gesetzt), hatte aber noch gar
    keine Regel. Jetzt trägt die Value-Box die BG-Farbe, über die volle Reglerbreite. */
+/* width:max-content + min-width:100% (statt starrem width:100%, @dpa dd.md 20260801_2):
+   normal genau wie vorher volle Regler-Breite, aber bei großen Schriften darf die Box über
+   die 100% hinaus WACHSEN, statt den Text abzuschneiden. Die STABILE Mindestbreite (kein
+   Springen bei wechselnder Ziffernzahl) setzt Knob.js._applyView() inline in `ch` – die
+   100% hier greifen nur als Rückfall bei eigenem formatValue (dort nicht vorhersagbar). */
 .knob-size-none .knob-value {
-  width: 100%; box-sizing: border-box; text-align: center; border-radius: 4px;
+  width: max-content; min-width: 100%; box-sizing: border-box; text-align: center; border-radius: 4px;
 }
 .knob-size-none.knob-has-bg .knob-value { background: var(--knob-bg); padding: 4px 6px; }
 /* Zahlen-Anzeige weg (Dial+Label bleiben) – spart rechts Platz, z.B. Opaque-Regler in Popups. */
@@ -688,6 +723,19 @@ body {
 .kme-sorte { margin-left: auto; margin-right: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; letter-spacing: .5px; color: var(--muted); opacity: .65; }
 .kme-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; }
 .kme-close:hover { color: var(--accent2); }
+/* „Panel?"-Schalter in der Kopfzeile beider Control-Settings (@dpa dd.md 20260801):
+   sitzt das Control auf dem Panel oder nur in den Gruppen-Settings? Bewusst KEIN
+   Bezug zur „Gestalt: Ohne" des Reglers - das ist Paneldesign, das hier ist die Frage,
+   ob das Control überhaupt aufs Panel gehört. Unauffällig wie .kme-sorte daneben,
+   im Zustand „nicht auf dem Panel" in der Akzentfarbe (derselbe Kontrast wie .pb-icon.on). */
+.kme-panelbtn { --ico: 14px; background: none; border: 1px solid transparent; border-radius: 3px;
+  color: var(--muted); cursor: pointer; padding: 2px 3px; display: inline-flex; align-items: center; margin-right: 6px; }
+.kme-panelbtn:hover { color: var(--text); border-color: var(--line); }
+.kme-panelbtn.on { color: var(--accent); border-color: var(--sel-line); background: var(--sel-bg); }
+/* Off-Panel: die rein GRAFISCHEN Felder sagen nichts mehr (das Control wird ja nicht
+   gemalt) - nur abgedunkelt, NICHT gesperrt: man soll das Aussehen für die Rückkehr
+   aufs Panel schon vorbereiten können (@dpa: „das grafische könnte ausgegraut bleiben"). */
+.kme-dim-graphics .kme-row[data-graphic] { opacity: .45; }
 .kme-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
 .kme-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; row-gap: 6px; }
 /* Themen-Trenner (@dpa ddw.md 20260724, main Config: "aufgeräumt nach Themen, halb kompakt"). */

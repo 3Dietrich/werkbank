@@ -2,3 +2,10 @@
 *.bak
 __pycache__/
 dd.md
+# Screenshots, die @dpa direkt neben dd.md einfügt (private Kommunikation, s.o.) - liegen
+# lose im Repo-Root, nicht in ddw/, daher hier root-verankert statt pauschal *.png.
+/image.png
+/image-1.png
+/image-2.png
+/image-3.png
+/image-4.png

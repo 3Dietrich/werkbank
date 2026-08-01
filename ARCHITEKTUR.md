@@ -81,7 +81,15 @@ In der Werkbank gibt es keine sichtbaren ⚙-Icons. Alles wird über **Rechtskli
   Rückgabe `{ panel, setArranging(on), isArranging(), refresh() }`.
 - **State-Vertrag:** `get(key)`, `set(key, val)`, `subscribe((key, data) => …)` — MiniState erfüllt das.
   Persistenz-Keys der Optik-Ebene: `ctrlStyles · knobMeta · ctrlPos · groupPos · groupStyles ·
-  groupOrder · controlOrder`.
+  groupOrder · controlOrder · ctrlOffPanel`.
+- **Panel? — wo ein Control wohnt (@dpa dd.md 20260801):** `ctrlOffPanel` (`data-ctrl-id → true`)
+  nimmt ein Control vom Panel und zeigt es stattdessen als kompakte Label+Wert-Zeile am Fuß der
+  Gruppen-Settings. Der Schalter sitzt in der Kopfzeile beider Control-Settings-Panels; die
+  Panels selbst kennen die Bedeutung nicht, GroupHost reicht ihnen zwei Hooks rein
+  (`offPanelGet(id)` / `onOffPanel(id, off)`). **Das Control bleibt gebaut und im Gruppen-DOM**
+  (nur CSS-Klasse `.ctrl-offpanel`) — Combos/Snapshots sammeln über `[data-ctrl]` innerhalb der
+  Gruppe, ein herausgenommenes Element fiele still aus beidem. Nicht verwechseln mit der
+  Regler-Gestalt „Ohne" (`viewSize:'none'`): das ist Paneldesign, kein Umzug.
 - **Settings-Panels → Control:** `onApply(id, style)` schreibt `state.ctrlStyles[id]`; die
   DOM-Anwendung macht der Aufrufer (`target.applyStyle`). Settings verstellen NIE Control-Werte.
 - **Buttons → Audio:** `onAction(id)` mit den Button-ids aus defs (`start/bang/bang2/slow/fast/

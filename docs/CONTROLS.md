@@ -75,6 +75,27 @@ Routing-Nähte (Ports/Registry/Latenz) im Detail: [PHASE2_SPEC.md](../PHASE2_SPE
 | **e-Mode** (Taste `e`) | frei verschiebbar, per Klick/Shift-Klick/Gummiband auswählbar. Dort wird **nichts** bedient (`arranging`-Sperre). 10px-Raster, Shift = 1px fein. |
 | **Tasten / MIDI** | die zwei Header-Schalter legen ein Overlay über ALLE Controls: pro Control ein Feld zum Tastenbelegen bzw. ein 🎹 zum MIDI-Learn ([KeyMidi.js](../lib/keymidi/KeyMidi.js)). |
 | **Optik** | Beschriftung, Farben und Maße liegen in der Optik-Ebene (`ctrlStyles` bzw. `knobMeta`) – sie überleben einen Snapshot-Recall unverändert. Settings verstellen **nie** einen Wert. |
+| **Panel?** | Der Knopf oben in den Control-Settings entscheidet, **wo das Control wohnt**: auf dem Panel (frei designbar) oder nur in den Gruppen-Settings (s.u.). Umschalten wirkt sofort aufs Panel, das Settings-Fenster bleibt offen (ESC/✕ schließt). |
+
+### Panel oder Gruppen-Settings (@dpa dd.md 20260801)
+
+Jedes Control hat zwei mögliche Heimaten – der **Panel?**-Knopf in der Kopfzeile seiner
+Settings schaltet um:
+
+| | Wo | Aussehen |
+|---|---|---|
+| **A – auf dem Panel** (Default) | in seiner Gruppe auf der Fläche | frei designbar: Gestalt, Farben, Maße, Position |
+| **B – in den Gruppen-Settings** | als Zeile in der Liste am Fuß der Gruppen-Settings | einheitlich und platzsparend: nur **Label + Wert** |
+
+Das ist eine **andere Ebene als „Gestalt: Ohne"** (`viewSize:'none'`) beim Regler: die
+Gestalt ist Paneldesign (Knob ohne Dial, aber weiterhin AUF dem Panel), Panel? entscheidet,
+ob das Control überhaupt aufs Panel gehört. Beides ist frei kombinierbar.
+
+Off-panel ist die Panel-Optik bedeutungslos – die rein grafischen Felder der Settings sind
+darum abgegraut, bleiben aber bedienbar (man kann das Aussehen für die Rückkehr aufs Panel
+vorbereiten). Die Tontechnik (Min/Max/Kurve/Einheit/Default/Modus) bleibt normal nutzbar,
+erreichbar per Rechtsklick auf die Listenzeile. Persistenz: `ctrlOffPanel` (Optik-Ebene,
+`id → true`), Teil der `LAYOUT_KEYS` – ein Sound-Snapshot fasst es nie an.
 
 ## Die Settings-Ebenen
 
