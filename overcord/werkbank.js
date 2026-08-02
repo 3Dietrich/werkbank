@@ -1284,7 +1284,10 @@ window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Hake
 const ensembleMenu = new PickMenu({
     label: '',
     empty: '⭐ Ensemble',
-    title: 'Zustand mehrerer Instrumente zusammen speichern/laden (Master-Fader bleibt außen vor)',
+    // Rechtsklick-Hinweis ergänzt (@dpa ddw.md 20260802_234615 Punkt 4: "Farb setting für
+    // Ensemble BG" — die Farbe (ctrlStyles['hdr:ensemble'].bg0) gab es technisch schon über
+    // ElementSettings (Rechtsklick), war aber nirgends als Weg dorthin erwähnt).
+    title: 'Zustand mehrerer Instrumente zusammen speichern/laden (Master-Fader bleibt außen vor) · Rechtsklick = Einstellungen (Farbe/Größe)',
     noContextOpen: true,
     list: () => ensembleStore.list(),
     current: () => ensembleState.get('ensembleSnapSel') || '',

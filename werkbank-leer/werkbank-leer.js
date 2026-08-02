@@ -542,7 +542,8 @@ window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Hake
 const ensembleMenu = new PickMenu({
     label: '',
     empty: '⭐ Ensemble',
-    title: 'Zustand mehrerer Instrumente zusammen speichern/laden (Master-Fader bleibt außen vor)',
+    // Rechtsklick-Hinweis ergänzt (1:1 aus overcord/werkbank.js, ddw.md 20260802_234615 Punkt 4).
+    title: 'Zustand mehrerer Instrumente zusammen speichern/laden (Master-Fader bleibt außen vor) · Rechtsklick = Einstellungen (Farbe/Größe)',
     noContextOpen: true,
     list: () => ensembleStore.list(),
     current: () => ensembleState.get('ensembleSnapSel') || '',
