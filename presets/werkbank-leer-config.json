@@ -34,12 +34,12 @@
           "textOff": "💬 Hints"
         },
         "hdr:cfgmenu": {
-          "label": "⚙ Config",
+          "label": "Config",
           "labelPos": "off",
           "btnMode": "toggle",
           "bg": "#444444",
-          "textOn": "⚙ Config",
-          "textOff": "⚙ Config"
+          "textOn": "Config",
+          "textOff": "Config"
         },
         "hdr:headerreset": {
           "label": "🔇 Reset",
