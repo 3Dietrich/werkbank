@@ -1128,7 +1128,7 @@ const ensembleStore = createEnsembleStore(ensembleState, [
     {
         lsKey: STEPSEQ_LS, state: stepSeqState, allSoundValues: () => stepSeq.allSoundValues(),
         snapExtra: () => sqManager.snapshotExtra(),
-        onRecalled: (extra) => sqManager.recallSnapshot(extra),
+        onRecalled: (extra, values) => sqManager.recallSnapshot(extra, values),
     },
     { lsKey: REC_LS, state: recState, allSoundValues: () => rec.allSoundValues() },
 ]);
@@ -1613,7 +1613,7 @@ const stepSeqInstr = mountInstrumentSettings(document.querySelector('#bench-step
     // gebauten Sequenzer zurück (@dpa 20260725: Snapshot stellte gelöschte Sequenzer + deren
     // Ansichten nicht wieder her). recallSnapshot() setzt Anzahl, stellt die Optik her und baut.
     snapExtra: () => sqManager.snapshotExtra(),
-    onSnapRecalled: (extra) => sqManager.recallSnapshot(extra),
+    onSnapRecalled: (extra, values) => sqManager.recallSnapshot(extra, values),
 });
 const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), recState, { bodySelector: '#rec', host: rec });
 window.__takt.instr = taktInstr;
