@@ -35,7 +35,9 @@ Nur über einen lokalen Server (ES-Module, kein `file://`). **Port 8002:**
 cd ~/Music/KI_html/werkbank && python3 -m http.server 8002 & sleep 1 && open http://localhost:8002/
 ```
 
-→ <http://localhost:8002/>. **`Address already in use`** = der Port ist von einem früheren
+→ <http://localhost:8002/> zeigt die Landing-Page mit der Ensemble-Auswahl (aktuell
+[Overcord](overcord/) – der volle Baukasten – und [Leer](werkbank-leer/) – die
+Kopiervorlage). **`Address already in use`** = der Port ist von einem früheren
 Server belegt → `kill $(lsof -ti :8002)`, oder den laufenden weiterbenutzen.
 
 ## Was drin ist
@@ -75,8 +77,8 @@ Details im Kopf-Kommentar jeder Datei und in [ARCHITEKTUR.md](ARCHITEKTUR.md#nä
 - **UI ↔ Audio:** `onAction(id)` (Button → Engine) und `onApply(id, style)` (Settings →
   Control-Optik). defs/GroupHost wissen nichts von Audio, engine nichts von UI.
 
-`MiniState.js` und `werkbank.js` sind das **Gerüst** der Werkbank, nicht ihr Inhalt – nicht
-zum Rüberkopieren gedacht.
+`MiniState.js` und `overcord/werkbank.js` sind das **Gerüst** der Werkbank, nicht ihr Inhalt –
+nicht zum Rüberkopieren gedacht.
 
 ## Testen
 

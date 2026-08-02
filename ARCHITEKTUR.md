@@ -3,24 +3,28 @@
 > **Zweck:** Eine KI (auch ein kleines Modell) soll für einen ddw.md-Punkt NUR diese Karte
 > + die 1–2 Zieldateien laden müssen — nicht das ganze Projekt. Die Modul-Köpfe (erste
 > ~30 Zeilen jeder Datei) sind ausführlich; bei Unklarheit zuerst dort lesen.
-> Stand: 2026-07-27 (Routing/Scope-Zeilen ergänzt — Rest der Tabelle weiterhin vom 2026-07-23-
-> Stand, s. Hinweis am Tabellenende). Zeilenangaben sind Richtwerte, nicht exakt.
+> Stand: 2026-08-02 (Landing-Page + overcord/-Umzug ergänzt — Rest der Tabelle weiterhin vom
+> 2026-07-23-Stand, s. Hinweis am Tabellenende). Zeilenangaben sind Richtwerte, nicht exakt.
 > Inventar (welche Controls/Gruppen/ISMs es aktuell gibt): [docs/BESTAND.md](docs/BESTAND.md).
 
 ## Einstiegspunkte (Pool)
 
 Werkbank ist ein Pool mehrerer HTML-Einstiege über gemeinsame `lib/`+`css/` (@dpa 20260801) –
-der Dateiname ist beliebig, keiner der Einstiege ist „der eine wahre":
+der Dateiname ist beliebig, keiner der Einstiege ist „der eine wahre". `/` selbst ist seit
+20260802 kein Ensemble mehr, sondern eine schlanke **Landing-Page** ([index.html](index.html),
+rein statisch, kein `lib/`-Verdrahten) mit Ensemble-Auswahl + ein paar Bedienungstipps für
+Neulinge.
 
 | URL | Datei | `data-app` | Daten | Inhalt |
 |---|---|---|---|---|
-| `/` | `index.html` + `werkbank.js` | `werkbank` | `werkbank_*` · `presets/werkbank-config.json` | Voller Funktionsumfang: alle ISMs (Takt/Metronom, Poly-Synth, Stepsequenzer, Rec, LevelMeter, Signal-Scopes). |
+| `/` | `index.html` | – | – | Landing-Page: Verlinkt alle Ensembles + kurze Bedien-Tipps (Space/Snapshots/e/Rechtsklick/ESC). |
+| `/overcord` | `overcord/index.html` + `overcord/werkbank.js` | `werkbank` | `werkbank_*` · `presets/werkbank-config.json` | Voller Funktionsumfang: alle ISMs (Takt/Metronom, Poly-Synth, Stepsequenzer, Rec, LevelMeter, Signal-Scopes). Bis 20260802 die Wurzel-`index.html`; `data-app` blieb bewusst `werkbank`, keine Migration. |
 | `/werkbank-leer` | `werkbank-leer/index.html` + `werkbank-leer/werkbank-leer.js` | `werkbank-leer` | `werkbank-leer_*` · `presets/werkbank-leer-config.json` | Neutrales Basis-Scaffold: alle Header-Funktionen + nur Takt/Metronom, Rec, LevelMeter, Signal-Scopes (kein Poly-Synth, kein Stepsequenzer). Kopiervorlage für neue Projekte. |
 
-**Jeder Einstieg außer dem Root liegt in einem eigenen Unterordner** (@dpa dd.md
-20260801_3) – das gibt saubere URLs (`/werkbank-leer` statt `/werkbank-leer.html`) und hält
-die Dateien eines Projekts beisammen. `index.html` bleibt im Wurzelverzeichnis, es ist die
-Landing-Page. Aus einem Unterordner zeigen `css/`+`lib/` per `../` nach oben; die
+**Jeder Ensemble-Einstieg liegt in einem eigenen Unterordner** (@dpa dd.md 20260801_3,
+seit 20260802 auch `overcord/`) – das gibt saubere URLs (`/overcord` statt `/overcord.html`)
+und hält die Dateien eines Projekts beisammen. Nur die Landing-Page `index.html` bleibt im
+Wurzelverzeichnis. Aus einem Unterordner zeigen `css/`+`lib/` per `../` nach oben; die
 Demo-Datei löst [lib/appId.js](lib/appId.js) über `import.meta.url` auf, damit sie aus
 **jeder** Ordnertiefe im einen `presets/` landet (ein relativer Pfad würde sonst still zu
 `/werkbank-leer/presets/…` und der Erstbesuch bliebe ohne Demo-Stand).
@@ -35,10 +39,11 @@ Schema+Host+**Port**), darum brauchte es nie eigenen Code dafür. Seit mehrere H
 EINEM Port liegen, fällt das weg: gleicher Port = gleicher localStorage. Deshalb setzt
 jede Seite ihr `<html data-app="…">`, und `lsKey(name)` macht daraus ihre Key-Namen.
 
-Eine **neue Kopie** (z.B. `werkbank-drone.html`) braucht nur ein eigenes `data-app` — und
+Eine **neue Kopie** (z.B. `werkbank-drone/`) braucht nur ein eigenes `data-app` — und
 hat damit automatisch eigene Instrumenten-Stände **und** eine eigene Demo-Datei
 `presets/<data-app>-config.json`. Keine Liste, die man dafür pflegen müsste. Der Default
-ist `werkbank`, damit `index.html` seine bisherigen Key-Namen behält (keine Migration).
+ist `werkbank`, damit `overcord/index.html` (die frühere Wurzel-`index.html`) seine
+bisherigen Key-Namen behält (keine Migration).
 Import biegt fremde Präfixe über `toOwnKey()` auf den eigenen Einstieg um, sonst ließe
 sich ein Export nur dort einlesen, wo er entstanden ist.
 
@@ -46,7 +51,7 @@ sich ein Export nur dort einlesen, wo er entstanden ist.
 
 | UI-Bereich / Thema | Datei | Kern |
 |---|---|---|
-| Seiten-Aufbau, Demo-Verdrahtung | `werkbank.js` (769 Z.) | bewusst dünn (Demo-Bausteinschaukasten seit Phase 0.3 raus), verdrahtet nur die ISMs |
+| Seiten-Aufbau, Demo-Verdrahtung | `overcord/werkbank.js` (769 Z.) | bewusst dünn (Demo-Bausteinschaukasten seit Phase 0.3 raus), verdrahtet nur die ISMs |
 | Gruppen, e-Mode (Anordnen), Control-Fabriken | `lib/group/GroupHost.js` (1055 Z.) | `mountGroups()`, Port aus teslacoil |
 | Knob/Fader-Control selbst (Zeichnung, Drag) | `lib/Knob.js` (707 Z.) | SVG-Knob, Kurven, Gestalten |
 | Knob-Settings-Panel (Gestalt/Größe/Farbe/Range) | `lib/KnobMetaEditor.js` (505 Z.) | Rechtsklick auf Knob |
@@ -64,7 +69,7 @@ sich ein Export nur dort einlesen, wo er entstanden ist.
 | Icons | `lib/icons.js` (103 Z.) | `icon(name)`, `ICON_NAMES` |
 | State (get/set/subscribe + localStorage) | `lib/MiniState.js` (50 Z.) | Minimal-Vertrag, s. Nähte |
 | Kompakte Gruppen-Settings | `lib/MiniSettings.js` (136 Z.) | |
-| Instrument-Settings (BG/Größe/Name/Breite/Höhe/Verschieben, `[?]`-Hilfe+Edit) | `lib/InstrumentSettings.js` | `mountInstrumentSettings()`, aufgerufen aus `werkbank.js` |
+| Instrument-Settings (BG/Größe/Name/Breite/Höhe/Verschieben, `[?]`-Hilfe+Edit) | `lib/InstrumentSettings.js` | `mountInstrumentSettings()`, aufgerufen aus `overcord/werkbank.js` |
 | Mini-Markdown (Instrument-Hilfe editierbar) | `lib/miniMarkdown.js` | `mdToHtml()`, `htmlToMdApprox()` |
 | Panels verschiebbar machen | `lib/dragPanel.js` (40 Z.) | `makeDraggable()` |
 | Tastatur-Routing (wann greifen globale Keys) | `lib/keyRoute.js` (53 Z.) | `globalKeyOk`, `arrowKeyOk` |
@@ -93,7 +98,7 @@ In der Werkbank gibt es keine sichtbaren ⚙-Icons. Alles wird über **Rechtskli
 
 | Ebene | Wo (Rechtsklick) | Modul | Inhalt |
 |---|---|---|---|
-| **Ensemble** | Header "Config" (Linksklick) | `werkbank.js` (`cfgPanel`) | Globale Optik (Labels, Gruppen-Köpfe), Sprache, Export/Import/Reset. |
+| **Ensemble** | Header "Config" (Linksklick) | `overcord/werkbank.js` (`cfgPanel`) | Globale Optik (Labels, Gruppen-Köpfe), Sprache, Export/Import/Reset. |
 | **Instrument** (ISM) | ISM-Header (auf Name) | `lib/InstrumentSettings.js` | Name, BG-Farbe, Zoom, Position, **ISM-Snapshots** (Werte aller Gruppen). |
 | **Gruppe** | Gruppen-Header | `lib/group/GroupHost.js` | Name, BG/VG-Farbe, Breite/Höhe, **Combos** (Optik-Pool) + **Snapshots** (Werte-Pool). |
 | **Control (Knob)** | Auf den Regler | `lib/KnobMetaEditor.js` | Min/Max/Step, Kurve/Skew, Default, Einheit, Gestalt (Fader/Knob), Design-Presets. |
@@ -164,12 +169,12 @@ Unklar? Fragen statt raten — das ist ausdrücklich gewünscht, nicht optional.
 ## Arbeitsregeln für die KI (Kurzfassung)
 
 1. ddw.md-Punkt lesen → hier den Bereich nachschlagen → NUR Zieldatei(en) + deren
-   Kopf-Kommentar laden. `werkbank.js` fast nie nötig.
+   Kopf-Kommentar laden. `overcord/werkbank.js` fast nie nötig.
 2. Gestaltung: kompakt (Platz sparen), kleine Ecken-Radien, sanfte Rahmen. Nichts
    „gefixt" nennen, was @dpa noch nicht gesehen/gehört hat.
 3. Ein Change pro Hördurchgang bei Klang-Themen; keine stillen Deckel/Limits.
 4. Prüfen: `node --test lib/taktgeber/test/` für die Logik-Tests; UI-Änderungen
-   headless per Playwright gegen `index.html` (Hard-Timeout 30–45 s, kein Pollen).
+   headless per Playwright gegen `overcord/index.html` (Hard-Timeout 30–45 s, kein Pollen).
    `lib/group/_selftest.html` existiert für GroupHost.
 5. Originaldateien in `lib/taktgeber/` sind Referenz-Altbestand — dort nichts ändern.
 6. Neuer Teil unklarer Sorte (Control/Instrument/DSP-Baustein)? Erst nachschlagen

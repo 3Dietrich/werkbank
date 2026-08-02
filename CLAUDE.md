@@ -8,10 +8,13 @@
 > **Kernauftrag (@dpa 20260721):** „Eine der Hauptaufgaben ist in Werkbank: modulare
 > Synthesizer gebären." Alles hier ist ein Modul mit klaren Nähten – nie ad hoc dazustellen.
 >
-> **Mehrere HTML-Einstiege (@dpa 20260801):** `index.html` ist nur EIN Einstieg von mehreren,
-> alle teilen sich `lib/`+`css/`. `werkbank-leer/` (URL `/werkbank-leer`) ist die neutrale Basis (Header-Funktionen
-> + Takt/Metronom/Rec/LevelMeter/Scope, kein Poly-Synth/Stepsequenzer) zum Kopieren für neue
-> Projekte – Details in [ARCHITEKTUR.md](ARCHITEKTUR.md#einstiegspunkte-pool).
+> **Mehrere HTML-Einstiege (@dpa 20260801, Landing-Page seit 20260802):** Die Wurzel `/`
+> ist eine schlanke, statische Landing-Page ([index.html](index.html)) mit Ensemble-Auswahl +
+> Newbie-Tipps – kein Ensemble mehr. Die Ensembles liegen je in eigenem Unterordner und teilen
+> sich `lib/`+`css/`: [overcord/](overcord/) (URL `/overcord`, voller Baukasten – die frühere
+> Wurzel-`index.html`) und `werkbank-leer/` (URL `/werkbank-leer`, neutrale Basis:
+> Header-Funktionen + Takt/Metronom/Rec/LevelMeter/Scope, kein Poly-Synth/Stepsequenzer) zum
+> Kopieren für neue Projekte – Details in [ARCHITEKTUR.md](ARCHITEKTUR.md#einstiegspunkte-pool).
 >
 > **Jeder Einstieg hat eigene Daten (@dpa dd.md 20260801_2):** `<html data-app="…">` bestimmt
 > über [lib/appId.js](lib/appId.js) die localStorage-Keys (`werkbank_*` / `werkbank-leer_*`)
