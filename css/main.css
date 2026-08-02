@@ -414,14 +414,40 @@ body {
 /* Titelleiste: Klapp-Button + ziehbarer Name + Settings */
 /* Höhe/Schriftgröße global einstellbar (@dpa ddw.md 20260724, main Config: "Gruppen header
    Schriftgröße und gruppen header Höhe einstellbar") — min-height statt height, damit ein
-   zu klein gesetzter Wert den Inhalt (Knöpfe/Icons) nicht abschneidet. */
-.group-title-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; cursor: grab; min-height: var(--grp-head-h, auto); }
+   zu klein gesetzter Wert den Inhalt (Knöpfe/Icons) nicht abschneidet.
+   Farblich vom Rest abgesetzt + sanftes Hover (@dpa ddw.md 20260802 Punkt 5): randlos bis
+   an die Gruppen-Kante (negative Margins gleichen .group's eigenes Padding aus), oben
+   gerundet wie die Gruppe selbst. --panel2 ist der etablierte "eine Stufe heller"-Ton
+   (Settings-Popups nutzen ihn genauso, s. .group-settings/.mv-lim-pop) — kein neuer Wert. */
+.group-title-bar {
+  display: flex; align-items: center; gap: 4px; cursor: grab;
+  min-height: var(--grp-head-h, auto);
+  /* Vertikal bewusst OHNE Padding (@dpa-Regel „limits ≠ default", CLAUDE.md „keine
+     versteckten Limits"): jedes zusätzliche feste px hier wäre selbst wieder ein
+     Mindestmaß, das die Größe/Höhe-Vorgabe nicht mehr unterschreiten könnte. Die
+     sichtbare Höhe ergibt sich rein aus Inhalt (Icon/Text, beide an --grp-head-size
+     gekoppelt) + der einstellbaren --grp-head-h. */
+  margin: -7px -8px 8px -8px; padding: 0 8px; border-radius: 5px 5px 0 0;
+  background: var(--panel2);
+}
+.group-title-bar:hover {
+  /* Kontrastarm, wie überall im Projekt (Vorbild Settings-Fenster) — ein dünner heller
+     Schleier über --panel2, kein Farbwechsel wie bei Selektion/e-Mode. */
+  background: linear-gradient(rgba(255,255,255,.05), rgba(255,255,255,.05)), var(--panel2);
+}
 .group-title-bar:active { cursor: grabbing; }
 .group-title { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: var(--grp-head-size, 10px); flex: 1; user-select: none; }
 .group-collapse, .group-settings-btn {
-  background: none; border: none; color: var(--muted); cursor: pointer; font-size: 10px;
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  /* Icon-Größe folgt der Kopf-Schriftgröße (@dpa ddw.md 20260802 Punkt 5-Bugfix: „Größe 8,
+     Höhe 0 sieht immernoch groß genug aus" — Ursache war HIER, nicht bei --grp-head-h: das
+     Klapp-Icon stand fest auf 12px, unabhängig von --grp-head-size, und diktierte damit die
+     sichtbare Zeilenhöhe, egal wie klein Schrift/Mindesthöhe gesetzt waren. „limits ≠
+     default" (CLAUDE.md): kein zusätzlicher JS-Deckel, die Variable reicht 1:1 durch —
+     auch ein winziger/kaum lesbarer Wert bleibt dem User überlassen). */
+  font-size: var(--grp-head-size, 10px);
   padding: 0 2px; opacity: .5; line-height: 1;
-  display: inline-flex; align-items: center; --ico: 12px;
+  display: inline-flex; align-items: center; --ico: var(--grp-head-size, 12px);
 }
 .group-collapse:hover, .group-settings-btn:hover { opacity: 1; color: var(--accent); }
 /* Zugeklappt: derselbe Pfeil, nur gedreht – eine Aussage, ein Zeichen. */

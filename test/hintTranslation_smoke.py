@@ -54,9 +54,11 @@ try:
         time.sleep(0.1)
 
         # ── Sprache auf English (⚙-Fenster, lib/SettingsWindow.js: Menü statt Knopfpaar) ──
+        # .first: seit der Backups-Sektion (ddw.md 20260802 Punkt 4) gibt es ein zweites
+        # .sw-select (Backup-Auswahl) — Sprache steht zuerst im Fenster, bleibt also das erste.
         pg.locator('#cfgmenu').click()
         panel = pg.locator('.sw-window:visible')
-        panel.locator('.sw-select').select_option('en')
+        panel.locator('.sw-select').first.select_option('en')
         time.sleep(0.1)
         panel.locator('.sw-close').click()
 

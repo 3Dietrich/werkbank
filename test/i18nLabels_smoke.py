@@ -46,9 +46,11 @@ try:
         check('Takt / Metronom' in titles_de_before, f"Default sollte Deutsch sein, war {titles_de_before!r}")
 
         # ── EN umschalten (über das main-Config-Panel, echter Bedienweg) ──
+        # .first: seit der Backups-Sektion (ddw.md 20260802 Punkt 4) gibt es ein zweites
+        # .sw-select (Backup-Auswahl) — Sprache steht zuerst im Fenster, bleibt also das erste.
         pg.locator('#cfgmenu').click()
         panel = pg.locator('.sw-window:visible')
-        panel.locator('.sw-select').select_option('en')
+        panel.locator('.sw-select').first.select_option('en')
         time.sleep(0.1)
         panel.locator('.sw-close').click()
 
@@ -65,7 +67,7 @@ try:
         # ── zurück auf Deutsch: Originaltexte wieder da ──
         pg.locator('#cfgmenu').click()
         panel2 = pg.locator('.sw-window:visible')
-        panel2.locator('.sw-select').select_option('de')
+        panel2.locator('.sw-select').first.select_option('de')
         time.sleep(0.1)
         panel2.locator('.sw-close').click()
 
@@ -93,14 +95,14 @@ try:
         # Sprache hin und zurück — der custom Name darf NIE zu 'Octaves'/'Oktaven' zurückspringen.
         pg.locator('#cfgmenu').click()
         panel3 = pg.locator('.sw-window:visible')
-        panel3.locator('.sw-select').select_option('en')
+        panel3.locator('.sw-select').first.select_option('en')
         time.sleep(0.1)
         after_en = pg.evaluate("""() => {
             const l = [...document.querySelectorAll('.knob-label')].find(l => l.textContent === 'MeineOktaven');
             return l ? l.textContent : 'NOTFOUND';
         }""")
         check(after_en == 'MeineOktaven', f"Custom-Name sollte Sprachwechsel überstehen (nicht übersetzt werden), war {after_en!r}")
-        panel3.locator('.sw-select').select_option('de')
+        panel3.locator('.sw-select').first.select_option('de')
         time.sleep(0.1)
         panel3.locator('.sw-close').click()
 
