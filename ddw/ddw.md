@@ -31,7 +31,7 @@ mir ist etwas durcheinander gekommen.. bitte prüf ob Du die Punkte schon gemach
     Limiter: 
         da must du nochmal ran: das clipped quasi immer wenn es auf 0dB limittet, was den Limiter quasi sinnlos macht. Ich will zunächste das Signal anschauen können (via scope). um dann zu entscheiden was da clipped Anschlüsse müssten dafür vorhanden sein, siehe oben.
     Scope: Usageverbesserung:
-        Scope selbst hat ja nur Genauigkeit, alles andere ist in Scope- Gruppen Settings. Diese beiden Einstellungen vereinen, oder auf dem Scope NUR die vollständigen Scope einstellungen (Buffer, Höhe,..) und in der Grupper nur die stndard Gruppen settings? 
+        Scope selbst hat in Settings ja eigentlich nur Frame/Sample Umschalter, alles andere ist in Scope- Gruppen Settings. Diese beiden Einstellungen vereinen, oder auf dem Scope NUR die vollständigen Scope einstellungen (Buffer, Höhe,..) und in der Grupper nur die stndard Gruppen settings? 
 
     Config: 
         - zwei Icons im Button das erste kann bleiben
@@ -74,3 +74,16 @@ Ringpuffer! genau!! jo geil! Der ist die Lösung für die "Kette"/n, da kann man
 
 WS Button erzeugt direkt Verzerrung. trotz Limiter! Da ist noch etwas mit dessen Lautsärke.
 Der Wunsch Dir ein Debug übergeben zu können ist gerade groß, deswegen zusätzlich oder extra session oder subagent, entscheide Du: bei teslacoil die debug Gruppe.. die will ich auch in beiden, werkbank-leer und overcord.
+
+Notiz für mich :
+Verstanden – der Knick kam vom Umschalten zwischen linearem und tanh-Stück (Sprung in der zweiten Ableitung an der Nahtstelle). Ich baue stattdessen eine einzige durchgehend glatte Formel mit dem x^1.7-Exponenten: die "inverse Potenz"-Sättigungskurve y = x / (1 + |x|^n)^(1/n) – bei n=1 der klassische einfache Soft-Clipper, für n→∞ nähert sie sich einem harten Clip an, n=1.7 liegt dazwischen. Slope bei 0 ist analytisch exakt 1, ganz ohne Bruchstelle.
+
+
+`Note` hat noch kein Icon für die Panel-weg --> Settings Anzeige
+Scope: 
+    die Umschaltung Frame/Sample führt immer zu einer minifizierung der Ansicht. es soll sic h seine größe merken können. Und: Zeile 33f
+    
+    Außerdem auch Zeile 36-43
+    
+    und ich brauche noch enien header Button für den e-Mode
+    alle header Buttons sollen Button Settings, key- und Midilearn haben 
