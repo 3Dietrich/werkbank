@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <!-- data-app = Kennung dieses Pool-Einstiegs (@dpa dd.md 20260801_2, s. lib/appId.js):
      bestimmt die localStorage-Keys (werkbank_*) UND die Demo-Datei
-     (presets/werkbank-config.json). 'werkbank' ist der Default-Wert, index.html behält
-     damit exakt seine bisherigen Keys — kein Migrationsschritt für bestehende Browser. -->
+     (presets/werkbank-config.json). 'werkbank' bleibt bewusst der data-app-Wert, obwohl
+     die Datei jetzt in overcord/ liegt (@dpa dd.md 20260802: Ordner-Umzug von index.html
+     nach overcord/) — der Ordnername ist nur das Ensemble-Etikett ("Overcord"), die
+     bisherigen Keys/Demo-Datei bleiben unverändert erreichbar, kein Migrationsschritt. -->
 <html lang="de" data-app="werkbank">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Werkbank – Bausteine</title>
-<link rel="stylesheet" href="css/main.css" />
-<link rel="stylesheet" href="css/werkbank.css" />
+<title>Werkbank – Overcord</title>
+<link rel="stylesheet" href="../css/main.css" />
+<link rel="stylesheet" href="../css/werkbank.css" />
 </head>
 <body>
 <div class="topbar">
@@ -99,10 +101,10 @@
 
 <!-- Klassisches Skript, VOR dem type=module-Skript: hängt globalThis.lamejs auf
      (siehe lib/vendor/lame.js, Rec-Instrument-TODO 3 – MP3-Encoder). -->
-<script src="lib/vendor/lame.js"></script>
+<script src="../lib/vendor/lame.js"></script>
 <!-- Erstbesuch-Demo-Stand (presets/default-config.json) VOR der App in den
      localStorage legen — nur leere Keys, nie überschreiben (s. Datei-Kopf). -->
-<script type="module" src="lib/defaultConfig.js"></script>
+<script type="module" src="../lib/defaultConfig.js"></script>
 <script type="module" src="werkbank.js"></script>
 </body>
 </html>

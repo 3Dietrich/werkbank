@@ -10,47 +10,47 @@
  * lib/appId.js (`<html data-app>`). Für DIESE Seite ist das der Default 'werkbank', die
  * Keys heißen also unverändert werkbank_* — die Trennung kostet index.html nichts.
  */
-import { lsKey, toOwnKey } from './lib/appId.js';
-import { MiniState } from './lib/MiniState.js';
-import { mountInstrumentSettings } from './lib/InstrumentSettings.js';
-import { HintBubble } from './lib/HintBubble.js';
-import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js';
-import { factoryHint } from './lib/hints.js';
-import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from './lib/i18n.js';
-import { SettingsWindow } from './lib/SettingsWindow.js';
-import { buildMainSettings } from './lib/mainSettings.js';
-import { wireGlobalLook } from './lib/globalLook.js';
-import { installSelectOnFocus } from './lib/selectOnFocus.js';
-import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
-import { PickMenu } from './lib/PickMenu.js';
-import { createEnsembleStore } from './lib/EnsembleStore.js';
-import { ElementSettings } from './lib/ElementSettings.js';
-import { taktMetroDefs } from './lib/taktmetro/defs.js';
-import { createTaktEngine } from './lib/taktmetro/engine.js';
-import { MP3_CBR_PRESETS } from './lib/mp3Encoder.js';
-import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from './lib/wavEncoder.js';
-import { polySynthDefs } from './lib/polysynth/defs.js';
-import { createPolySynthEngine } from './lib/polysynth/engine.js';
-import { PlayKeyboard } from './lib/polysynth/ui/PlayKeyboard.js';
-import { ChordMemory } from './lib/polysynth/ui/ChordMemory.js';
-import { BaseKeyboard } from './lib/polysynth/ui/BaseKeyboard.js';
-import { Readout } from './lib/polysynth/ui/Readout.js';
-import { midiToName, freqToMidi, NOTE_NAMES } from './lib/polysynth/pitch/Scaler.js';
-import { stepSeqDefs } from './lib/stepseq/defs.js';
-import { createStepSeqEngine } from './lib/stepseq/engine.js';
-import { StepSeqGrid } from './lib/stepseq/ui/StepSeqGrid.js';
-import { createSqManager } from './lib/stepseq/multiSq.js';
-import { makeWorkerTicker } from './lib/workerTicker.js';
-import { recInstrumentDefs } from './lib/recInstrument/defs.js';
-import { createRecEngine } from './lib/recInstrument/engine.js';
-import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from './lib/audioBus.js';
-import { createRoutingRegistry, bindPorts } from './lib/routing/Registry.js';
-import { knobWrites, buttonWrites } from './lib/routing/portGen.js';
-import { createStructureView } from './lib/routing/StructureView.js';
-import { LevelMeter } from './lib/LevelMeter.js';
-import { createScopeManager } from './lib/scope/multiScope.js';
-import { icon } from './lib/icons.js';
-import { mdToHtml, htmlToMdApprox } from './lib/miniMarkdown.js';
+import { lsKey, toOwnKey } from '../lib/appId.js';
+import { MiniState } from '../lib/MiniState.js';
+import { mountInstrumentSettings } from '../lib/InstrumentSettings.js';
+import { HintBubble } from '../lib/HintBubble.js';
+import { createMasterVolume, masterVolumeDefaults } from '../lib/MasterVolume.js';
+import { factoryHint } from '../lib/hints.js';
+import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
+import { SettingsWindow } from '../lib/SettingsWindow.js';
+import { buildMainSettings } from '../lib/mainSettings.js';
+import { wireGlobalLook } from '../lib/globalLook.js';
+import { installSelectOnFocus } from '../lib/selectOnFocus.js';
+import { mountGroups, kbStyle } from '../lib/group/GroupHost.js';
+import { PickMenu } from '../lib/PickMenu.js';
+import { createEnsembleStore } from '../lib/EnsembleStore.js';
+import { ElementSettings } from '../lib/ElementSettings.js';
+import { taktMetroDefs } from '../lib/taktmetro/defs.js';
+import { createTaktEngine } from '../lib/taktmetro/engine.js';
+import { MP3_CBR_PRESETS } from '../lib/mp3Encoder.js';
+import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from '../lib/wavEncoder.js';
+import { polySynthDefs } from '../lib/polysynth/defs.js';
+import { createPolySynthEngine } from '../lib/polysynth/engine.js';
+import { PlayKeyboard } from '../lib/polysynth/ui/PlayKeyboard.js';
+import { ChordMemory } from '../lib/polysynth/ui/ChordMemory.js';
+import { BaseKeyboard } from '../lib/polysynth/ui/BaseKeyboard.js';
+import { Readout } from '../lib/polysynth/ui/Readout.js';
+import { midiToName, freqToMidi, NOTE_NAMES } from '../lib/polysynth/pitch/Scaler.js';
+import { stepSeqDefs } from '../lib/stepseq/defs.js';
+import { createStepSeqEngine } from '../lib/stepseq/engine.js';
+import { StepSeqGrid } from '../lib/stepseq/ui/StepSeqGrid.js';
+import { createSqManager } from '../lib/stepseq/multiSq.js';
+import { makeWorkerTicker } from '../lib/workerTicker.js';
+import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
+import { createRecEngine } from '../lib/recInstrument/engine.js';
+import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser } from '../lib/audioBus.js';
+import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
+import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
+import { createStructureView } from '../lib/routing/StructureView.js';
+import { LevelMeter } from '../lib/LevelMeter.js';
+import { createScopeManager } from '../lib/scope/multiScope.js';
+import { icon } from '../lib/icons.js';
+import { mdToHtml, htmlToMdApprox } from '../lib/miniMarkdown.js';
 
 // Erstbesuch-Demo-Stand (presets/default-config.json) abwarten, BEVOR der erste
 // MiniState den localStorage liest (@dpa 20260725: „man muss die config hinzu
@@ -495,7 +495,7 @@ routing.connect({ module: 'polysynth', port: 'baseFreq' }, { module: 'takt', por
 // Vervielfältigbare ADSR-Envelopes ALS TEIL des Poly-Synth (eigene Groups, gemeinsamer State).
 // Werte-Knobs (A,D,S,R,Peak,GateLen,Len) auf dem Panel; Settings (aktiv, Kurven, Verlauf,
 // Trig/Gate, Skew) im Gruppen-Rechtsklick-Panel via groupKindSettings-Hook.
-import { createEnvManager } from './lib/polysynth/multiEnv.js';
+import { createEnvManager } from '../lib/polysynth/multiEnv.js';
 const adsrTpl = {
     KNOBS: { ...polySynthDefsObj.ADSR_KNOBS },
     BUTTONS: { ...polySynthDefsObj.ADSR_BUTTONS },
