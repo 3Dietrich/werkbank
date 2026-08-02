@@ -7,8 +7,9 @@ modales Fenster (lib/SettingsWindow.js) über abgedunkeltem Grund, dessen Inhalt
 lib/mainSettings.js kommt — gemeinsam für alle Pool-Einstiege.
 
 Prüft:
-  - ⚙ Einstellungen öffnet ein .sw-window mit 4 Themen-Abschnitten in fester Reihenfolge
-    (Sprache/Beschriftung/Gruppen-Kopf/Daten — Sprache zuerst, s. mainSettings.js Kopf).
+  - ⚙ Einstellungen öffnet ein .sw-window mit 5 Themen-Abschnitten in fester Reihenfolge
+    (Sprache/Beschriftung/Gruppen-Kopf/Backups/Daten — Sprache zuerst, s. mainSettings.js
+    Kopf; Backups s. ddw.md 20260802 Punkt 4, lib/Backup.js).
   - Label-Farbe wirkt sofort auf ein echtes Knob-Label (CSS-Var --lab-col).
   - Gruppen-Kopf-Größe wirkt sofort auf .group-title (CSS-Var --grp-head-size).
   - Sprache EN (jetzt ein <select>, kein Knopfpaar) übersetzt einen bestehenden Hint sofort
@@ -53,8 +54,8 @@ try:
         check(pg.locator('.mini-settings.sw-window').count() == 0, "⚙ sollte kein MiniSettings-Popover mehr sein")
 
         sections = panel.locator('.sw-subhead > span:first-child').all_inner_texts()
-        check(sections == ['Sprache', 'Beschriftung', 'Gruppen-Kopf', 'Daten'],
-              f"Erwartet 4 Themen-Abschnitte in fester Reihenfolge, war {sections!r}")
+        check(sections == ['Sprache', 'Beschriftung', 'Gruppen-Kopf', 'Backups', 'Daten'],
+              f"Erwartet 5 Themen-Abschnitte in fester Reihenfolge, war {sections!r}")
 
         # ── Label-Farbe wirkt sofort ──
         color_input = panel.locator('input[type="color"]').first
@@ -82,7 +83,10 @@ try:
         check(grp_title_size == '14px', f"Gruppen-Titel sollte 14px zeigen, war {grp_title_size!r}")
 
         # ── Sprache EN (Menü statt Knopfpaar) übersetzt einen bestehenden Hint sofort ──
-        panel.locator('.sw-select').select_option('en')
+        # .first: seit der Backups-Sektion (ddw.md 20260802 Punkt 4) gibt es ein ZWEITES
+        # .sw-select (die Backup-Auswahl) — Sprache steht zuerst im Fenster (s. Kopf-Kommentar
+        # mainSettings.js), ist also weiterhin das erste im DOM.
+        panel.locator('.sw-select').first.select_option('en')
         time.sleep(0.1)
         translated = pg.evaluate("""() => {
             const els = [...document.querySelectorAll('.sw-window input, .sw-window select')];
@@ -90,7 +94,7 @@ try:
             return e ? e.dataset.hint : null;
         }""")
         check(translated is not None, "Farbe-Hint sollte nach EN-Umschaltung übersetzt sein")
-        panel.locator('.sw-select').select_option('de')   # zurück auf Default für den Rest
+        panel.locator('.sw-select').first.select_option('de')   # zurück auf Default für den Rest
         time.sleep(0.1)
 
         # ── Daten-Sektion: Export/Import/Reset weiter vorhanden ──
