@@ -52,7 +52,7 @@ import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
 import { createRecEngine } from '../lib/recInstrument/engine.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
-    setMasterDb as setBusMasterDb,
+    getLimiter as getBusLimiter, setMasterDb as setBusMasterDb,
 } from '../lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
 import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
@@ -204,7 +204,7 @@ const LEVELMETER_LS = lsKey('levelmeter');
 const levelMeterState = new MiniState({}, LEVELMETER_LS);
 const levelMeterRoot = document.querySelector('#levelmeter');
 const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, { GROUPS: [{ name: 'Meter' }] });
-const levelMeter = new LevelMeter(() => getBusAnalyser());
+const levelMeter = new LevelMeter(() => getBusAnalyser(), () => getBusLimiter());
 levelMeterHost.mountInGroup('Meter', levelMeter.element, 'u:meter');
 hint(levelMeter.element, 'Ausgangspegel des gesamten Ensembles (dBFS, Peak-Hold).');
 levelMeterHost.registerCtrlStyle('u:meter', 'levelmeter', levelMeter.element, (s) => levelMeter.applyStyle(s), 'Level');
