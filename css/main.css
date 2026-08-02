@@ -143,7 +143,14 @@ body {
    erscheint neben dem Zeiger, und sobald sie ihn selbst überdeckt, käme ein mouseout, das
    sie wieder wegnimmt: sie würde flackern. */
 .hint-bubble {
-  position: fixed; z-index: 2000; pointer-events: none;
+  /* z-index ÜBER ALLEM (auch über .sw-overlay/.sw-info-pop, ddw.md 20260802_234615 Punkt 2,
+     Bug aus image-6.png): eine Hilfe-Blase erklärt IMMER das gerade unter dem Zeiger liegende
+     Feld, egal in welchem Fenster/Popover das liegt — 2000 lag UNTER dem Einstellungs-Fenster
+     (3000), darum lugte sie beim Hover über z.B. „Höhe" (Gruppen-Kopf) nur dort hervor, wo
+     sie über den dunklen Seitenhintergrund hinausragte, und war innerhalb des Fensters
+     unsichtbar (hinter ihm gerendert). 3300 = höher als der bisherige Höchstwert 3200
+     (.sw-info-pop). */
+  position: fixed; z-index: 3300; pointer-events: none;
   max-width: 320px; padding: 6px 9px;
   background: var(--panel2); color: var(--text);
   border: 1px solid var(--sel-line); border-radius: 4px;
