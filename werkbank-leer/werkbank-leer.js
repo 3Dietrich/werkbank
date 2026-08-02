@@ -50,6 +50,9 @@ import { MP3_CBR_PRESETS } from '../lib/mp3Encoder.js';
 import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from '../lib/wavEncoder.js';
 import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
 import { createRecEngine } from '../lib/recInstrument/engine.js';
+import { debugPanelDefs } from '../lib/debugPanel/defs.js';
+import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
+import { mountDebugGroup } from '../lib/debugPanel/mount.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
     getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper, setMasterDb as setBusMasterDb,
@@ -358,6 +361,27 @@ const _scopeKindSettings = {
 })();
 window.__scope = { state: scopeState, host: scopeHost, mgr: scopeManager };
 
+// ── Debug – eigenes Instrument (@dpa ddw.md 20260802: „bei teslacoil die debug Gruppe..
+// die will ich auch in beiden, werkbank-leer und overcord") ────────────────────────────
+// Bündelt Audio (WAV, 2 Slots a/b) + Screenshot (PNG, alle sichtbaren Canvas gestapelt) +
+// Zustand (voller Config-Dump, s.u. buildConfig) + Begleit-Prompt zu Dateien — zum
+// Hochladen an eine KI. KEIN Sound-Parameter (s. lib/debugPanel/DebugPanel.js-Kopf):
+// debugName/debugPrompt hängen an einem eigenen Optik-Key (debugMeta), nicht an
+// data-ctrl-Werten — darum auch bewusst NICHT im ensembleStore weiter unten (wie
+// Master-Volume: kein Sound-Snapshot-Teilnehmer). `getFullState` reicht den fertigen
+// Config-Export dieser Seite durch (buildConfig() ist weiter unten deklariert — als
+// `function` gehoisted, hier als LAZY-Closure unproblematisch, da erst beim tatsächlichen
+// „Debug speichern"-Klick ausgewertet).
+const DEBUG_LS = lsKey('debug');
+const debugState = new MiniState(debugPanelDefs().DEFAULTS, DEBUG_LS);
+const debugRoot = document.querySelector('#debug');
+const dbg = new DebugPanel(debugState, { appPrefix: APP, getFullState: () => buildConfig() });
+const debugDefs = debugPanelDefs({ onAction: (id) => dbg.onAction(id) });
+const debugHost = mountGroups(debugRoot, debugState, debugDefs, {});
+mountDebugGroup(debugHost, debugState, dbg);
+mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
+window.__debug = { state: debugState, host: debugHost, panel: dbg };
+
 // Render-Loop, GEKÜRZT (@dpa-Auftrag): kein baseKeyboard/toneReadout/freqReadout/sqManager/
 // envManager — die gibt es hier nicht (kein Poly-Synth/Stepseq). Übrig bleibt nur, was die
 // vier vorhandenen ISMs tatsächlich pro Frame brauchen.
@@ -391,10 +415,10 @@ const mkHeaderToggle = (id, label, title, onToggle) => {
     return btn;
 };
 const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => {
-    keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); levelMeterHost.keyMidi.setKeyEdit(on); scopeHost.keyMidi.setKeyEdit(on);
+    keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); levelMeterHost.keyMidi.setKeyEdit(on); scopeHost.keyMidi.setKeyEdit(on); debugHost.keyMidi.setKeyEdit(on);
 });
 const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => {
-    keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); levelMeterHost.keyMidi.setMidiEdit(on); scopeHost.keyMidi.setMidiEdit(on);
+    keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); levelMeterHost.keyMidi.setMidiEdit(on); scopeHost.keyMidi.setMidiEdit(on); debugHost.keyMidi.setMidiEdit(on);
 });
 keyBtn._radioPeer = midiBtn; midiBtn._radioPeer = keyBtn;
 
@@ -407,6 +431,7 @@ const hintResolve = (el) => {
                  : c.closest('#rec') ? recState
                  : c.closest('#levelmeter') ? levelMeterState
                  : c.closest('#scopes') ? scopeState
+                 : c.closest('#debug') ? debugState
                  : state;
         const own = (st.get('hintText') || {})[id];
         return own || factoryHint(id, curLang()) || c.dataset.hint || (el.dataset && el.dataset.hint) || '';
@@ -423,7 +448,7 @@ if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // D
 // als Bug — hier von Anfang an korrekt, kein drittes Mal denselben Fehler).
 // Die Keys tragen das Präfix DIESES Einstiegs (lsKey, s. lib/appId.js) — ein Export von
 // hier fasst also nur werkbank-leer-Daten an, nicht die von index.html.
-const LS_KEYS = ['state', 'taktmetro', 'rec', 'levelmeter', 'master', 'ensemble', 'scope'].map(lsKey);
+const LS_KEYS = ['state', 'taktmetro', 'rec', 'levelmeter', 'master', 'ensemble', 'scope', 'debug'].map(lsKey);
 
 // ── Ensemble-Snapshot (1:1-Muster aus werkbank.js Z.1031-1050) — @dpa-Auftrag: ALLE VIER
 // hier vorhandenen ISMs (Takt, Rec, LevelMeter, Scope) gehören rein, nicht nur eine
