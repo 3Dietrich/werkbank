@@ -250,6 +250,9 @@ const polySynthRoot = document.querySelector('#polysynth');
 // [R] ist ein durchschaltbarer Button (@dpa 20260722_004312, Zyklus @dpa 20260722 ddw.md):
 // sein Klick fährt die ChordMemory-Methode an (chordMemory wird gleich darunter gebaut — die
 // Closure liest die Bindung erst beim Klick, also nach der Zuweisung, kein TDZ-Problem).
+// Preview-Zustand für den Amp-Env „►"-Button (s. onAction 'adsrGate' unten) — hält fest, ob
+// der Referenzton gerade klingt, damit ein Klick im Modus=gate ihn toggeln kann.
+let previewHeld = false;
 const polySynthDefsObj = polySynthDefs({
     onAction: (id, phase) => {
         // Hold ist jetzt ein Button statt einer Checkbox (@dpa 20260722, ddw.md), der
@@ -271,6 +274,27 @@ const polySynthDefsObj = polySynthDefs({
         // — ohne Phase triggerte gateAt() im Trig-Modus beide Male, wobei der zweite (Release-)
         // Trigger die kaum begonnene erste Kurve per cancelScheduledValues() sofort wegwischte.
         else if (id.startsWith('adsrGate_')) envManager.gateAt(parseInt(id.slice(9), 10), phase);
+        // Amp-Env „►" (dd.md 20260802, 3. Runde, @dpa: "Button '►' ... fehlt noch"): bare Key
+        // (kein sfx) — Amp-Env hat keine einzelne Instanz zum Gaten (polyphon, s. defs.js
+        // BUTTONS-Kommentar), darum Preview/Audition auf einem festen Referenzton (Middle C)
+        // über die reale Engine — man hört die Hüllkurve 1:1 wie beim Spielen (Peak/Kurven/
+        // Skew/Modus/Fest). Verhalten 1:1 wie multiEnv.js gateAt() gespiegelt: Modus=trig →
+        // ein Klick = ein Trigger (phase 'up' unterdrückt den Doppel-Fire bei Gate-Button-UI);
+        // Modus=gate → toggelt noteOn/noteOff (funktioniert sowohl per einfachem Klick — kein
+        // phase — als auch per echtem Halten, falls @dpa den Button per Element-Settings auf
+        // btnMode='gate' stellt).
+        else if (id === 'adsrGate') {
+            const PREVIEW_NOTE = 60;
+            if ((polySynthState.get('adsrTrigMode') || 'gate') === 'trig') {
+                if (phase !== 'up') polySynthEngine.noteOn(PREVIEW_NOTE, 127);
+            } else if (previewHeld) {
+                polySynthEngine.noteOff(PREVIEW_NOTE);
+                previewHeld = false;
+            } else {
+                polySynthEngine.noteOn(PREVIEW_NOTE, 127);
+                previewHeld = true;
+            }
+        }
         // Len: fest/offen (ddw.md 20260726): reiner Boolean-Flip im State — die Sichtbarkeits-
         // und setCtrlOn-Nachführung übernimmt multiEnv.js (state.subscribe), wie bei kbHold.
         else if (id.startsWith('adsrLenFest_')) {
