@@ -18393,6 +18393,12 @@
         }
       ],
       "ensembleSnapSel": "Space > Play"
+    },
+    "werkbank_scope": {
+      "instrPos": {
+        "x": 14,
+        "y": 753
+      }
     }
   }
 }
