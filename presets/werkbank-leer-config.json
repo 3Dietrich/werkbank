@@ -1,6 +1,6 @@
 {
   "_werkbank": 1,
-  "saved": "2026-08-01T19:29:26.007Z",
+  "saved": "2026-08-02T00:46:57.311Z",
   "ls": {
     "werkbank-leer_state": {
       "knobColorPresets": [],
@@ -34,12 +34,12 @@
           "textOff": "💬 Hints"
         },
         "hdr:cfgmenu": {
-          "label": "Einstellungen",
+          "label": "⚙ Config",
           "labelPos": "off",
           "btnMode": "toggle",
           "bg": "#444444",
-          "textOn": "Einstellungen",
-          "textOff": "Einstellungen"
+          "textOn": "⚙ Config",
+          "textOff": "⚙ Config"
         },
         "hdr:headerreset": {
           "label": "🔇 Reset",
@@ -369,7 +369,7 @@
           "shape": "knob",
           "faderLen": 80,
           "defaultValue": 120,
-          "valueFontSize": 40,
+          "valueFontSize": 36,
           "pad": 0,
           "hideValue": false,
           "dragRange": 44
@@ -614,7 +614,7 @@
           }
         ]
       },
-      "bpm": 116.5,
+      "bpm": 99,
       "maxBpm": 340,
       "nudgeAmount": 100,
       "nudgeRampMs": 1000,
@@ -622,7 +622,7 @@
       "tapWait": 2000,
       "tapTol": 15,
       "tapWin": 5,
-      "beatsPerBar": 6,
+      "beatsPerBar": 5,
       "metroOn": true,
       "metroL": 1,
       "metroM": 1,
@@ -706,8 +706,8 @@
           "y": 0
         },
         "Takt / Metronom": {
-          "x": 130,
-          "y": 0
+          "x": 0,
+          "y": 130
         },
         "Aufnahme": {
           "x": 1001,
@@ -737,7 +737,7 @@
         "Transport / Tempo": {
           "b:bang": {
             "x": 0,
-            "y": 60
+            "y": 50
           },
           "b:bang2": {
             "x": 110,
@@ -749,7 +749,7 @@
           },
           "b:start": {
             "x": 50,
-            "y": 60
+            "y": 50
           },
           "b:slow": {
             "x": 140,
@@ -780,7 +780,7 @@
             "y": 170
           },
           "k:bpm": {
-            "x": 0,
+            "x": 26,
             "y": 0
           },
           "k:maxBpm": {
@@ -801,7 +801,7 @@
           },
           "b:startCont": {
             "x": 25,
-            "y": 60
+            "y": 50
           }
         },
         "Takt / Metronom": {
@@ -903,15 +903,15 @@
         }
       ],
       "ismSnapSel": "124bpm",
-      "instrName": "Tempo & Metronom",
+      "instrName": "Tempo, MM",
       "instrScale": 100,
       "groupSettingsPos": {
         "x": 278.9801025390625,
         "y": 50.984371185302734
       },
       "knobSettingsPos": {
-        "x": 131.21022033691406,
-        "y": 40.0198860168457
+        "x": 196.203125,
+        "y": 37.015625
       },
       "elementSettingsPos": {
         "x": 200.61929321289062,
@@ -1159,6 +1159,10 @@
       },
       "groupSnapSel": {
         "Takt / Metronom": "default 4/4"
+      },
+      "instrSettingsPos": {
+        "x": 135,
+        "y": 81
       }
     },
     "werkbank-leer_rec": {
