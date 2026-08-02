@@ -4,9 +4,11 @@ und Release (geordnet nach Limiter settings und Optik): BGoff, BGon (und der
 Vollständigkeit halber auch VG/schrift)"). Der Lim-Button (lib/MasterVolume.js) ist KEIN
 GroupHost-Control (Header-Element, kein registerCtrlStyle) — Optik wird hier von Hand in
 seinem Rechtsklick-Popover verdrahtet (masterState.limStyle: bg/bgOn/fg/size, dasselbe
-Feldschema wie jeder GroupHost-Button). Der Test verifiziert: Popover zeigt beide
-Sektionen (Limiter/Optik), die vier Felder existieren, und ein geändertes Feld schlägt
-sich sowohl in masterState.limStyle als auch im tatsächlichen Button-Style nieder.
+Feldschema wie jeder GroupHost-Button). Der Test verifiziert: Popover zeigt alle drei
+Sektionen (Limiter/WaveShaper/Optik — WaveShaper zog per ddw.md 20260802_234615 Punkt 1
+als Checkbox-Zeile mit rein, der frühere separate [WS]-Header-Button ist weg), die vier
+Optik-Felder existieren, und ein geändertes Feld schlägt sich sowohl in
+masterState.limStyle als auch im tatsächlichen Button-Style nieder.
 
 Lauf: python3 test/limButtonOptik_smoke.py
 Hart begrenzt (30s Watchdog), kein Pollen.
@@ -40,14 +42,26 @@ try:
         page.goto(f"http://localhost:{PORT}/overcord/", wait_until="domcontentloaded")
         page.wait_for_function("window.__master", timeout=15000)
 
-        # ── 1) Rechtsklick öffnet das Popover mit beiden Sektionen + allen vier Optik-Feldern ──
+        # ── 1) Rechtsklick öffnet das Popover mit allen drei Sektionen + allen Feldern ──
         limBtn = page.locator(".mv-lim")
         limBtn.click(button="right")
         page.wait_for_selector(".mv-lim-pop", timeout=5000)
         secs = page.eval_on_selector_all(".mv-lim-sec", "els => els.map(e => e.textContent)")
-        check(secs == ["Limiter", "Optik"], f"Sektionen falsch/fehlen: {secs}")
-        for sel in (".mv-lim-bg", ".mv-lim-bgon", ".mv-lim-fg", ".mv-lim-size"):
+        check(secs == ["Limiter", "WaveShaper", "Optik"], f"Sektionen falsch/fehlen: {secs}")
+        for sel in (".mv-lim-bg", ".mv-lim-bgon", ".mv-lim-fg", ".mv-lim-size", ".mv-lim-ws"):
             check(page.locator(sel).count() == 1, f"Feld {sel} fehlt im Popover")
+
+        # ── 1b) Die WS-Checkbox spiegelt beim Öffnen den State und setzt ihn beim Klicken
+        #      (kein eigener [WS]-Header-Button mehr — die Checkbox bindet nur einmal beim
+        #      Öffnen, s. MasterVolume.js wireExtra, darum hier NICHT zwischendurch per
+        #      state.set() von außen verstellen — das würde die Checkbox nicht nachziehen). ──
+        check(page.locator(".mv-ws").count() == 0, "[WS]-Header-Button sollte weg sein (WS lebt im Lim-Popover)")
+        was_on = page.evaluate("window.__master.state.get('waveshaperOn')")
+        was_checked = page.locator(".mv-lim-ws").is_checked()
+        check(was_checked == bool(was_on), f"Checkbox sollte beim Öffnen den State spiegeln (state={was_on}, checked={was_checked})")
+        page.locator(".mv-lim-ws").click()
+        now_on = page.evaluate("window.__master.state.get('waveshaperOn')")
+        check(now_on != was_on, f"WS-Checkbox sollte waveshaperOn umschalten (war {was_on}, ist {now_on})")
 
         # ── 2) BGon ändern → landet in masterState.limStyle UND wird bei limiterOn=true
         #      tatsächlich als background auf den Button angewendet ──
@@ -81,5 +95,6 @@ for e in errors: print("PAGEERROR:", e)
 if fails:
     for f in fails: print("FAIL:", f)
     sys.exit(1)
-print("SMOKE: Lim-Button-Optik OK — Popover zeigt Limiter+Optik-Sektionen, "
-      "BGoff/BGon/VG/Schrift landen in masterState.limStyle und auf dem Button.")
+print("SMOKE: Lim-Button-Optik OK — Popover zeigt Limiter+WaveShaper+Optik-Sektionen, "
+      "WS-Checkbox schaltet waveshaperOn, BGoff/BGon/VG/Schrift landen in "
+      "masterState.limStyle und auf dem Button.")

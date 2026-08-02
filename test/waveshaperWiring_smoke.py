@@ -13,7 +13,9 @@ Prueft in BEIDEN Ensembles (overcord/ + werkbank-leer/, gemeinsamer audioBus.js-
   - WaveShaper existiert, oversample='4x', curve mit 2048 Punkten, Default AUS.
   - Alle vier Kombinationen (limiterOn x waveshaperOn) verkabeln volumeGain -> [limiter] ->
     [waveshaper] -> destination + analyser OHNE doppelte/verwaiste Kanten.
-  - Der [WS]-Button existiert im Header, klickt korrekt um (state + setWaveshaperOn()).
+  - WS hat KEINEN eigenen Header-Button mehr (ddw.md 20260802_234615 Punkt 1: "WS soll in
+    Lim (settings) mit rein") -- die Checkbox `.mv-lim-ws` im Rechtsklick-Popover des
+    [Lim]-Buttons schaltet korrekt um (state + setWaveshaperOn()).
 
 Lauf: python3 test/waveshaperWiring_smoke.py
 Hart begrenzt (40s Watchdog), kein Pollen.
@@ -160,11 +162,16 @@ try:
                   f"{entry}: WaveShaper sollte im Default-Zustand NICHT verkabelt sein: {snap0}")
 
             # ── 2) Alle vier Kombinationen sauber verkabelt, keine Doppel-/Geisterkanten ──
-            # Über die ECHTEN Header-Buttons geklickt (tatsächlicher Bedienweg) — die rufen
-            # setLimiterOn()/setWaveshaperOn() auf, genau die Funktionen, die audioBus.js
-            # exportiert und die auch ein Nutzer-Klick auslöst.
+            # Über die ECHTEN Bedienelemente geklickt (tatsächlicher Bedienweg) — Lim per
+            # Header-Klick, WS per Checkbox im Lim-Rechtsklick-Popover (s. Modul-Kopf) — die
+            # rufen setLimiterOn()/setWaveshaperOn() auf, genau die Funktionen, die
+            # audioBus.js exportiert und die auch ein Nutzer-Klick auslöst. Popover bleibt
+            # über die ganze Schleife offen: ein Klick auf den [Lim]-Button selbst schließt es
+            # NICHT (s. MasterVolume.js `onOut`-Ausnahme für den eigenen Button).
             lim_btn = page.locator(".mv-lim")
-            ws_btn = page.locator(".mv-ws")
+            lim_btn.click(button="right")
+            page.wait_for_selector(".mv-lim-ws", timeout=5000)
+            ws_cb = page.locator(".mv-lim-ws")
             combos = [(True, False), (False, True), (True, True), (False, False)]
             for lim_on, ws_on in combos:
                 cur_lim = page.evaluate("window.__master.state.get('limiterOn')")
@@ -172,7 +179,7 @@ try:
                     lim_btn.click()
                 cur_ws = page.evaluate("window.__master.state.get('waveshaperOn')")
                 if bool(cur_ws) != ws_on:
-                    ws_btn.click()
+                    ws_cb.click()
 
                 snap = page.evaluate(SNAPSHOT_JS)
                 label = f"{entry} lim={lim_on} ws={ws_on}"
@@ -201,14 +208,14 @@ try:
                 check(snap['limiterOut'] <= 2, f"{label}: limiter hat zu viele ausgehende Kanten: {snap['limiterOut']}")
                 check(snap['waveshaperOut'] <= 2, f"{label}: waveshaper hat zu viele ausgehende Kanten: {snap['waveshaperOut']}")
 
-            # ── 3) [WS]-Button ist da, klickbar, Optik reagiert (ctrl-on Klasse) ──
-            check(ws_btn.count() == 1, f"{entry}: [WS]-Button fehlt im Header")
+            # ── 3) Kein eigener [WS]-Header-Button mehr, Checkbox toggelt zuverlässig ──
+            check(page.locator(".mv-ws").count() == 0, f"{entry}: [WS]-Header-Button sollte weg sein (WS lebt im Lim-Popover)")
             was_on = page.evaluate("window.__master.state.get('waveshaperOn')")
-            ws_btn.click()
+            ws_cb.click()
             now_on = page.evaluate("window.__master.state.get('waveshaperOn')")
-            check(now_on != was_on, f"{entry}: Klick auf [WS] sollte den Zustand umschalten (war {was_on}, ist {now_on})")
-            has_ctrl_on = ws_btn.evaluate("el => el.classList.contains('ctrl-on')")
-            check(has_ctrl_on == bool(now_on), f"{entry}: ctrl-on-Klasse folgt dem Zustand nicht (on={now_on}, class={has_ctrl_on})")
+            check(now_on != was_on, f"{entry}: Klick auf die WS-Checkbox sollte den Zustand umschalten (war {was_on}, ist {now_on})")
+            checkbox_checked = ws_cb.is_checked()
+            check(checkbox_checked == bool(now_on), f"{entry}: Checkbox-Zustand folgt state.waveshaperOn nicht (on={now_on}, checked={checkbox_checked})")
 
             ctx.close()
         browser.close()
@@ -220,4 +227,5 @@ if fails:
     for f in fails: print("FAIL:", f)
     sys.exit(1)
 print("SMOKE: WaveShaper-Verkabelung OK — alle vier Limiter/WS-Kombinationen sauber "
-      "verdrahtet (kein Doppel-/Geisteranschluss), [WS]-Button schaltet um, in beiden Ensembles.")
+      "verdrahtet (kein Doppel-/Geisteranschluss), WS-Checkbox im Lim-Popover schaltet um, "
+      "in beiden Ensembles.")

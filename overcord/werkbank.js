@@ -1460,12 +1460,14 @@ keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { 
 // Hints + Config ebenso lernbar (@dpa 20260720: „'Hints' und 'Config' kriegen auch tasten und midi learn").
 keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
 keyMidi.register('hdr:arrangemode', arrangeBtn, '⇄ Anordnen', () => arrangeBtn.click(), { self: true });
-// Lim/WS (MasterVolume.js) sind KEINE GroupHost-Controls, gehören aber genauso zu den
+// Lim (MasterVolume.js) ist KEIN GroupHost-Control, gehört aber genauso zu den
 // Header-Buttons (@dpa ddw.md 20260802 Punkt 7: „alle header Buttons sollen ... key- und
 // Midilearn haben") — self:true wie jeder andere Haupt-Button hier, .click() löst denselben
 // Toggle-Pfad aus wie ein echter Mausklick.
+// WS hat KEIN eigenes Learn mehr (@dpa ddw.md 20260802_234615 Punkt 1: WS zog ins Lim-
+// Popover): die self-Panel-Mechanik braucht ein dauerhaft sichtbares Element zum Andocken,
+// das WS als Popover-Zeile nicht mehr hat — offener Punkt, s. Abschlussbericht.
 keyMidi.register('hdr:limbtn', masterVolume.limBtn, 'Lim', () => masterVolume.limBtn.click(), { self: true });
-keyMidi.register('hdr:wsbtn', masterVolume.wsBtn, 'WS', () => masterVolume.wsBtn.click(), { self: true });
 keyMidi.register('hdr:cfgmenu', cfgBtn, 'Einstellungen', () => cfgBtn.click(), { self: true });
 keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.click(), { self: true });
 // Globale Verteilung: ein belegter Tastendruck löst sein Control aus (nur außerhalb des
