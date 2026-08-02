@@ -17,7 +17,8 @@ import { HintBubble } from './lib/HintBubble.js';
 import { createMasterVolume, masterVolumeDefaults } from './lib/MasterVolume.js';
 import { factoryHint } from './lib/hints.js';
 import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from './lib/i18n.js';
-import { MiniSettings } from './lib/MiniSettings.js';
+import { SettingsWindow } from './lib/SettingsWindow.js';
+import { buildMainSettings } from './lib/mainSettings.js';
 import { wireGlobalLook } from './lib/globalLook.js';
 import { installSelectOnFocus } from './lib/selectOnFocus.js';
 import { mountGroups, kbStyle } from './lib/group/GroupHost.js';
@@ -94,7 +95,16 @@ function wireHeaderBtnSettings(id, btn, defLabel) {
     const labelEl = document.createElement('span'); labelEl.className = 'btn-label';
     field.append(labelEl, btn);
     field.dataset.ctrl = id;
-    const baseText = btn.textContent;
+    // Der sichtbare Text lebt in einem eigenen Span (@dpa dd.md 20260802, Zahnrad im ⚙-Knopf):
+    // Umbenennen schrieb bisher `btn.textContent`, und das ersetzt ALLE Kinder — ein SVG-Icon
+    // im Button wäre beim ersten applyStyle() still verschwunden. Der Aufrufer darf jetzt ein
+    // Icon vor den Text hängen; angefasst wird nur noch der Span.
+    let txtEl = btn.querySelector('.hdr-btn-text');
+    if (!txtEl) {
+        txtEl = document.createElement('span'); txtEl.className = 'hdr-btn-text';
+        txtEl.textContent = btn.textContent; btn.textContent = ''; btn.appendChild(txtEl);
+    }
+    const baseText = txtEl.textContent;
     const applyStyle = (s) => {
         labelEl.textContent = s.label || '';
         field.classList.remove('btn-label-top', 'btn-label-left', 'btn-label-right', 'btn-label-bottom', 'btn-label-off');
@@ -102,7 +112,7 @@ function wireHeaderBtnSettings(id, btn, defLabel) {
         const onText = s.textOn || baseText, offText = s.textOff || baseText;
         btn._applyBtnStyle = () => {
             const on = btn.classList.contains('active');
-            btn.textContent = on ? onText : offText;
+            txtEl.textContent = on ? onText : offText;
             btn.style.background = on ? (s.bgOn || '') : (s.bg || '');
         };
         btn.style.color = s.fg || '';
@@ -1084,10 +1094,18 @@ function exportConfig() {
     a.href = url; a.download = 'werkbank-config-' + ts + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+// Zahnrad statt ⚙-Glyph (@dpa dd.md 20260802: „Auch das schöne Zahnrad icon"): das SVG aus
+// lib/icons.js füllt seinen Rahmen aus, ein Unicode-⚙ tut das je nach Systemfont nicht (s.
+// Kopf von icons.js). Der Text sitzt im .hdr-btn-text-Span, damit das Umbenennen über die
+// Rechtsklick-Settings das Icon nicht mitlöscht.
 const cfgBtn = document.createElement('button');
-cfgBtn.className = 'pb-btn'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
-cfgBtn.textContent = '⚙ Config'; cfgBtn.title = 'Konfiguration exportieren/importieren (zum Übergeben)';
-document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:cfgmenu', cfgBtn, '⚙ Config'));
+cfgBtn.className = 'pb-btn hdr-btn-ico'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
+cfgBtn.appendChild(icon('gear', 14));
+const cfgBtnText = document.createElement('span'); cfgBtnText.className = 'hdr-btn-text';
+i18nText(cfgBtnText, 'Einstellungen');
+cfgBtn.appendChild(cfgBtnText);
+hint(cfgBtn, 'Einstellungen für die ganze Werkbank (Sprache, Darstellung, Daten)');
+document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:cfgmenu', cfgBtn, 'Einstellungen'));
 const fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.json,application/json'; fileIn.style.display = 'none';
 document.body.appendChild(fileIn);
 fileIn.addEventListener('change', () => {
@@ -1102,70 +1120,25 @@ fileIn.addEventListener('change', () => {
 function doReset() {
     if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) { LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload(); }
 }
-// main Config (@dpa ddw.md 20260724): „ist ja für das gesamte Ensemble da … mach daraus ein
-// Fenster, ähnlich den Settings, aufgeräumt nach Themen, halb kompakt" — aus dem schmalen
-// Export/Import/Reset-Popup wird ein MiniSettings-Panel (dieselbe Chrome wie Seq/Reflections/
-// Instrument-Settings) mit vier Themen-Abschnitten. Label-Farbe/-Größe/Wert-BG und Gruppen-
-// Header-Größe/-Höhe wirken sofort (lib/globalLook.js, State-Subscribe), Sprache über
-// lib/i18n.js.
-const cfgPanel = new MiniSettings('⚙ Config');
-cfgBtn.addEventListener('click', () => {
-    if (cfgPanel.isOpen) { cfgPanel.close(); return; }
+// ⚙ = ein echtes EINSTELLUNGS-FENSTER (@dpa dd.md 20260802: „es ist derzeit zu wenig
+// ‚Einstellungs'-mäßig … das ganze graue Fenster design"). Bis hierhin war es ein
+// MiniSettings-Popover, also dieselbe Chrome, die auch ein Rechtsklick auf EIN Element
+// aufmacht — man sah dem ⚙ nicht an, dass es das ganze Werkzeug meint. Jetzt: modales
+// Fenster über abgedunkeltem Grund (lib/SettingsWindow.js), Themen-Abschnitte mit
+// Reichweite und Erklärung hinter dem i-Icon, Inhalt gemeinsam mit allen anderen
+// Pool-Einstiegen (lib/mainSettings.js).
+const cfgWin = new SettingsWindow('Einstellungen');
+const openCfg = () => {
     cfgBtn.classList.add('active');
-    cfgPanel.open(cfgBtn, ({ color, colorA, num, section, full }) => {
-        // 'Beschriftung' -> 'Labels' (@dpa ddw.md 20260724_183901) — wörtlich umbenannt, keine
-        // Übersetzung/Sprachumschaltung: wie 'Base-Frq'/'Keyboard' ist das ein englischer
-        // Fachbegriff, der in BEIDEN Sprachen gleich steht.
-        section('Labels');
-        const colorField = color('Farbe', { get: () => state.get('labelColor') || '#8a94a6', set: (v) => state.set('labelColor', v) });
-        hint(colorField.closest('.kme-row'), 'Gilt für ALLE Beschriftungen und Werte-Anzeigen auf einmal. Leer bzw. ✕ = wie ausgeliefert. Einzelne Regler-Farben bleiben davon unberührt (Rechtsklick auf den Regler).');
-        const sizeField = num('Größe', { min: 6, max: 1000000, get: () => state.get('labelSize') || 10, set: (v) => state.set('labelSize', v) });
-        hint(sizeField, 'Schriftgröße der Beschriftungen (px)');
-        // Wert-BG jetzt mit Deckkraft (@dpa ddw.md 20260724_183901, "Wert-BG mit Deckkraft
-        // (default=0)"): rgba() statt reinem Hex, Default-Alpha 0 — unsichtbar, bis @dpa sie
-        // aufdreht (vorher: Default-Hintergrund #000000 sofort sichtbar, sogar unangefordert).
-        const bgFallback = 'rgba(0,0,0,0)';
-        colorA('Wert-BG', { get: () => state.get('valueBg') || bgFallback, set: (v) => state.set('valueBg', v), fallback: '#000000' });
-        const clearBtn = document.createElement('button'); clearBtn.className = 'pb-btn';
-        clearBtn.textContent = '✕ Vorgabe entfernen'; hint(clearBtn, 'Vorgabe entfernen (wieder wie ausgeliefert)');
-        clearBtn.addEventListener('click', () => {
-            state.set('labelColor', ''); state.set('labelSize', ''); state.set('valueBg', '');
-            colorField.value = '#8a94a6'; sizeField.value = 10;
-            cfgPanel.close(); cfgBtn.click();   // Wert-BG-Zeile (colorA) hat kein eigenes Element-Handle — Panel frisch aufbauen zeigt den Reset
-        });
-        full(clearBtn);
-
-        section('Gruppen-Kopf');
-        const ghSize = num('Größe', { min: 8, max: 1000000, get: () => state.get('grpHeadSize') || 10, set: (v) => state.set('grpHeadSize', v) });
-        hint(ghSize, 'Schriftgröße der Gruppen-Kopfzeile (px)');
-        const ghH = num('Höhe', { min: 0, max: 1000000, get: () => state.get('grpHeadH') || 0, set: (v) => state.set('grpHeadH', v) });
-        hint(ghH, 'Mindesthöhe der Gruppen-Kopfzeile in px (0 = wie ausgeliefert)');
-
-        section('Sprache');
-        const langRow = document.createElement('div'); langRow.className = 'cfg-btn-row';
-        const deBtn = document.createElement('button'); deBtn.className = 'pb-btn'; deBtn.textContent = 'Deutsch';
-        const enBtn = document.createElement('button'); enBtn.className = 'pb-btn'; enBtn.textContent = 'English';
-        const paintLang = () => { deBtn.classList.toggle('active', curLang() === 'de'); enBtn.classList.toggle('active', curLang() === 'en'); };
-        deBtn.addEventListener('click', () => { setLang('de'); state.set('lang', 'de'); paintLang(); });
-        enBtn.addEventListener('click', () => { setLang('en'); state.set('lang', 'en'); paintLang(); });
-        paintLang();
-        langRow.append(deBtn, enBtn);
-        full(langRow);
-        hint(langRow, 'Sprache der Hinweise und Beschriftungen (selbst vergebene Namen bleiben unverändert)');
-
-        section('Daten');
-        const btnRow = document.createElement('div'); btnRow.className = 'cfg-btn-row';
-        const mk = (label, title, fn) => { const b = document.createElement('button'); b.className = 'pb-btn'; b.textContent = label; hint(b, title); b.addEventListener('click', fn); return b; };
-        btnRow.append(
-            mk('⭳ Export', 'Aktuellen Zustand als .json herunterladen', () => exportConfig()),
-            mk('⭱ Import', 'Zustand aus einer .json laden (Seite lädt neu)', () => fileIn.click()),
-            mk('↺ Reset', 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)', doReset),
-        );
-        full(btnRow);
-    }, () => cfgBtn.classList.remove('active'),
-    // Position merken (ddw.md 20260726): wie groupSettingsPos in GroupHost.js.
-    { get: () => state.get('cfgPanelPos'), set: (pos) => state.set('cfgPanelPos', pos) });
-});
+    cfgWin.open((f) => buildMainSettings(f, {
+        state,
+        onExport: () => exportConfig(),
+        onImport: () => fileIn.click(),
+        onReset: doReset,
+        reopen: () => { cfgWin.close(); openCfg(); },
+    }), () => cfgBtn.classList.remove('active'));
+};
+cfgBtn.addEventListener('click', () => { cfgWin.isOpen ? cfgWin.close() : openCfg(); });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
 
 // Ensemble-Snapshot-Menü im Header (@dpa 20260724, Feinschliff 20260724_114012: rechts neben
@@ -1361,7 +1334,7 @@ keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { se
 keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { self: true });
 // Hints + Config ebenso lernbar (@dpa 20260720: „'Hints' und 'Config' kriegen auch tasten und midi learn").
 keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
-keyMidi.register('hdr:cfgmenu', cfgBtn, '⚙ Config', () => cfgBtn.click(), { self: true });
+keyMidi.register('hdr:cfgmenu', cfgBtn, 'Einstellungen', () => cfgBtn.click(), { self: true });
 keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.click(), { self: true });
 // Globale Verteilung: ein belegter Tastendruck löst sein Control aus (nur außerhalb des
 // Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern). Jedes Instrument hat

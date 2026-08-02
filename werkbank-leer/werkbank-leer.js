@@ -35,8 +35,9 @@ import { mountInstrumentSettings } from '../lib/InstrumentSettings.js';
 import { HintBubble } from '../lib/HintBubble.js';
 import { createMasterVolume, masterVolumeDefaults } from '../lib/MasterVolume.js';
 import { factoryHint } from '../lib/hints.js';
-import { hint, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
-import { MiniSettings } from '../lib/MiniSettings.js';
+import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
+import { SettingsWindow } from '../lib/SettingsWindow.js';
+import { buildMainSettings } from '../lib/mainSettings.js';
 import { wireGlobalLook } from '../lib/globalLook.js';
 import { installSelectOnFocus } from '../lib/selectOnFocus.js';
 import { mountGroups } from '../lib/group/GroupHost.js';
@@ -85,7 +86,14 @@ function wireHeaderBtnSettings(id, btn, defLabel) {
     const labelEl = document.createElement('span'); labelEl.className = 'btn-label';
     field.append(labelEl, btn);
     field.dataset.ctrl = id;
-    const baseText = btn.textContent;
+    // Sichtbarer Text in einem eigenen Span, damit ein Icon im Button (⚙) das Umbenennen
+    // überlebt — `btn.textContent` würde ALLE Kinder ersetzen (s. werkbank.js, dd.md 20260802).
+    let txtEl = btn.querySelector('.hdr-btn-text');
+    if (!txtEl) {
+        txtEl = document.createElement('span'); txtEl.className = 'hdr-btn-text';
+        txtEl.textContent = btn.textContent; btn.textContent = ''; btn.appendChild(txtEl);
+    }
+    const baseText = txtEl.textContent;
     const applyStyle = (s) => {
         labelEl.textContent = s.label || '';
         field.classList.remove('btn-label-top', 'btn-label-left', 'btn-label-right', 'btn-label-bottom', 'btn-label-off');
@@ -93,7 +101,7 @@ function wireHeaderBtnSettings(id, btn, defLabel) {
         const onText = s.textOn || baseText, offText = s.textOff || baseText;
         btn._applyBtnStyle = () => {
             const on = btn.classList.contains('active');
-            btn.textContent = on ? onText : offText;
+            txtEl.textContent = on ? onText : offText;
             btn.style.background = on ? (s.bgOn || '') : (s.bg || '');
         };
         btn.style.color = s.fg || '';
@@ -439,10 +447,15 @@ function exportConfig() {
     a.href = url; a.download = 'werkbank-config-' + ts + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+// Zahnrad-Icon + Text-Span (1:1-Muster aus werkbank.js, @dpa dd.md 20260802).
 const cfgBtn = document.createElement('button');
-cfgBtn.className = 'pb-btn'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
-cfgBtn.textContent = '⚙ Config'; cfgBtn.title = 'Konfiguration exportieren/importieren (zum Übergeben)';
-document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:cfgmenu', cfgBtn, '⚙ Config'));
+cfgBtn.className = 'pb-btn hdr-btn-ico'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
+cfgBtn.appendChild(icon('gear', 14));
+const cfgBtnText = document.createElement('span'); cfgBtnText.className = 'hdr-btn-text';
+i18nText(cfgBtnText, 'Einstellungen');
+cfgBtn.appendChild(cfgBtnText);
+hint(cfgBtn, 'Einstellungen für die ganze Werkbank (Sprache, Darstellung, Daten)');
+document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:cfgmenu', cfgBtn, 'Einstellungen'));
 const fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.json,application/json'; fileIn.style.display = 'none';
 document.body.appendChild(fileIn);
 fileIn.addEventListener('change', () => {
@@ -454,59 +467,21 @@ fileIn.addEventListener('change', () => {
 function doReset() {
     if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) { LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload(); }
 }
-// main Config (1:1-Muster aus werkbank.js Z.1088-1151): aufgeräumtes Themen-Fenster statt
-// schmalem Popup — kennt keine ISM-Namen, wirkt generisch über state/globalLook/i18n.
-const cfgPanel = new MiniSettings('⚙ Config');
-cfgBtn.addEventListener('click', () => {
-    if (cfgPanel.isOpen) { cfgPanel.close(); return; }
+// ⚙ = echtes Einstellungs-Fenster (1:1-Muster aus werkbank.js, @dpa dd.md 20260802).
+// Der INHALT kommt aus lib/mainSettings.js — identisch für alle Pool-Einstiege; hier steht
+// nur, was diesem Einstieg gehört: sein state und seine Daten-Aktionen (eigene LS_KEYS).
+const cfgWin = new SettingsWindow('Einstellungen');
+const openCfg = () => {
     cfgBtn.classList.add('active');
-    cfgPanel.open(cfgBtn, ({ color, colorA, num, section, full }) => {
-        section('Labels');
-        const colorField = color('Farbe', { get: () => state.get('labelColor') || '#8a94a6', set: (v) => state.set('labelColor', v) });
-        hint(colorField.closest('.kme-row'), 'Gilt für ALLE Beschriftungen und Werte-Anzeigen auf einmal. Leer bzw. ✕ = wie ausgeliefert. Einzelne Regler-Farben bleiben davon unberührt (Rechtsklick auf den Regler).');
-        const sizeField = num('Größe', { min: 6, max: 1000000, get: () => state.get('labelSize') || 10, set: (v) => state.set('labelSize', v) });
-        hint(sizeField, 'Schriftgröße der Beschriftungen (px)');
-        const bgFallback = 'rgba(0,0,0,0)';
-        colorA('Wert-BG', { get: () => state.get('valueBg') || bgFallback, set: (v) => state.set('valueBg', v), fallback: '#000000' });
-        const clearBtn = document.createElement('button'); clearBtn.className = 'pb-btn';
-        clearBtn.textContent = '✕ Vorgabe entfernen'; hint(clearBtn, 'Vorgabe entfernen (wieder wie ausgeliefert)');
-        clearBtn.addEventListener('click', () => {
-            state.set('labelColor', ''); state.set('labelSize', ''); state.set('valueBg', '');
-            colorField.value = '#8a94a6'; sizeField.value = 10;
-            cfgPanel.close(); cfgBtn.click();
-        });
-        full(clearBtn);
-
-        section('Gruppen-Kopf');
-        const ghSize = num('Größe', { min: 8, max: 1000000, get: () => state.get('grpHeadSize') || 10, set: (v) => state.set('grpHeadSize', v) });
-        hint(ghSize, 'Schriftgröße der Gruppen-Kopfzeile (px)');
-        const ghH = num('Höhe', { min: 0, max: 1000000, get: () => state.get('grpHeadH') || 0, set: (v) => state.set('grpHeadH', v) });
-        hint(ghH, 'Mindesthöhe der Gruppen-Kopfzeile in px (0 = wie ausgeliefert)');
-
-        section('Sprache');
-        const langRow = document.createElement('div'); langRow.className = 'cfg-btn-row';
-        const deBtn = document.createElement('button'); deBtn.className = 'pb-btn'; deBtn.textContent = 'Deutsch';
-        const enBtn = document.createElement('button'); enBtn.className = 'pb-btn'; enBtn.textContent = 'English';
-        const paintLang = () => { deBtn.classList.toggle('active', curLang() === 'de'); enBtn.classList.toggle('active', curLang() === 'en'); };
-        deBtn.addEventListener('click', () => { setLang('de'); state.set('lang', 'de'); paintLang(); });
-        enBtn.addEventListener('click', () => { setLang('en'); state.set('lang', 'en'); paintLang(); });
-        paintLang();
-        langRow.append(deBtn, enBtn);
-        full(langRow);
-        hint(langRow, 'Sprache der Hinweise und Beschriftungen (selbst vergebene Namen bleiben unverändert)');
-
-        section('Daten');
-        const btnRow = document.createElement('div'); btnRow.className = 'cfg-btn-row';
-        const mk = (label, title, fn) => { const b = document.createElement('button'); b.className = 'pb-btn'; b.textContent = label; hint(b, title); b.addEventListener('click', fn); return b; };
-        btnRow.append(
-            mk('⭳ Export', 'Aktuellen Zustand als .json herunterladen', () => exportConfig()),
-            mk('⭱ Import', 'Zustand aus einer .json laden (Seite lädt neu)', () => fileIn.click()),
-            mk('↺ Reset', 'Alles zurücksetzen (localStorage leeren, Seite lädt neu)', doReset),
-        );
-        full(btnRow);
-    }, () => cfgBtn.classList.remove('active'),
-    { get: () => state.get('cfgPanelPos'), set: (pos) => state.set('cfgPanelPos', pos) });
-});
+    cfgWin.open((f) => buildMainSettings(f, {
+        state,
+        onExport: () => exportConfig(),
+        onImport: () => fileIn.click(),
+        onReset: doReset,
+        reopen: () => { cfgWin.close(); openCfg(); },
+    }), () => cfgBtn.classList.remove('active'));
+};
+cfgBtn.addEventListener('click', () => { cfgWin.isOpen ? cfgWin.close() : openCfg(); });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
 
 // ── Ensemble-Snapshot-Menü im Header (1:1 aus werkbank.js Z.1154-1193) ────────────────
@@ -696,7 +671,7 @@ recFmtBtn.addEventListener('click', () => {
 keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { self: true });
 keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { self: true });
 keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
-keyMidi.register('hdr:cfgmenu', cfgBtn, '⚙ Config', () => cfgBtn.click(), { self: true });
+keyMidi.register('hdr:cfgmenu', cfgBtn, 'Einstellungen', () => cfgBtn.click(), { self: true });
 keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.click(), { self: true });
 // Globale Verteilung (Vorbild Z.1354-1357): analog alle VIER hier vorhandenen ISMs, sonst
 // feuern gelernte Tasten auf Rec-/LevelMeter-/Scope-Controls nie (derselbe Bug wie im

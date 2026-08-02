@@ -1,3 +1,4 @@
+nicht für die KI, nur personlicher promptspeicher
 ADSR:
 Die Settings sind zwar alle da, aber funktionieren teils noch nicht teils will ich die Struktur klären:
     Logik und Funktion: Gate Länge
@@ -86,3 +87,51 @@ settings:
         das soll so bleiben ABER alle Einstellungs veränderungen sollen **direkt übernommen** werden, ohne enter drücken zu müssen. (Enter nur noch für den User zur gewohnten Sicherheit)
     die Edit Felder mit zahlen oder Text sollen bei iihrer Sellektion selektiert werden. also nicht so: ![alt text](image-2.png), sondern so: ![alt text](image-3.png). Das funktioniert bereits mit Tab taste, aber **noch nicht beim anklicken**.
 
+# neue ensembles mit settings
+[aus chat heraus..]
+das ist eine privates file um mit dir zu kommunizieren. bitte niicht in die werkbank einchecken. es ist nur für mich und dich.
+
+@werkbank/werkbank-leer.html 
+wir müssen über die Details der leeren Werkbank reden, diese sind immerhin immer da..:
+
+Alle (alle!) Gruppen haben die Möglichkeit, Ihre Controls umzuschalten zwischen
+    - A: Panel - "frei" designbar (z.B. waagerechter Fader..)
+    - B: in den Gruppensettings nur im einheitlichen, passend platzsparenden Design: Label, Value (mit controlsettings 
+    für tontechnik. das grafische könnte ausgegraut bleiben).
+    die einstellung dafür muss wahrscheinlich in die Controlsettings? irgendwie 'oben' als Icon Panel/settings..?
+bei ISM ist es ein bisschen anders: da können Gruppen auf A:(Aus/Bypass und unsichtbar) --> in die settings aber nur als label mit "panel"switch, der A rückgangig macht
+B: wie bisher: gruppe funktional auf Panel
+
+Gruppe 
+    Tempo:
+        ich brauch mehrere TEXTS (oder NOTES?) Zur Anzeige des (bpm) Tempos in verschiedenen Arten:
+            - Freq (Hz)
+            - Zeit (ms)
+            - Ton (P)
+            - ..noch irgendwas vergessen?
+    Metronom:
+        - aktiv und die Beats anzeige sind noch keine Controls - bitte schlag etwas passendet vor
+
+-- 
+20260801_205529
+super, danke!
+
+für control `unikat` scheint es noch keine "Kleindarstellung" für die Settings zu geben? ![tabSettings bsp](image.png) 
+da braucht es eine  gleichgroße symbolische Fläche geben, die wie die anderen settings via rechte mausclick hat..
+
+Eine kleine optische Sache:
+![knob-ohne](image-1.png)
+Bei Knobs ohne knob Darstellung sind ja die Values mit background-color. Bei großen Schriften wie ich es genutzt habe, wird nicht alles vom background abgedeckt und es gibt auch keine 'witdh' für den value-background (korrekt), es soll von allein die richtige Größe den BG der kompletten Value Anzeige finden. Die Höhe ist ok, nur die Breite.. die angaben schwanken ja In der Breite, der BG soll sich aber festlegen (Nicht die ganze Zeit Größe springen).
+
+vor dem Commit auch das config export json updaten:
+[json](../../../Downloads/werkbank-config-20260801192926.json)
+
+rename index.html in overcord.html und 
+und mach ein neue hübsche begrüßungsseite im "werkbankstil" mit dem Angebot an html/ensembles.. derzeit nur overcord und leer, aber immerhin! Und vielleicht ein paar wenige, harte, hiflreiche Bedienungstips für total überwältigte Newbies:
+- Space startet und Stopt Play 
+- main 'Snapshots' oben
+- 'e' toggle für "Edit"
+- rechte mouse für settings aller art
+
+-- 
+20260802_020906

@@ -76,11 +76,11 @@ try:
         check(pg.evaluate("() => window.__takt.state._ls") == "werkbank-leer_taktmetro",
               "taktState sollte am eigenen lsKey hängen")
 
-        # ── 4a. Config öffnet ──
+        # ── 4a. Einstellungen öffnen (Fenster, s. lib/SettingsWindow.js) ──
         pg.locator('#cfgmenu').click()
         time.sleep(0.15)
-        check(pg.locator('.mini-settings:visible').count() == 1, "⚙ Config öffnet kein Panel")
-        pg.locator('.mini-settings .kme-close').click()
+        check(pg.locator('.sw-window:visible').count() == 1, "⚙ Einstellungen öffnet kein Fenster")
+        pg.locator('.sw-window .sw-close').click()
         time.sleep(0.1)
 
         # ── 4b. keyedit/midiedit setzen .active ──

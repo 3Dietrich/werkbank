@@ -47,10 +47,10 @@ try:
 
         # ── EN umschalten (über das main-Config-Panel, echter Bedienweg) ──
         pg.locator('#cfgmenu').click()
-        panel = pg.locator('.mini-settings:visible')
-        panel.locator('button:has-text("English")').click()
+        panel = pg.locator('.sw-window:visible')
+        panel.locator('.sw-select').select_option('en')
         time.sleep(0.1)
-        panel.locator('.kme-close').click()
+        panel.locator('.sw-close').click()
 
         titles_en = pg.evaluate("() => [...document.querySelectorAll('.group-title')].map(g => g.textContent)")
         check('Beat / metronome' in titles_en and 'Transport / tempo' in titles_en,
@@ -64,10 +64,10 @@ try:
 
         # ── zurück auf Deutsch: Originaltexte wieder da ──
         pg.locator('#cfgmenu').click()
-        panel2 = pg.locator('.mini-settings:visible')
-        panel2.locator('button:has-text("Deutsch")').click()
+        panel2 = pg.locator('.sw-window:visible')
+        panel2.locator('.sw-select').select_option('de')
         time.sleep(0.1)
-        panel2.locator('.kme-close').click()
+        panel2.locator('.sw-close').click()
 
         titles_de_after = pg.evaluate("() => [...document.querySelectorAll('.group-title')].map(g => g.textContent)")
         check(titles_de_after == titles_de_before, f"Zurück auf Deutsch sollte die Original-Titel wiederherstellen, war {titles_de_after!r} vs. {titles_de_before!r}")
@@ -92,17 +92,17 @@ try:
 
         # Sprache hin und zurück — der custom Name darf NIE zu 'Octaves'/'Oktaven' zurückspringen.
         pg.locator('#cfgmenu').click()
-        panel3 = pg.locator('.mini-settings:visible')
-        panel3.locator('button:has-text("English")').click()
+        panel3 = pg.locator('.sw-window:visible')
+        panel3.locator('.sw-select').select_option('en')
         time.sleep(0.1)
         after_en = pg.evaluate("""() => {
             const l = [...document.querySelectorAll('.knob-label')].find(l => l.textContent === 'MeineOktaven');
             return l ? l.textContent : 'NOTFOUND';
         }""")
         check(after_en == 'MeineOktaven', f"Custom-Name sollte Sprachwechsel überstehen (nicht übersetzt werden), war {after_en!r}")
-        panel3.locator('button:has-text("Deutsch")').click()
+        panel3.locator('.sw-select').select_option('de')
         time.sleep(0.1)
-        panel3.locator('.kme-close').click()
+        panel3.locator('.sw-close').click()
 
         # ── Aufräumen: Custom-Name wieder entfernen ──
         oktaven_knob2 = pg.locator('.knob-container').filter(has=pg.locator('.knob-label', has_text='MeineOktaven')).first

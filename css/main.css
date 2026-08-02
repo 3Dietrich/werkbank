@@ -77,6 +77,12 @@ body {
 }
 /* Icon + Wort nebeneinander (Start/Sync/Reset): das Icon richtet sich an der Textzeile aus. */
 .pb-btn .ico { vertical-align: middle; }
+/* Header-Button mit Icon VOR dem Wort (⚙ Einstellungen, @dpa dd.md 20260802). Der Text
+   lebt in .hdr-btn-text, weil das Umbenennen über die Rechtsklick-Settings sonst das
+   Icon mitlöschen würde (s. wireHeaderBtnSettings). */
+.hdr-btn-ico { display: inline-flex; align-items: center; gap: 5px; --ico: 14px; }
+.hdr-btn-ico .ico { color: var(--muted); }
+.hdr-btn-ico:hover .ico, .hdr-btn-ico.active .ico { color: inherit; }
 /* Aktions-Farben: gleiche Glyph-Sprache in allen Clustern, aber klar unterscheidbar
    (↺ laden · ✎ überschreiben · ＋ neu · ⤓ export · ⤒ import). Icons etwas größer als der
    Rest von .pb-icon – die Vierecke bleiben normal (@dpa 20260713: "Icon oft zu klein im Viereck").
@@ -1486,3 +1492,79 @@ body {
 .wire--event { stroke: var(--accent2); opacity: .3; }
 .wire--declared { stroke: var(--muted); opacity: .35; stroke-dasharray: 4 3; }
 .wire--pulse { stroke: var(--accent); opacity: 1; stroke-width: 2.5px; }
+
+/* ── Einstellungs-Fenster (lib/SettingsWindow.js) ──────────────────────────────────
+   @dpa dd.md 20260802: „Ich muss einfach von dem teslacoil settings reden: Das ganze graue
+   Fenster design". Das ⚙ ist ab hier KEIN schwebendes Rechtsklick-Panel mehr (das meint
+   immer EIN Element), sondern ein modales Fenster über abgedunkeltem Grund — man sieht ihm
+   an, dass es das ganze Werkzeug meint.
+   Die Erklärung je Abschnitt sitzt hinter dem i-Icon (.sw-info → .wb-help-pop), nicht als
+   Absatz darunter: „dann braucht es nicht so viel Platz". */
+.sw-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0,0,0,.5);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 10vh;
+}
+/* Nie höher als das Bild – was nicht passt, scrollt IM Fenster (der Overlay ist fixed,
+   da gäbe es sonst nichts zu scrollen und die untersten Knöpfe wären unerreichbar).
+   Nach unten offen: ein weiterer Abschnitt verlängert nur den Scrollbereich. */
+.sw-window {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  width: min(400px, 92vw); max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+}
+.sw-head {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 11px; border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; background: var(--panel); z-index: 1;
+  --ico: 16px; color: var(--muted);
+}
+.sw-head > span { font-size: 13px; font-weight: 600; color: var(--text); margin-right: auto; }
+.sw-close {
+  --ico: 12px; width: 20px; height: 20px; padding: 0; border-radius: 3px;
+  background: none; border: 1px solid transparent; color: var(--muted); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.sw-close:hover { color: var(--text); border-color: var(--line); }
+.sw-body { padding: 4px 11px 11px; }
+.sw-sec { padding-top: 9px; margin-top: 9px; border-top: 1px solid var(--line); }
+.sw-sec:first-child { padding-top: 6px; margin-top: 0; border-top: none; }
+.sw-subhead {
+  display: flex; align-items: center; gap: 5px; margin-bottom: 6px;
+  font-size: 11.5px; font-weight: 600; color: var(--text);
+}
+/* Das i-Icon: mittelgroß und anklickbar (@dpa: „mittelgroßes Icon 'i' … zum anclicken =
+   markup lesen"), nicht der übliche Mikro-Hint-Punkt. Sanfter Rahmen wie .wb-help-btn. */
+.sw-info {
+  --ico: 14px; width: 18px; height: 18px; padding: 0; border-radius: 3px;
+  background: none; border: 1px solid var(--line); color: var(--muted); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+}
+.sw-info:hover, .sw-info.active { color: var(--text); border-color: var(--sel-line); }
+/* z-index ÜBER dem Overlay (3000): .wb-help-pop hängt lose an <body>, nicht im Fenster
+   selbst — ohne diesen Vorrang läge es unter dem abgedunkelten Grund und wäre unsichtbar.
+   Doppelt-Klassen-Selektor (2 statt 1 Klasse), damit das hier IMMER vor .wb-help-pop aus
+   werkbank.css gewinnt — bei gleicher Spezifität entscheidet sonst nur die Lade-Reihenfolge
+   der Stylesheets (main.css vor werkbank.css, s. index.html), und die zeigt hierher. */
+.sw-info-pop { max-width: 320px; }
+.wb-help-pop.sw-info-pop { z-index: 3200; }
+/* Reichweite rechts in der Kopfzeile: „gilt überall" vs. „nur dieser Einstieg". Klein und
+   gedämpft — es ist eine Einordnung, keine Ansage (@dpa dd.md 20260802). */
+.sw-scope {
+  margin-left: auto; flex: none;
+  color: var(--muted); font-size: 9.5px; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.sw-rows { display: flex; flex-direction: column; gap: 5px; }
+.sw-row { display: flex; align-items: center; gap: 7px; }
+.sw-row > label { color: var(--muted); font-size: 11px; flex: 0 0 82px; }
+.sw-row-full { display: block; }
+.sw-note { color: var(--muted); font-size: 10.5px; margin-top: 2px; }
+.sw-num, .sw-text, .sw-select {
+  background: var(--bg); color: var(--text); border: 1px solid var(--line);
+  border-radius: 3px; padding: 3px 6px; font-size: 11.5px;
+}
+.sw-num { width: 72px; }
+.sw-text { flex: 1 1 auto; min-width: 0; }
+.sw-select { flex: 1 1 auto; min-width: 0; }

@@ -53,12 +53,12 @@ try:
         pg.mouse.move(10, 10)
         time.sleep(0.1)
 
-        # ── Sprache auf English ──
+        # ── Sprache auf English (⚙-Fenster, lib/SettingsWindow.js: Menü statt Knopfpaar) ──
         pg.locator('#cfgmenu').click()
-        panel = pg.locator('.mini-settings:visible')
-        panel.locator('button:has-text("English")').click()
+        panel = pg.locator('.sw-window:visible')
+        panel.locator('.sw-select').select_option('en')
         time.sleep(0.1)
-        panel.locator('.kme-close').click()
+        panel.locator('.sw-close').click()
 
         pg.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
         time.sleep(0.6)

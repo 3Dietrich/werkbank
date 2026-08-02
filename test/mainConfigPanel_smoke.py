@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Headless-Smoke: main Config als eigenes Themen-Fenster (ddw.md @dpa 20260724, Zeilen
-1089-1094: "main Config ... mach daraus ein Fenster, ähnlich den Settings, aufgeräumt nach
-Themen ... Label Farben bestimmbar ... Gruppen header Schriftgröße und Höhe einstellbar ...
-Deutsch/Englisch").
+"""Headless-Smoke: main Config als eigenes Einstellungs-Fenster (@dpa dd.md 20260802:
+"es ist derzeit zu wenig 'Einstellungs'-mäßig ... das ganze graue Fenster design").
+
+Ab hier ist ⚙ KEIN MiniSettings-Popover mehr (das meint immer EIN Element), sondern ein
+modales Fenster (lib/SettingsWindow.js) über abgedunkeltem Grund, dessen Inhalt aus
+lib/mainSettings.js kommt — gemeinsam für alle Pool-Einstiege.
 
 Prüft:
-  - ⚙ Config öffnet ein MiniSettings-Panel mit 4 Themen-Abschnitten (Labels/
-    Gruppen-Kopf/Sprache/Daten), nicht mehr das alte schmale Export/Import/Reset-Popup.
+  - ⚙ Einstellungen öffnet ein .sw-window mit 4 Themen-Abschnitten in fester Reihenfolge
+    (Sprache/Beschriftung/Gruppen-Kopf/Daten — Sprache zuerst, s. mainSettings.js Kopf).
   - Label-Farbe wirkt sofort auf ein echtes Knob-Label (CSS-Var --lab-col).
   - Gruppen-Kopf-Größe wirkt sofort auf .group-title (CSS-Var --grp-head-size).
-  - Sprache EN übersetzt einen bestehenden, aus i18n.js übernommenen Hint sofort im
-    offenen Panel (Beweis: setLang() erreicht bereits gerenderte Elemente).
+  - Sprache EN (jetzt ein <select>, kein Knopfpaar) übersetzt einen bestehenden Hint sofort
+    im offenen Fenster.
   - Export/Import/Reset (Daten-Sektion) sind weiter vorhanden.
   - "Vorgabe entfernen" setzt Label-Farbe/-Größe/Wert-BG zurück (CSS-Var verschwindet).
 
@@ -46,17 +48,13 @@ try:
         pg.goto(f"http://localhost:{PORT}/", wait_until="networkidle", timeout=15000)
 
         pg.locator('#cfgmenu').click()
-        panel = pg.locator('.mini-settings:visible')
-        check(panel.count() == 1, f"Config-Panel öffnet nicht, count={panel.count()}")
-        check(pg.locator('.cfg-pop').count() == 0, "Altes .cfg-pop sollte nicht mehr existieren")
+        panel = pg.locator('.sw-window:visible')
+        check(panel.count() == 1, f"Einstellungs-Fenster öffnet nicht, count={panel.count()}")
+        check(pg.locator('.mini-settings.sw-window').count() == 0, "⚙ sollte kein MiniSettings-Popover mehr sein")
 
-        # (.cfg-section-title steht per CSS in Großbuchstaben, all_inner_texts() liefert
-        # den GERENDERTEN Text — daher hier gegen die Großschreibung prüfen.)
-        sections = panel.locator('.cfg-section-title').all_inner_texts()
-        # 'Beschriftung' -> 'Labels' (@dpa ddw.md 20260724_183901): wörtlich umbenannt, kein
-        # Übersetzungs-Eintrag (englischer Fachbegriff wie 'Base-Frq', in beiden Sprachen gleich).
-        check(sections == ['LABELS', 'GRUPPEN-KOPF', 'SPRACHE', 'DATEN'],
-              f"Erwartet 4 Themen-Abschnitte in Reihenfolge, war {sections!r}")
+        sections = panel.locator('.sw-subhead > span:first-child').all_inner_texts()
+        check(sections == ['Sprache', 'Beschriftung', 'Gruppen-Kopf', 'Daten'],
+              f"Erwartet 4 Themen-Abschnitte in fester Reihenfolge, war {sections!r}")
 
         # ── Label-Farbe wirkt sofort ──
         color_input = panel.locator('input[type="color"]').first
@@ -70,8 +68,9 @@ try:
         }""")
         check(knob_label_color == 'rgb(255, 0, 255)', f"Ein echtes Knob-Label sollte die neue Farbe zeigen, war {knob_label_color!r}")
 
-        # ── Gruppen-Kopf-Größe wirkt sofort ──
-        number_inputs = panel.locator('.kme-row input[type="number"]')
+        # ── Gruppen-Kopf-Größe wirkt sofort (Reihenfolge unverändert: Sprache hat keine
+        # Zahlenfelder, danach Beschriftung > Größe, dann Gruppen-Kopf > Größe/Höhe). ──
+        number_inputs = panel.locator('.sw-row input[type="number"]')
         check(number_inputs.count() == 3, f"Erwartet 3 Zahlenfelder (Beschr.-Größe, Kopf-Größe, Kopf-Höhe), war {number_inputs.count()}")
         number_inputs.nth(1).fill("14")   # Gruppen-Kopf > Größe erlaubt 8-16, s. main.css/werkbank.js
         number_inputs.nth(1).dispatch_event("input")
@@ -82,16 +81,16 @@ try:
         }""")
         check(grp_title_size == '14px', f"Gruppen-Titel sollte 14px zeigen, war {grp_title_size!r}")
 
-        # ── Sprache EN übersetzt einen bestehenden Hint sofort ──
-        panel.locator('button:has-text("English")').click()
+        # ── Sprache EN (Menü statt Knopfpaar) übersetzt einen bestehenden Hint sofort ──
+        panel.locator('.sw-select').select_option('en')
         time.sleep(0.1)
         translated = pg.evaluate("""() => {
-            const rows = [...document.querySelectorAll('.mini-settings .kme-row')];
-            const r = rows.find(r => r.dataset.hint && r.dataset.hint.startsWith('Applies to ALL'));
-            return r ? r.dataset.hint : null;
+            const els = [...document.querySelectorAll('.sw-window input, .sw-window select')];
+            const e = els.find(e => e.dataset.hint && e.dataset.hint.startsWith('Colour of ALL'));
+            return e ? e.dataset.hint : null;
         }""")
-        check(translated is not None, "Beschriftung-Hint sollte nach EN-Umschaltung übersetzt sein")
-        panel.locator('button:has-text("Deutsch")').click()   # zurück auf Default für den Rest
+        check(translated is not None, "Farbe-Hint sollte nach EN-Umschaltung übersetzt sein")
+        panel.locator('.sw-select').select_option('de')   # zurück auf Default für den Rest
         time.sleep(0.1)
 
         # ── Daten-Sektion: Export/Import/Reset weiter vorhanden ──
@@ -105,13 +104,14 @@ try:
         lab_col_after = pg.evaluate("() => getComputedStyle(document.documentElement).getPropertyValue('--lab-col').trim()")
         check(lab_col_after == '', f"--lab-col sollte nach 'Vorgabe entfernen' leer sein, war {lab_col_after!r}")
 
-        # ── Aufräumen: Gruppen-Kopf-Größe zurück, Panel schließen ──
-        number_inputs.nth(1).fill("10")
-        number_inputs.nth(1).dispatch_event("input")
-        panel.locator('.kme-close').click()
+        # ── Aufräumen: Gruppen-Kopf-Größe zurück, Fenster schließen ──
+        panel = pg.locator('.sw-window:visible')   # 'Vorgabe entfernen' baut das Fenster neu auf
+        panel.locator('.sw-row input[type="number"]').nth(1).fill("10")
+        panel.locator('.sw-row input[type="number"]').nth(1).dispatch_event("input")
+        panel.locator('.sw-close').click()
         time.sleep(0.1)
         cfg_active = pg.evaluate("() => document.querySelector('#cfgmenu').classList.contains('active')")
-        check(cfg_active is False, "⚙ Config sollte nach Schließen des Panels 'active' verlieren")
+        check(cfg_active is False, "⚙ Einstellungen sollte nach Schließen des Fensters 'active' verlieren")
 
         errs = [e for e in errors if "favicon" not in e.lower()]
         check(len(errs) == 0, f"Console-/Page-Errors: {errs}")
@@ -126,4 +126,4 @@ if fails:
     for f in fails:
         print(" -", f)
     sys.exit(1)
-print("SMOKE OK: main Config als Themen-Fenster (Labels/Gruppen-Kopf/Sprache/Daten) funktioniert.")
+print("SMOKE OK: main Config als Einstellungs-Fenster (Sprache/Beschriftung/Gruppen-Kopf/Daten) funktioniert.")
