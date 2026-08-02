@@ -57,3 +57,5 @@ mir ist etwas durcheinander gekommen.. bitte prüf ob Du die Punkte schon gemach
 Lim:    
     - bei Att=0 müsste es eigentlich mindestens an einer stelle knacken. da ist noch etwas zu langsam!
     - bitte den Lim Button neben Attack und Release (geordnet nach Limiter settings und Optik): BGoff, BGon (und der Vollständigkeit halber auch VG/schrift)
+
+Während du Schwierigkeiten hattest, das zu prüfen, konnte ich schon ein bisschen testen. es gibt noch immer peaks die als clip dargestellt werden (sikorr, aber da würde ich sagen wir finden eine zeit im einstelligen millisekunden bereich die die peaks ignoriert 
