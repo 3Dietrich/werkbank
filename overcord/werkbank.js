@@ -916,7 +916,8 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: lev
 // Schmale Steuersignal-Oszilloskope zum „Reinklinken": Quelle → scope_i.in zeigt an,
 // scope_i.out reicht denselben Wert optional weiter (Passthrough), sodass eine
 // bestehende Verbindung NICHT unterbrochen werden muss. Vervielfältigbar wie ADSR,
-// Settings (Buffer/min/max/Auto-Range/Meter/Kurve/Maße/Farben + ➚/🚮) per Rechtsklick.
+// Settings (Rechtsklick AUF DEN SCOPE, s. ElementSettings.js '_fieldsFor scope') + ➚/🚮
+// als Instanz-Aktionen im Gruppen-Settings-Popover.
 const SCOPE_LS = lsKey('scope');
 const scopeState = new MiniState({ scopeCount: 1 }, SCOPE_LS);
 const scopeRoot = document.querySelector('#scopes');
@@ -928,7 +929,15 @@ const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, de
 scopeManager.init();
 mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
 
-// Scope-Settings im Gruppen-Rechtsklick-Panel (kompakt, 2-spaltig — wie ADSR)
+// Gruppen-Rechtsklick-Panel der Scope-Gruppe (@dpa ddw.md 20260802 Punkt 3): NUR noch die
+// Instanz-AKTIONEN (Kopie anlegen/Löschen/Puffer zurücksetzen) — das sind keine „Einstellungen"
+// im Sinne von Stil-Feldern, sondern Instanz-Verwaltung wie bei jeder anderen Multi-Instanz-
+// Gruppe (vgl. Combo/Snapshot-Pool). Buffer/Breite/Höhe/min/max/Auto-Range/Meter/Kurve/
+// Genauigkeit sind umgezogen ins Scope-EIGENE Rechtsklick-Settings (ElementSettings.js,
+// `_fieldsFor('scope')`) — vorher lag „alles außer Frame/Sample" hier, das war genau die vom
+// User bemängelte Aufteilung („Scope selbst hat in Settings ja eigentlich nur Frame/Sample
+// Umschalter, alles andere ist in Scope-Gruppen-Settings"). Jetzt kein Überlapp mehr: die
+// Gruppen-Settings zeigen nur noch generische Gruppen-Felder + diese Instanz-Aktionen.
 const _scopeKindSettings = {
     Scope: (name, pop, st, row, sfx) => {
         if (!sfx) return;
@@ -937,52 +946,8 @@ const _scopeKindSettings = {
         if (!scope) return;
         const styles = () => ({ ...(scopeState.get('ctrlStyles') || {}) });
         const cur = () => (styles()['u:scope' + sfx] || {});
-        const setStyle = (patch) => {
-            const all = styles();
-            all['u:scope' + sfx] = { ...(all['u:scope' + sfx] || {}), ...patch };
-            scopeState.set('ctrlStyles', all);
-            scope.applyStyle(all['u:scope' + sfx]);
-        };
 
         pop.appendChild(Object.assign(document.createElement('div'), { className: 'gs-sep' }));
-
-        const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
-        const numField = (label, key, min, max, step, def) => {
-            const l = document.createElement('label');
-            l.style.cssText = 'display:flex; align-items:center; gap:4px; font-size:11px;';
-            const n = document.createElement('input'); n.type = 'number';
-            n.min = min; n.max = max; n.step = step;
-            n.value = cur()[key] ?? def;
-            n.style.cssText = 'width:56px; font-size:11px; padding:1px 2px;';
-            n.addEventListener('input', () => {
-                const v = Math.max(min, Math.min(max, parseFloat(n.value)));
-                if (Number.isFinite(v)) setStyle({ [key]: v });
-            });
-            l.append(n, document.createTextNode(label));
-            grid.appendChild(l);
-        };
-        const boolField = (label, key, def) => {
-            const l = document.createElement('label');
-            l.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
-            const cb = document.createElement('input'); cb.type = 'checkbox';
-            cb.checked = cur()[key] ?? def;
-            cb.addEventListener('change', () => setStyle({ [key]: cb.checked }));
-            l.append(cb, document.createTextNode(label));
-            grid.appendChild(l);
-        };
-        // @dpa 20260727: keine Reflex-Limits, weder bei Werten NOCH bei Pixel-Maßen ("stell
-        // Dir ein 8k Display vor") — großzügig statt "zur Sicherheit knapp", überall.
-        // bufferMs klemmt intern ohnehin an der Web-Audio-FFT-Grenze (SignalScope.js).
-        numField('Buffer ms', 'bufferMs', 2, 1000000, 1, 40);
-        numField('Breite', 'width', 24, 1000000, 2, 120);
-        numField('Höhe', 'height', 12, 1000000, 2, 34);
-        numField('min', 'minVal', -1000000, 1000000, 0.1, 0);
-        numField('max', 'maxVal', -1000000, 1000000, 0.1, 1);
-        boolField('Auto-Range', 'autoRange', true);
-        boolField('Meter', 'showMeter', true);
-        boolField('Kurve', 'showCurve', true);
-        pop.appendChild(grid);
 
         const btnRow = document.createElement('div');
         btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';

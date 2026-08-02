@@ -254,7 +254,11 @@ const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, de
 scopeManager.init();
 mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
 
-// Scope-Settings im Gruppen-Rechtsklick-Panel (kompakt, 2-spaltig — wie ADSR im Original)
+// Gruppen-Rechtsklick-Panel der Scope-Gruppe (@dpa ddw.md 20260802 Punkt 3, 1:1 aus
+// overcord/werkbank.js): NUR noch die Instanz-AKTIONEN (Kopie/Löschen/Puffer zurücksetzen)
+// — Buffer/Breite/Höhe/min/max/Auto-Range/Meter/Kurve/Genauigkeit sind umgezogen ins
+// Scope-EIGENE Rechtsklick-Settings (ElementSettings.js, `_fieldsFor('scope')`), damit
+// „Scope-Settings" und „Scope-Gruppen-Settings" sich nicht mehr überlappen.
 const _scopeKindSettings = {
     Scope: (name, pop, st, row, sfx) => {
         if (!sfx) return;
@@ -263,50 +267,8 @@ const _scopeKindSettings = {
         if (!scope) return;
         const styles = () => ({ ...(scopeState.get('ctrlStyles') || {}) });
         const cur = () => (styles()['u:scope' + sfx] || {});
-        const setStyle = (patch) => {
-            const all = styles();
-            all['u:scope' + sfx] = { ...(all['u:scope' + sfx] || {}), ...patch };
-            scopeState.set('ctrlStyles', all);
-            scope.applyStyle(all['u:scope' + sfx]);
-        };
 
         pop.appendChild(Object.assign(document.createElement('div'), { className: 'gs-sep' }));
-
-        const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
-        const numField = (label, key, min, max, step, def) => {
-            const l = document.createElement('label');
-            l.style.cssText = 'display:flex; align-items:center; gap:4px; font-size:11px;';
-            const n = document.createElement('input'); n.type = 'number';
-            n.min = min; n.max = max; n.step = step;
-            n.value = cur()[key] ?? def;
-            n.style.cssText = 'width:56px; font-size:11px; padding:1px 2px;';
-            n.addEventListener('input', () => {
-                const v = Math.max(min, Math.min(max, parseFloat(n.value)));
-                if (Number.isFinite(v)) setStyle({ [key]: v });
-            });
-            l.append(n, document.createTextNode(label));
-            grid.appendChild(l);
-        };
-        const boolField = (label, key, def) => {
-            const l = document.createElement('label');
-            l.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
-            const cb = document.createElement('input'); cb.type = 'checkbox';
-            cb.checked = cur()[key] ?? def;
-            cb.addEventListener('change', () => setStyle({ [key]: cb.checked }));
-            l.append(cb, document.createTextNode(label));
-            grid.appendChild(l);
-        };
-        // Keine Reflex-Limits (@dpa 20260727), großzügig statt "zur Sicherheit knapp".
-        numField('Buffer ms', 'bufferMs', 2, 1000000, 1, 40);
-        numField('Breite', 'width', 24, 1000000, 2, 120);
-        numField('Höhe', 'height', 12, 1000000, 2, 34);
-        numField('min', 'minVal', -1000000, 1000000, 0.1, 0);
-        numField('max', 'maxVal', -1000000, 1000000, 0.1, 1);
-        boolField('Auto-Range', 'autoRange', true);
-        boolField('Meter', 'showMeter', true);
-        boolField('Kurve', 'showCurve', true);
-        pop.appendChild(grid);
 
         const btnRow = document.createElement('div');
         btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
