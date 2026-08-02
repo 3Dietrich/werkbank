@@ -34,6 +34,7 @@
 /* Master-Fader im Header (@dpa 20260722, MasterVolume.js). */
 .mv-wrap { display: flex; align-items: center; gap: 6px; }
 .mv-lim { padding: 4px 8px; font-size: 11px; }
+.mv-ws { padding: 4px 8px; font-size: 11px; }   /* WaveShaper-Soft-Clip-Toggle, s. MasterVolume.js */
 .mv-lim-pop {
   position: fixed; z-index: 3000; display: flex; flex-direction: column; gap: 6px;
   padding: 8px 10px; border-radius: 4px;

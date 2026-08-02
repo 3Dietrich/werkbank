@@ -52,7 +52,7 @@ import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
 import { createRecEngine } from '../lib/recInstrument/engine.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
-    getLimiter as getBusLimiter, setMasterDb as setBusMasterDb,
+    getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper, setMasterDb as setBusMasterDb,
 } from '../lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
 import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
@@ -222,7 +222,10 @@ routing.registerModule('rec', {
 });
 routing.connect({ module: 'takt', port: 'beat' }, { module: 'rec', port: 'clock' }, { active: false });
 // Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
-window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser };
+window.__audioBus = {
+    getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser,
+    getLimiter: getBusLimiter, getWaveshaper: getBusWaveshaper,
+};
 
 // ── LevelMeter – eigenes Instrument (ISM), 1:1 aus werkbank.js Z.798-812 ───────────────
 const LEVELMETER_LS = lsKey('levelmeter');

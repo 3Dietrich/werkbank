@@ -43,7 +43,7 @@ import { createSqManager } from '../lib/stepseq/multiSq.js';
 import { makeWorkerTicker } from '../lib/workerTicker.js';
 import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
 import { createRecEngine } from '../lib/recInstrument/engine.js';
-import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser, getLimiter as getBusLimiter } from '../lib/audioBus.js';
+import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser, getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper } from '../lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
 import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
 import { createStructureView } from '../lib/routing/StructureView.js';
@@ -888,7 +888,10 @@ routing.registerModule('rec', {
 });
 routing.connect({ module: 'takt', port: 'beat' }, { module: 'rec', port: 'clock' }, { active: false });
 // Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
-window.__audioBus = { getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser };
+window.__audioBus = {
+    getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser,
+    getLimiter: getBusLimiter, getWaveshaper: getBusWaveshaper,
+};
 
 // ── LevelMeter – eigenes Instrument (ISM), @dpa 20260722 (ddw.md) ──────────────────────
 // "soll dem Level ISM angehören, aber kein Header besitzen und keinen extra BG" — trotzdem
