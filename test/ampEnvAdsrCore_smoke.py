@@ -5,11 +5,11 @@
 Amp-Env (lib/polysynth/defs.js Gruppe "Amp-Env") lief bisher hart verdrahtet über
 linearRampToValueAtTime/exponentialRampToValueAtTime in engine.js. Jetzt läuft sie PRO
 VOICE über eine eigene envCore.js AdsrCore-Instanz (dieselbe Engine wie das Multi-ADSR),
-mit denselben Settings (A/D/S/R aktiv, Kurve, Skew, Invert, Verlauf) im Gruppen-
-Rechtsklick-Panel. Defaults bilden das VORHERIGE Verhalten 1:1 nach (rein additiv, s.
-defs.js amp*-Kommentar) — die reine DSP-Äquivalenz (alte WebAudio-Ramp-Formel vs. neue
-AdsrCore-Kurve) ist bereits deterministisch per Node geprüft (maxDiff ~1e-8); dieser
-Smoke prüft die END-ZU-END-Verdrahtung (Voice→Gain, Settings-Panel→State→Engine).
+mit VOLLER Knob-/Settings-Parität (dd.md 20260802, 2. Runde: "alles von ADSR einfach
+rein!") — identische State-Keys wie eine Multi-ADSR-Instanz (adsrA/adsrD/…), nur
+unsuffixed. Defaults bilden das VORHERIGE Klangverhalten 1:1 nach (s. defs.js DEFAULTS-
+Kommentar: adsrTrigMode/adsrLenFest bewusst überschrieben) — dieser Smoke prüft die
+END-ZU-END-Verdrahtung (Voice→Gain, Settings-Panel→State→Engine).
 
 Lauf: python3 test/ampEnvAdsrCore_smoke.py
 Hart begrenzt (Watchdog killt nach 40s), kein Pollen.
@@ -48,10 +48,10 @@ try:
         # ── Deterministische Amp-Env-Werte, Defaults sonst unangetastet ──
         pg.evaluate("""() => {
             const st = window.__polysynth.state;
-            st.set('ampAttack', 0.05);
-            st.set('ampDecay', 0.05);
-            st.set('ampSustain', 0.4);
-            st.set('ampRelease', 0.05);
+            st.set('adsrA', 0.05);
+            st.set('adsrD', 0.05);
+            st.set('adsrS', 0.4);
+            st.set('adsrR', 0.05);
             st.set('osc2On', false);
             window.__polysynth.engine.noteOn(60, 127);   // volle Velocity -> peak = AMP_BASE = 0.3
         }""")
@@ -84,17 +84,21 @@ try:
         checkboxes = gset.locator('input[type="checkbox"]')
         check(checkboxes.count() >= 6, f"erwartet mind. 6 Toggle-Checkboxen (A/D/S/R aktiv, Inv, Verlauf), gefunden {checkboxes.count()}")
         selects = gset.locator('select')
-        check(selects.count() >= 3, f"erwartet mind. 3 Kurven-Selects (A/D/R-Kurve), gefunden {selects.count()}")
+        # Volle ADSR-Parität (dd.md 20260802, 2. Runde): jetzt 5 Selects statt 3 (A/D/R-Kurve
+        # PLUS Modus/Len-Einheit, die die alte AMPENV_SETTINGS_SELECTS nicht kannte).
+        check(selects.count() >= 5, f"erwartet mind. 5 Selects (A/D/R-Kurve, Modus, Len-Einheit), gefunden {selects.count()}")
+        check(gset.get_by_text('Modus').count() > 0, "'Modus'-Select (TrigMode) fehlt — Amp-Env sollte jetzt volle ADSR-Parität haben")
         skew_nums = gset.locator('input[type="number"]')
-        check(skew_nums.count() >= 3, f"erwartet mind. 3 Skew-Zahlenfelder, gefunden {skew_nums.count()}")
+        # 3 Skew-Felder + 1 Nullpunktversatz-Feld (jetzt auch bei Amp-Env vorhanden, s. defs.js).
+        check(skew_nums.count() >= 4, f"erwartet mind. 4 Zahlenfelder (A/D/R-Skew + Nullpunktversatz), gefunden {skew_nums.count()}")
         check(gset.get_by_text('D aktiv').count() > 0, "'D aktiv'-Toggle-Label fehlt im Amp-Env-Settings-Panel")
 
-        # "D aktiv" ausschalten -> State ampDOn wird false.
+        # "D aktiv" ausschalten -> State adsrDOn wird false.
         dtoggle = gset.locator('label', has_text='D aktiv').locator('input[type="checkbox"]')
         dtoggle.click()
         gset.locator('.kme-close').click()
-        ampD_on = pg.evaluate("() => window.__polysynth.state.get('ampDOn')")
-        check(ampD_on is False, f"ampDOn sollte nach dem Ausschalten false sein, war {ampD_on}")
+        adsr_d_on = pg.evaluate("() => window.__polysynth.state.get('adsrDOn')")
+        check(adsr_d_on is False, f"adsrDOn sollte nach dem Ausschalten false sein, war {adsr_d_on}")
 
         # Funktionale Wirkung: OHNE Decay hält die Sustain-Phase auf PEAK (0.3), nicht mehr
         # auf peak*sustain (0.12) — bestätigt, dass das Setting wirklich in der DSP ankommt.

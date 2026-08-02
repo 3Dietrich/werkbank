@@ -278,6 +278,13 @@ const polySynthDefsObj = polySynthDefs({
             const cur = polySynthState.get('adsrLenFest' + sfx) !== false;   // Default fest
             polySynthState.set('adsrLenFest' + sfx, !cur);
         }
+        // Amp-Env „Fest" (dd.md 20260802, 2. Runde): bare Key (kein sfx, s. defs.js
+        // GROUPS['Amp-Env']) — derselbe Flip wie oben, nur ohne multiEnv.js als Nachführer
+        // (syncFestButton unten übernimmt das b:adsrLenFest-Sync, analog syncHoldButton).
+        else if (id === 'adsrLenFest') {
+            const cur = polySynthState.get('adsrLenFest') !== false;
+            polySynthState.set('adsrLenFest', !cur);
+        }
     },
 });
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
@@ -290,6 +297,11 @@ const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
 const syncHoldButton = () => polySynth.setCtrlOn('b:kbHold', !!polySynthState.get('kbHold'));
 syncHoldButton();
 polySynthState.subscribe((k) => { if (k === 'kbHold' || k === '*') syncHoldButton(); });
+// Amp-Env „Fest"-Button (dd.md 20260802, 2. Runde): analog syncHoldButton — b:adsrLenFest
+// (bare, kein sfx) muss auch bei Config-/Snapshot-Restore visuell nachgezogen werden.
+const syncAmpFestButton = () => polySynth.setCtrlOn('b:adsrLenFest', polySynthState.get('adsrLenFest') !== false);
+syncAmpFestButton();
+polySynthState.subscribe((k) => { if (k === 'adsrLenFest' || k === '*') syncAmpFestButton(); });
 const polySynthEngine = createPolySynthEngine(polySynthState);
 polySynthEngine.setBpmSource(() => taktState.get('bpm'));   // baseSrc='Tempo' folgt dem Taktmetro-Tempo
 // Ändert sich das Takt-BPM, während baseSrc='Tempo' läuft, müssen bereits GEHALTENE Voices
@@ -516,72 +528,12 @@ const _adsrSettingsSkews = polySynthDefsObj.ADSR_SETTINGS_SKEWS;
 const _adsrSettingsNums = polySynthDefsObj.ADSR_SETTINGS_NUMS;
 const _groupKindSettings = {
     // Amp-Env teilt sich seit dd.md 20260802 den groupKind 'ADSR' mit Multi-ADSR (gemeinsamer
-    // Combo-/Snapshot-Pool, s. defs.js GROUPS-Eintrag 'Amp-Env') und landet damit hier auch im
-    // Settings-Hook. Verzweigung über sfx: '' = Amp-Env (statisch, eigene AMPENV_SETTINGS_*-Keys
-    // ohne Suffix, kein Copy/Delete/Nullpunkt/Len/TrigMode), sonst = Multi-ADSR-Instanz.
+    // Combo-/Snapshot-Pool) und hat seit dd.md 20260802 (2. Runde, @dpa: "alles von ADSR
+    // einfach rein!") auch dieselben STATE-KEYS wie eine Instanz — nur unsuffixed (sfx='').
+    // get/set (k+sfx) liest darum für Amp-Env automatisch die bloßen adsr*-Keys, exakt wie für
+    // eine echte Instanz — keine Sonderbehandlung nötig. Einzige Ausnahme: Copy/Delete (unten)
+    // wirken auf envManager.engines, das Amp-Env nicht kennt — die bleiben sfx-only.
     ADSR: (name, pop, st, row, sfx) => {
-        if (!sfx) {
-            const get = (k) => polySynthState.get(k);
-            const set = (k, v) => polySynthState.set(k, v);
-
-            const sep0 = document.createElement('div'); sep0.className = 'gs-sep'; pop.appendChild(sep0);
-
-            const grid0 = document.createElement('div');
-            grid0.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
-
-            const toggleCol0 = document.createElement('div');
-            for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_TOGGLES)) {
-                const r = document.createElement('label');
-                r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
-                const cb = document.createElement('input'); cb.type = 'checkbox';
-                cb.checked = get(key) ?? polySynthDefsObj.DEFAULTS[key];
-                cb.addEventListener('change', () => set(key, cb.checked));
-                r.appendChild(cb);
-                r.appendChild(document.createTextNode(cfg.label));
-                toggleCol0.appendChild(r);
-            }
-            grid0.appendChild(toggleCol0);
-
-            const selectCol0 = document.createElement('div');
-            for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_SELECTS)) {
-                const r = document.createElement('label');
-                r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
-                const sel = document.createElement('select');
-                sel.style.cssText = 'font-size:11px; padding:1px 4px;';
-                for (const o of cfg.options) {
-                    const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
-                    sel.appendChild(opt);
-                }
-                sel.value = get(key) ?? polySynthDefsObj.DEFAULTS[key];
-                sel.addEventListener('change', () => set(key, sel.value));
-                r.appendChild(sel);
-                r.appendChild(document.createTextNode(cfg.label));
-                selectCol0.appendChild(r);
-            }
-            grid0.appendChild(selectCol0);
-            pop.appendChild(grid0);
-
-            const skewRow0 = document.createElement('div');
-            skewRow0.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
-            const skewLabel0 = document.createElement('span'); skewLabel0.textContent = 'Skew:'; skewRow0.appendChild(skewLabel0);
-            for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_SKEWS)) {
-                const l = document.createElement('label');
-                l.style.cssText = 'display:flex; align-items:center; gap:2px;';
-                const num = document.createElement('input'); num.type = 'number';
-                num.min = cfg.min; num.max = cfg.max; num.step = 0.1;
-                num.value = get(key) ?? cfg.default;
-                num.style.cssText = 'width:40px; font-size:11px; padding:1px 2px;';
-                num.addEventListener('input', () => {
-                    const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
-                    set(key, v);
-                });
-                l.appendChild(num);
-                l.appendChild(document.createTextNode(cfg.label.replace('-Skew', '')));
-                skewRow0.appendChild(l);
-            }
-            pop.appendChild(skewRow0);
-            return;
-        }
         const get = (k) => polySynthState.get(k + sfx);
         const set = (k, v) => polySynthState.set(k + sfx, v);
 
@@ -670,28 +622,33 @@ const _groupKindSettings = {
         }
         pop.appendChild(numRow);
 
-        // ── Buttons: +➚ (Kopie) und 🚮 (löschen) ─────────────────────────────
-        const btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
-        const copyBtn = document.createElement('button'); copyBtn.className = 'wb-help-btn'; copyBtn.textContent = '+➚';
-        hint(copyBtn, 'Kopie dieser ADSR anlegen');
-        copyBtn.addEventListener('click', () => {
-            const curVals = {};
-            for (const k of Object.keys(polySynthDefsObj.ADSR_DEFAULTS)) {
-                curVals[k] = polySynthState.get(k + sfx) ?? polySynthDefsObj.ADSR_DEFAULTS[k];
-            }
-            envManager.addEnv();
-            const newSfx = '_' + (envManager.engines.length - 1);
-            for (const [k, v] of Object.entries(curVals)) polySynthState.set(k + newSfx, v);
-        });
-        const delBtn = document.createElement('button'); delBtn.className = 'wb-help-btn'; delBtn.textContent = '🚮';
-        hint(delBtn, 'Diese ADSR löschen (nach Bestätigung)');
-        delBtn.addEventListener('click', () => {
-            if (!confirm('ADSR wirklich löschen?')) return;
-            envManager.removeEnv();
-        });
-        btnRow.appendChild(copyBtn); btnRow.appendChild(delBtn);
-        pop.appendChild(btnRow);
+        // ── Buttons: +➚ (Kopie) und 🚮 (löschen) — NUR für echte Multi-ADSR-Instanzen.
+        // Amp-Env (sfx='') ist kein envManager-Engine-Eintrag — "Löschen" würde hier die
+        // LETZTE Multi-ADSR-Instanz treffen statt Amp-Env selbst (falscher Button-Ziel-Bug),
+        // darum bewusst weggelassen statt eines irreführenden Buttons.
+        if (sfx) {
+            const btnRow = document.createElement('div');
+            btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+            const copyBtn = document.createElement('button'); copyBtn.className = 'wb-help-btn'; copyBtn.textContent = '+➚';
+            hint(copyBtn, 'Kopie dieser ADSR anlegen');
+            copyBtn.addEventListener('click', () => {
+                const curVals = {};
+                for (const k of Object.keys(polySynthDefsObj.ADSR_DEFAULTS)) {
+                    curVals[k] = polySynthState.get(k + sfx) ?? polySynthDefsObj.ADSR_DEFAULTS[k];
+                }
+                envManager.addEnv();
+                const newSfx = '_' + (envManager.engines.length - 1);
+                for (const [k, v] of Object.entries(curVals)) polySynthState.set(k + newSfx, v);
+            });
+            const delBtn = document.createElement('button'); delBtn.className = 'wb-help-btn'; delBtn.textContent = '🚮';
+            hint(delBtn, 'Diese ADSR löschen (nach Bestätigung)');
+            delBtn.addEventListener('click', () => {
+                if (!confirm('ADSR wirklich löschen?')) return;
+                envManager.removeEnv();
+            });
+            btnRow.appendChild(copyBtn); btnRow.appendChild(delBtn);
+            pop.appendChild(btnRow);
+        }
     },
 };
 

@@ -51,27 +51,27 @@ try:
         # (per Name statt Index 0 arbeiten: die Demo-Config bringt evtl. schon eigene ismSnaps
         # mit, @dpa dd.md 20260802 — ein hartes Index-0 träfe dann einen fremden Eintrag.)
         prev_len = pg.evaluate("() => (window.__polysynth.state.get('ismSnaps')||[]).length")
-        before = pg.evaluate("() => ({ attack: window.__polysynth.state.get('ampAttack'), hold: window.__polysynth.state.get('kbHold') })")
+        before = pg.evaluate("() => ({ attack: window.__polysynth.state.get('adsrA'), hold: window.__polysynth.state.get('kbHold') })")
         list_len = pg.evaluate("() => window.__polysynth.instr.saveIsmSnap('Ganzer Sound').length")
         check(list_len == prev_len + 1, f"saveIsmSnap sollte die Liste um 1 verlängern, war {prev_len}->{list_len}")
         idx = pg.evaluate("() => window.__polysynth.state.get('ismSnaps').findIndex(s => s.name === 'Ganzer Sound')")
         check(idx >= 0, "gespeicherter Snapshot 'Ganzer Sound' nicht in ismSnaps gefunden")
         snap = pg.evaluate(f"() => window.__polysynth.state.get('ismSnaps')[{idx}]")
-        check('ampAttack' in snap['values'], f"Snapshot sollte ampAttack (Amp-Env-Gruppe) enthalten: {list(snap['values'].keys())!r}")
+        check('adsrA' in snap['values'], f"Snapshot sollte adsrA (Amp-Env-Gruppe) enthalten: {list(snap['values'].keys())!r}")
         check('kbHold' in snap['values'], f"Snapshot sollte kbHold (Keyboard-Gruppe) enthalten: {list(snap['values'].keys())!r}")
 
         # ── Werte in ZWEI Gruppen ändern ──
         pg.evaluate("""() => {
             const s = window.__polysynth.state;
-            s.set('ampAttack', (s.get('ampAttack') || 0) + 0.2);
+            s.set('adsrA', (s.get('adsrA') || 0) + 0.2);
             s.set('kbHold', !s.get('kbHold'));
         }""")
-        changed = pg.evaluate("() => ({ attack: window.__polysynth.state.get('ampAttack'), hold: window.__polysynth.state.get('kbHold') })")
+        changed = pg.evaluate("() => ({ attack: window.__polysynth.state.get('adsrA'), hold: window.__polysynth.state.get('kbHold') })")
         check(changed['attack'] != before['attack'] and changed['hold'] != before['hold'], f"Werte sollten geändert sein: {changed!r} vs {before!r}")
 
         ok = pg.evaluate(f"() => window.__polysynth.instr.recallIsmSnap({idx})")
         check(ok is True, "recallIsmSnap sollte true liefern")
-        after = pg.evaluate("() => ({ attack: window.__polysynth.state.get('ampAttack'), hold: window.__polysynth.state.get('kbHold') })")
+        after = pg.evaluate("() => ({ attack: window.__polysynth.state.get('adsrA'), hold: window.__polysynth.state.get('kbHold') })")
         check(after == before, f"Recall sollte BEIDE Gruppen zurückholen: {after!r} != {before!r}")
 
         # ── Aufräumen ──

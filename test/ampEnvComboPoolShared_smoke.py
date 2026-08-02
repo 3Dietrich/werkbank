@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Headless-Smoke: Amp-Env teilt sich seit dd.md 20260802 den groupKind 'ADSR' mit Multi-ADSR
-(defs.js GROUPS-Eintrag 'Amp-Env': groupKind:'ADSR'). Prüft:
+"""Headless-Smoke: Amp-Env teilt sich seit dd.md 20260802 (2. Runde: "alles von ADSR
+einfach rein!") den groupKind 'ADSR' UND dieselben State-Keys wie Multi-ADSR (nur
+unsuffixed, s. defs.js GROUPS-Eintrag 'Amp-Env'). Prüft:
   · listGroupCombos('Amp-Env') und listGroupCombos(<erste Multi-ADSR-Instanz>) liefern
     denselben Pool (in Amp-Env gespeicherte Combo taucht bei der ADSR-Instanz auf).
-  · Amp-Env-Settings bleiben über eigene AMPENV_SETTINGS_*-Keys les-/schreibbar (Regression:
-    die Hook-Zusammenlegung in overcord/werkbank.js _groupKindSettings.ADSR darf das
-    unsuffixed Amp-Env-Zweig nicht kaputt machen).
+  · Volle Knob-Parität: adsrPeak/adsrLenMs/adsrTrigMode/adsrNullpunkt sind über den
+    bloßen (unsuffixed) State-Key lesbar — nicht mehr nur die alte Teilmenge
+    (ampAttack/ampDecay/ampSustain/ampRelease).
+  · Settings-Hook-Zusammenlegung (overcord/werkbank.js _groupKindSettings.ADSR) hat den
+    unsuffixed Zweig nicht kaputt gemacht: A/D/S/R + Peak sind live schreibbar.
 Lauf: python3 test/ampEnvComboPoolShared_smoke.py
 Hart begrenzt (Watchdog killt nach 40s), kein Pollen.
 """
@@ -41,7 +44,7 @@ try:
         names = pg.evaluate(f"() => {host_js}.groupNames()")
         check('Amp-Env' in names, f"'Amp-Env' fehlt in groupNames(): {names!r}")
         # 'Multi-ADSR' ist nur die statische Platzhalter-Gruppe aus defs.js (s. Kommentar dort),
-        # die echten Instanzen heißen 'ADSR', 'ADSR_1', … (envName(i), s. multiEnv.js) — die
+        # die echten Instanzen heißen 'ADSR', 'ADSR 2', … (envName(i), s. multiEnv.js) — die
         # Platzhalter-Gruppe ausschließen, sonst matcht find() sie fälschlich zuerst.
         first_adsr_name = pg.evaluate(f"""
             () => {host_js}.groupNames().find(n => n !== 'Amp-Env' && n !== 'Multi-ADSR' && n.toLowerCase().includes('adsr'))
@@ -65,15 +68,36 @@ try:
             if idx is not None and idx >= 0:
                 pg.evaluate(f"() => {host_js}.deleteGroupCombo({first_adsr_name!r}, {idx})")
 
-        # Regressionscheck: Amp-Env-Settings-Keys (AMPENV_SETTINGS_*) bleiben direkt (unsuffixed)
-        # les-/schreibbar über den State — das ist genau das, was der zusammengelegte Hook liest.
-        ampenv_toggle_keys = pg.evaluate("""
-            () => Object.keys(window.__polysynth.instr?.defsObj?.AMPENV_SETTINGS_TOGGLES
-                || (window.polySynthDefsObj && window.polySynthDefsObj.AMPENV_SETTINGS_TOGGLES) || {})
-        """)
-        # Fallback: direkt über den State ampAttack/ampDecay lesen (existiert so oder so).
-        amp_attack = pg.evaluate("() => window.__polysynth.state.get('ampAttack')")
-        check(amp_attack is not None, "ampAttack nicht im polySynthState lesbar — Amp-Env-Keys kaputt?")
+        # Regressionscheck: VOLLE Knob-Parität — nicht mehr nur die alte AMPENV-Teilmenge
+        # (A/D/S/R), sondern auch Peak/Len/TrigMode/Nullpunkt direkt (unsuffixed) im State.
+        pg.evaluate("""() => {
+            const st = window.__polysynth.state;
+            st.set('adsrA', 0.02); st.set('adsrPeak', 2); st.set('adsrTrigMode', 'gate');
+            st.set('adsrLenMs', 250); st.set('adsrNullpunkt', 0);
+        }""")
+        vals = pg.evaluate("""() => ({
+            a: window.__polysynth.state.get('adsrA'),
+            peak: window.__polysynth.state.get('adsrPeak'),
+            trigMode: window.__polysynth.state.get('adsrTrigMode'),
+            lenMs: window.__polysynth.state.get('adsrLenMs'),
+        })""")
+        check(vals['a'] == 0.02, f"adsrA nicht schreib-/lesbar, war {vals['a']!r}")
+        check(vals['peak'] == 2, f"adsrPeak nicht schreib-/lesbar, war {vals['peak']!r}")
+        check(vals['trigMode'] == 'gate', f"adsrTrigMode nicht schreib-/lesbar, war {vals['trigMode']!r}")
+        check(vals['lenMs'] == 250, f"adsrLenMs nicht schreib-/lesbar, war {vals['lenMs']!r}")
+
+        # Settings-Panel-Hook (zusammengelegt, s. overcord/werkbank.js _groupKindSettings.ADSR):
+        # Amp-Env muss weiterhin über den Rechtsklick bedienbar sein (kein leeres Panel).
+        group = pg.locator('.group[data-group="Amp-Env"]').first
+        group.scroll_into_view_if_needed()
+        group.locator('.group-title-bar').click(button="right")
+        gset = pg.locator('.group-settings:visible')
+        check(gset.locator('input[type="checkbox"]').count() >= 6,
+              f"Amp-Env-Settings-Panel zu leer: {gset.locator('input[type=\"checkbox\"]').count()} Checkboxen")
+        # Copy/Delete (+➚/🚮) dürfen bei Amp-Env NICHT auftauchen (sfx='' -> falsches Ziel,
+        # s. overcord/werkbank.js-Kommentar an der Buttons-Sektion).
+        check(gset.get_by_text('+➚').count() == 0, "Amp-Env sollte KEINEN Copy-Button zeigen (sfx='')")
+        gset.locator('.kme-close').click()
 
         b.close()
 except Exception as e:
@@ -88,4 +112,4 @@ if fails:
     print("SMOKE FAIL:")
     for f in fails: print(" -", f)
     sys.exit(1)
-print("SMOKE OK: Amp-Env und Multi-ADSR teilen sich den Combo-Pool (groupKind 'ADSR'); Amp-Env-Keys intakt.")
+print("SMOKE OK: Amp-Env und Multi-ADSR teilen sich den Combo-Pool (groupKind 'ADSR'); volle Knob-Parität (Peak/Len/Modus/Nullpunkt) intakt; kein irreführender Copy/Delete-Button.")

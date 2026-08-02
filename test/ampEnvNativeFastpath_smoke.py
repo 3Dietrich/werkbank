@@ -51,12 +51,16 @@ try:
             const st = window.__polysynth.state;
             st.set('polyMax', 128);
             st.set('voiceSteal', true);
-            st.set('ampAttack', 0.01);
-            st.set('ampDecay', 0.15);
-            st.set('ampSustain', 0.7);
-            st.set('ampRelease', 5);    // @dpas Report: "Rel höher drehen"
-            st.set('ampASkew', 1); st.set('ampDSkew', 1); st.set('ampRSkew', 1);
-            st.set('ampInv', false);
+            st.set('adsrA', 0.01);
+            st.set('adsrD', 0.15);
+            st.set('adsrS', 0.7);
+            st.set('adsrR', 5);    // @dpas Report: "Rel höher drehen"
+            st.set('adsrASkew', 1); st.set('adsrDSkew', 1); st.set('adsrRSkew', 1);
+            st.set('adsrInv', false);
+            // Native Fastpath gilt nur für den unveränderten Default (Modus=gate, Fest=aus,
+            // s. engine.js ampCfgIsNative) — explizit setzen, falls ein vorheriger Testlauf
+            // (oder eine geladene Config) etwas anderes hinterlassen hat.
+            st.set('adsrTrigMode', 'gate'); st.set('adsrLenFest', false);
             st.set('osc2On', false);
             const t0 = performance.now();
             for (let n = 40; n < 80; n++) eng.noteOn(n, 100);   // 40 Voices
