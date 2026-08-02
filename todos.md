@@ -1,5 +1,42 @@
 # Werkbank – TODOs / Ideen
 
+## Smoke-Test-Altlast: 14 Tests rot durch gewachsene Demo-Config (20260802_131434)
+Beim dd.md-20260802-Nachtdurchgang (main-Snapshot-Fix) fiel auf: 18 von 52 Smoke-Tests
+waren rot — davon 4 an echten Test-Annahmen, die inzwischen falsch sind (Pool-Index 0
+statt Namenssuche, feste Sq-Baseline "1"), gefixt (Commit "Smoke-Tests: robust gegen
+gewachsene Demo-Config"). Die restlichen 14 sind noch offen: `presets/werkbank-config.json`
+ist über die Zeit gewachsen (mehr Sequenzer/ISM-Snapshots/Combos als bei Testerstellung,
+Sq-Ziel-Bezeichner haben sich verschoben — z.B. `'polysynth.trig'` vs. jetzt
+`'polysynth.speicher'` als erstes Ziel in der Liste, "polysynth.env_0"-Gruppe existiert
+jetzt per Default). Betroffen (Stand 20260802, per Baseline-Vergleich VOR den heutigen
+Fixes bestätigt — keine Regression, alte Bekannte):
+adsrGateButtonClick_smoke, adsrGateTrigPhase_smoke, adsrGateVisibility_smoke,
+adsrKette_smoke, adsrLenFest_smoke, chordMemorySnapshot_smoke, ddw_20260724_192304_smoke,
+ddw_feedback_fixes_smoke, ensembleSnapshot_smoke, i18nLabels_smoke, phase4a_seqsync_smoke,
+seqFillSet0_style_smoke, seqLenKnob_smoke, seqOutput_smoke, signalScope_smoke,
+sqAddDefault_smoke, sqTargets_all_smoke, tempoStartContinue_smoke.
+Root Cause je Test nicht einzeln nachverfolgt — vermutlich dieselbe Familie (Baseline-
+Annahmen, Pool-Vorbelegung, verschobene Default-Ziele). Eigener Aufräum-Anlauf nötig,
+am besten mit derselben Methode wie diesmal: `git stash` der eigenen Fixes, Baseline-
+Vergleich, um echte Regressionen von Alt-Annahmen zu trennen.
+
+## Amp-Env ↔ Multi-ADSR: bewusst GETRENNTE Combo-Pools (dd.md 20260802 geklärt)
+@dpa-Frage: "Warum teilt Amp-Env seine Combo nicht mit der anderen Env? Sie wurde extra
+auf ADSR umgestellt.." — zwei unabhängige Ebenen, leicht verwechselbar: die AUDIO-ENGINE
+(envCore.js `AdsrCore`, seit 9984f4a auch von Amp-Env genutzt) und der UI-COMBO-POOL
+(`GroupHost.js groupKindOf`, rein datenorganisatorisch). Amp-Env hatte NIE einen
+`groupKind` (seit der allerersten Einführung 82719de) — ihr Pool-Schlüssel ist immer der
+eigene Name "Amp-Env", nie geteilt. Multi-ADSR-Klone deklarieren explizit
+`groupKind: 'ADSR'`, damit sich SIE UNTEREINANDER (ADSR/ADSR 2/…) einen Pool teilen.
+Selbst wenn man beide auf denselben `groupKind` zwänge, würde ein Combo nicht sinnvoll
+rüberwirken: die Control-IDs sind komplett anders benannt (Amp-Env: `ampAttack`/
+`ampDecay`/…, Multi-ADSR: `adsrA`/`adsrD`/… + Instanz-Suffix) — `_applyCombo()` matcht
+strikt über die literale ID, ein "ADSR"-Combo enthielte für Amp-Env schlicht keine
+passenden Keys. @dpas alte "ADSR"-Pool-Einträge (vor dem heutigen Umbau gespeichert)
+gehörten darum vermutlich schon immer zu einer Multi-ADSR-Instanz, nicht zu Amp-Env —
+nicht "verlorengegangen", sondern nie derselbe Pool gewesen.
+
+
 ## Signal-Scope: Genauigkeit (AnalyserNode) + Sync/Freeze-Buttons (20260727_111500)
 Aus ddw.md, @dpa: „Die Darstellung scheint mir hin und wieder auch etwas ungenau: […]
 sehr kurze Env. sie zeigt bei jedem Trigger anders, meist vergleichsweise lange Attacks,
