@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!-- Landing-Page des Einstiegspunkte-Pools (@dpa dd.md 20260802): rein statisch, kein
+     eigenes data-app/lib-Verdrahten nötig – sie tut nichts weiter, als auf die echten
+     Einstiege zu verlinken (overcord/, werkbank-leer/, künftige Kopien). Frühere Rolle von
+     index.html (voller Baukasten) ist jetzt overcord/index.html, s. ARCHITEKTUR.md. -->
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Werkbank</title>
+<link rel="stylesheet" href="css/main.css" />
+<link rel="stylesheet" href="css/werkbank.css" />
+<style>
+  /* Nur das bisschen Landing-Page-eigenes Layout, alles andere kommt aus main.css/werkbank.css. */
+  .lp-wrap { max-width: 760px; margin: 0 auto; padding: 8px 14px 40px; }
+  .lp-lead { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  .lp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .lp-card {
+    display: block; text-decoration: none; color: inherit;
+    transition: border-color .15s, background .15s;
+  }
+  .lp-card:hover { border-color: var(--sel-line); background: var(--panel2); }
+  .lp-card h2 { display: block; margin-bottom: 4px; }
+  .lp-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .lp-card .lp-go { color: var(--accent); font-size: 11px; margin-top: 8px; display: block; }
+  .lp-tips { margin-top: 28px; }
+  .lp-tips h2 { font-size: 13px; font-weight: 600; margin: 0 0 10px; letter-spacing: .02em; }
+  .lp-tips ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 7px; }
+  .lp-tips li { font-size: 12.5px; line-height: 1.5; }
+  .lp-tips kbd {
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 3px;
+    padding: 1px 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>Werkbank</h1>
+</div>
+
+<div class="lp-wrap">
+  <p class="lp-lead">Modularer Synth-Baukasten im Browser. Ein Ensemble wählen und loslegen:</p>
+
+  <div class="lp-grid">
+    <a class="lp-card wb-bench" href="overcord/">
+      <h2 class="wb-instr-name">Overcord</h2>
+      <p>Voller Baukasten: Takt/Metronom, Poly-Synth, Stepsequenzer, Rec, Meter, Signal-Scopes.</p>
+      <span class="lp-go">→ öffnen</span>
+    </a>
+    <a class="lp-card wb-bench" href="werkbank-leer/">
+      <h2 class="wb-instr-name">Leer</h2>
+      <p>Neutrales Basis-Scaffold (nur Takt/Metronom, Rec, Meter, Signal-Scopes) – Kopiervorlage für neue Projekte.</p>
+      <span class="lp-go">→ öffnen</span>
+    </a>
+  </div>
+
+  <div class="lp-tips">
+    <h2>Fürs erste Mal – vom Wichtigsten zum Unwichtigsten</h2>
+    <ol>
+      <li><kbd>Space</kbd> startet und stoppt den Sequenzer.</li>
+      <li>Oben im Header: <b>Snapshots</b> – Zustände speichern/laden.</li>
+      <li><kbd>e</kbd> schaltet den <b>Edit</b>-Modus um (Gruppen/Controls frei anordnen).</li>
+      <li>Rechte Maustaste auf ein Control oder eine Gruppe öffnet dessen <b>Settings</b>.</li>
+      <li><kbd>ESC</kbd> = raus aus einem Setting-Fenster oder einer Eingabe.</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>
