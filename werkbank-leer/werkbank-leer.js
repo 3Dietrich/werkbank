@@ -38,6 +38,7 @@ import { factoryHint } from '../lib/hints.js';
 import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
 import { SettingsWindow } from '../lib/SettingsWindow.js';
 import { buildMainSettings } from '../lib/mainSettings.js';
+import { readBackups, pushBackup, watchAutoBackup } from '../lib/Backup.js';
 import { wireGlobalLook } from '../lib/globalLook.js';
 import { installSelectOnFocus } from '../lib/selectOnFocus.js';
 import { mountGroups } from '../lib/group/GroupHost.js';
@@ -174,9 +175,12 @@ const taktDefs = taktMetroDefs({
         return c ? { sampleRate: c.sampleRate, baseLatency: c.baseLatency, outputLatency: c.outputLatency, state: c.state } : null;
     },
 });
-const takt = mountGroups(taktRoot, taktState, taktDefs, {
-    instrumentScaled: () => taktInstr.scaled(),
-});
+// Eigene Variable statt Objekt-Literal (@dpa ddw.md 20260802 Punkt 6, 1:1 aus overcord/
+// werkbank.js): `onArrangeChange` wird erst weiter unten gesetzt, wenn der Header-Knopf
+// existiert — GroupHost liest `opts.onArrangeChange` bei jedem setArranging() frisch aus
+// derselben Objekt-Referenz.
+const taktOpts = { instrumentScaled: () => taktInstr.scaled() };
+const takt = mountGroups(taktRoot, taktState, taktDefs, taktOpts);
 // _onTaktRunning wird von Rec weiter unten belegt (dasselbe Muster wie werkbank.js): NUR
 // EINE Registrierung bei taktEngine.onRunning, Rec hängt sich über diese Closure mit an.
 let _onTaktRunning = () => {};
@@ -405,6 +409,17 @@ const hintsBtn = mkHeaderToggle('hintsedit', '💬 Hints', 'Hilfe-Blasen bei Mau
     (on) => { hintBubble.enable(on); taktState.set('hintsOn', on); });
 if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // Default: an
 
+// ── e-Mode-Header-Knopf (@dpa ddw.md 20260802 Punkt 6, 1:1 aus overcord/werkbank.js):
+// löst denselben Pfad wie die Taste 'e' aus (ein echtes Tastendruck-Event, s. dortiger
+// Kommentar) statt jeden Host einzeln zu setArranging() zu zwingen. `takt` als
+// repräsentativer Host für den Knopf-Zustand.
+const arrangeBtn = mkHeaderToggle('arrangemode', '⇄ Anordnen',
+    'Anordnen-Modus (Taste e) — Gruppen/Controls frei verschiebbar', (on) => {
+        if (!!on !== !!takt.isArranging()) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', bubbles: true, cancelable: true }));
+    });
+taktOpts.onArrangeChange = (on) => arrangeBtn.classList.toggle('active', !!on);
+if (takt.isArranging()) arrangeBtn.classList.add('active');
+
 // ── Config Export/Import (1:1-Muster aus werkbank.js Z.1018-1029) ─────────────────────
 // LS_KEYS enthält 'scope' von Anfang an (@dpa-Auftrag: fehlt in index.html/werkbank.js
 // als Bug — hier von Anfang an korrekt, kein drittes Mal denselben Fehler).
@@ -464,6 +479,22 @@ function exportConfig() {
     a.href = url; a.download = APP + '-config-' + ts + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+// Gestaffelte Auto-Backups (1:1-Muster aus overcord/werkbank.js, @dpa ddw.md 20260802
+// Punkt 4, lib/Backup.js-Kopf für die Werkbank-Anpassung).
+const BACKUP_LS = lsKey('backups');
+const stopAutoBackup = watchAutoBackup(localStorage, BACKUP_LS, buildConfig, { intervalMs: 20000 });
+window.addEventListener('beforeunload', stopAutoBackup);
+const backups = {
+    list: () => readBackups(localStorage, BACKUP_LS).slice().sort((a, b) => b.ts - a.ts),
+    load: (ts) => {
+        const b = readBackups(localStorage, BACKUP_LS).find((x) => x.ts === ts);
+        if (!b) return;
+        if (!confirm('Backup vom ' + new Date(ts).toLocaleString('de-DE') + ' laden?\n\nDer AKTUELLE Zustand wird ersetzt.')) return;
+        const n = applyConfig(b.data);
+        if (n) location.reload(); else alert('Backup enthielt keine passenden Daten.');
+    },
+    saveNow: () => { try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'manuell'); } catch { alert('Backup fehlgeschlagen (Speicher voll?).'); } },
+};
 // Zahnrad-Icon + Text-Span (1:1-Muster aus werkbank.js, @dpa dd.md 20260802).
 const cfgBtn = document.createElement('button');
 cfgBtn.className = 'pb-btn hdr-btn-ico'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
@@ -482,7 +513,12 @@ fileIn.addEventListener('change', () => {
     rd.readAsText(f); fileIn.value = '';
 });
 function doReset() {
-    if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) { LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload(); }
+    if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) {
+        // Sicherheitsnetz wie in teslacoil (@dpa ddw.md 20260802 Punkt 4): BACKUP_LS gehört
+        // nicht zu LS_KEYS, überlebt den Reset.
+        try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'vor Reset'); } catch { /* Quota o.ä. */ }
+        LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload();
+    }
 }
 // ⚙ = echtes Einstellungs-Fenster (1:1-Muster aus werkbank.js, @dpa dd.md 20260802).
 // Der INHALT kommt aus lib/mainSettings.js — identisch für alle Pool-Einstiege; hier steht
@@ -496,6 +532,7 @@ const openCfg = () => {
         onImport: () => fileIn.click(),
         onReset: doReset,
         reopen: () => { cfgWin.close(); openCfg(); },
+        backups,
     }), () => cfgBtn.classList.remove('active'));
 };
 cfgBtn.addEventListener('click', () => { cfgWin.isOpen ? cfgWin.close() : openCfg(); });
@@ -688,6 +725,7 @@ recFmtBtn.addEventListener('click', () => {
 keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { self: true });
 keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { self: true });
 keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
+keyMidi.register('hdr:arrangemode', arrangeBtn, '⇄ Anordnen', () => arrangeBtn.click(), { self: true });
 keyMidi.register('hdr:cfgmenu', cfgBtn, 'Einstellungen', () => cfgBtn.click(), { self: true });
 keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.click(), { self: true });
 // Globale Verteilung (Vorbild Z.1354-1357): analog alle VIER hier vorhandenen ISMs, sonst

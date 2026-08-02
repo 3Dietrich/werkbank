@@ -19,6 +19,7 @@ import { factoryHint } from '../lib/hints.js';
 import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
 import { SettingsWindow } from '../lib/SettingsWindow.js';
 import { buildMainSettings } from '../lib/mainSettings.js';
+import { readBackups, pushBackup, watchAutoBackup } from '../lib/Backup.js';
 import { wireGlobalLook } from '../lib/globalLook.js';
 import { installSelectOnFocus } from '../lib/selectOnFocus.js';
 import { mountGroups, kbStyle } from '../lib/group/GroupHost.js';
@@ -231,9 +232,13 @@ const taktDefs = taktMetroDefs({
         return c ? { sampleRate: c.sampleRate, baseLatency: c.baseLatency, outputLatency: c.outputLatency, state: c.state } : null;
     },
 });
-const takt = mountGroups(taktRoot, taktState, taktDefs, {
-    instrumentScaled: () => taktInstr.scaled(),
-});
+// Eigene Variable statt eines Objekt-Literals (@dpa ddw.md 20260802, Punkt 6 „Header-Button
+// für e-Mode"): `onArrangeChange` (GroupHost.js-Naht, bisher von KEINEM Aufrufer genutzt)
+// wird erst WEITER UNTEN gesetzt, wenn der neue Header-Knopf existiert — GroupHost liest
+// `opts.onArrangeChange` bei JEDEM setArranging()-Aufruf frisch aus demselben Objekt, ein
+// nachträgliches Zuweisen auf dieselbe Referenz reicht, kein Umbau der Aufrufreihenfolge nötig.
+const taktOpts = { instrumentScaled: () => taktInstr.scaled() };
+const takt = mountGroups(taktRoot, taktState, taktDefs, taktOpts);
 // Der Start-Knopf trägt den ON-Zustand (Metronom läuft) → nutzt die „BG an"-Farbe (Task D).
 // (recEngine hängt sich hier per _onTaktRunning mit an, sobald es weiter unten existiert —
 // onRunning ist ein Einzel-Callback, s. taktmetro/engine.js, deshalb NUR EINE Registrierung.)
@@ -1103,6 +1108,26 @@ const hintsBtn = mkHeaderToggle('hintsedit', '💬 Hints', 'Hilfe-Blasen bei Mau
     (on) => { hintBubble.enable(on); taktState.set('hintsOn', on); });
 if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // Default: an
 
+// ── e-Mode-Header-Knopf (@dpa ddw.md 20260802, Punkt 6): bisher NUR über die Taste 'e'
+// erreichbar (GroupHost.js ~Z. 2079, ein globaler `window.addEventListener('keydown',…)` PRO
+// Instrument-Instanz — jedes mountGroups() hat seinen eigenen Anordnen-Zustand, alle hören
+// aber auf dieselbe Taste). Statt jeden Host einzeln zu setArranging() zu zwingen (Copy-
+// Paste-Falle wie bei keyBtn/midiBtn oben, s. Kommentar „stepSeq.keyMidi fehlte hier") wird
+// EXAKT der gleiche Pfad ausgelöst: ein echtes 'e'-Tastendruck-Event auf window, das JEDER
+// Host-Listener genauso verarbeitet wie einen physischen Tastendruck — „denselben Umschalt-
+// Pfad wie die Taste 'e'" wörtlich genommen. `takt` gilt als repräsentativer Host für den
+// Knopf-Zustand (dieselbe Rolle wie `takt.keyMidi` weiter oben für den globalen Tasten/MIDI-
+// Header) — alle Hosts toggeln über dieselbe Taste ohnehin im Gleichschritt.
+const arrangeBtn = mkHeaderToggle('arrangemode', '⇄ Anordnen',
+    'Anordnen-Modus (Taste e) — Gruppen/Controls frei verschiebbar', (on) => {
+        if (!!on !== !!takt.isArranging()) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', bubbles: true, cancelable: true }));
+    });
+// Spiegelt den Knopf zurück, wenn der Anordnen-Modus NICHT über den Knopf endet/beginnt
+// (echte Taste 'e', oder ESC weiter unten bei `takt.setArranging(false)`) — die Naht dafür
+// (`opts.onArrangeChange`) gab es in GroupHost.js schon, nur nutzte sie bisher niemand.
+taktOpts.onArrangeChange = (on) => arrangeBtn.classList.toggle('active', !!on);
+if (takt.isArranging()) arrangeBtn.classList.add('active');
+
 // ── Config Export/Import (@dpa 20260720): State-Datei(en) sichern/laden — so kann @dpa mir
 // seinen kompletten Werkbank-Zustand (Umbenennungen, Anordnung, Belegungen, Optik) übergeben.
 // BUGFIX (@dpa 20260722_172315 entdeckt: exportierte Datei enthielt kein Poly-Synth-Layout):
@@ -1169,6 +1194,24 @@ function exportConfig() {
     a.href = url; a.download = APP + '-config-' + ts + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+// Gestaffelte Auto-Backups (@dpa ddw.md 20260802 Punkt 4, lib/Backup.js-Kopf für die
+// Werkbank-Anpassung: periodischer Änderungs-Check statt teslacoils state.subscribe()).
+// buildConfig() liefert denselben vollständigen Zustand wie der Datei-Export oben — hier
+// nur zusätzlich AUTOMATISCH und GESTAFFELT im eigenen Datentopf (lsKey) abgelegt.
+const BACKUP_LS = lsKey('backups');
+const stopAutoBackup = watchAutoBackup(localStorage, BACKUP_LS, buildConfig, { intervalMs: 20000 });
+window.addEventListener('beforeunload', stopAutoBackup);
+const backups = {
+    list: () => readBackups(localStorage, BACKUP_LS).slice().sort((a, b) => b.ts - a.ts),
+    load: (ts) => {
+        const b = readBackups(localStorage, BACKUP_LS).find((x) => x.ts === ts);
+        if (!b) return;
+        if (!confirm('Backup vom ' + new Date(ts).toLocaleString('de-DE') + ' laden?\n\nDer AKTUELLE Zustand wird ersetzt.')) return;
+        const n = applyConfig(b.data);
+        if (n) location.reload(); else alert('Backup enthielt keine passenden Daten.');
+    },
+    saveNow: () => { try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'manuell'); } catch { alert('Backup fehlgeschlagen (Speicher voll?).'); } },
+};
 // Zahnrad statt ⚙-Glyph (@dpa dd.md 20260802: „Auch das schöne Zahnrad icon"): das SVG aus
 // lib/icons.js füllt seinen Rahmen aus, ein Unicode-⚙ tut das je nach Systemfont nicht (s.
 // Kopf von icons.js). Der Text sitzt im .hdr-btn-text-Span, damit das Umbenennen über die
@@ -1193,7 +1236,13 @@ fileIn.addEventListener('change', () => {
 // erreichbar — jetzt zusätzlich ein sichtbarer Header-Button (s.u.), beide rufen dieselbe
 // Funktion, derselbe Bestätigungsdialog.
 function doReset() {
-    if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) { LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload(); }
+    if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) {
+        // Sicherheitsnetz wie in teslacoil (@dpa ddw.md 20260802 Punkt 4): ein Backup VOR dem
+        // Zurücksetzen bleibt im eigenen Datentopf erhalten (BACKUP_LS gehört nicht zu
+        // LS_KEYS, überlebt den Reset) — falls @dpa sich doch vertan hat.
+        try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'vor Reset'); } catch { /* Quota o.ä. */ }
+        LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload();
+    }
 }
 // ⚙ = ein echtes EINSTELLUNGS-FENSTER (@dpa dd.md 20260802: „es ist derzeit zu wenig
 // ‚Einstellungs'-mäßig … das ganze graue Fenster design"). Bis hierhin war es ein
@@ -1211,6 +1260,7 @@ const openCfg = () => {
         onImport: () => fileIn.click(),
         onReset: doReset,
         reopen: () => { cfgWin.close(); openCfg(); },
+        backups,
     }), () => cfgBtn.classList.remove('active'));
 };
 cfgBtn.addEventListener('click', () => { cfgWin.isOpen ? cfgWin.close() : openCfg(); });
@@ -1409,6 +1459,7 @@ keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { se
 keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { self: true });
 // Hints + Config ebenso lernbar (@dpa 20260720: „'Hints' und 'Config' kriegen auch tasten und midi learn").
 keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
+keyMidi.register('hdr:arrangemode', arrangeBtn, '⇄ Anordnen', () => arrangeBtn.click(), { self: true });
 keyMidi.register('hdr:cfgmenu', cfgBtn, 'Einstellungen', () => cfgBtn.click(), { self: true });
 keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.click(), { self: true });
 // Globale Verteilung: ein belegter Tastendruck löst sein Control aus (nur außerhalb des
