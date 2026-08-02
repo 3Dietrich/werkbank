@@ -1560,7 +1560,7 @@ body {
 }
 .sw-head {
   display: flex; align-items: center; gap: 7px;
-  padding: 9px 11px; border-bottom: 1px solid var(--line);
+  padding: 7px 10px; border-bottom: 1px solid var(--line);
   position: sticky; top: 0; background: var(--panel); z-index: 1;
   --ico: 16px; color: var(--muted);
 }
@@ -1571,11 +1571,13 @@ body {
   display: inline-flex; align-items: center; justify-content: center;
 }
 .sw-close:hover { color: var(--text); border-color: var(--line); }
-.sw-body { padding: 4px 11px 11px; }
-.sw-sec { padding-top: 9px; margin-top: 9px; border-top: 1px solid var(--line); }
-.sw-sec:first-child { padding-top: 6px; margin-top: 0; border-top: none; }
+/* Etwas dichter (@dpa ddw.md 20260802_234615 Punkt 5: „ein bisschen kompakter wäre doch
+   ganz nett") — kein Redesign, nur weniger Luft zwischen Kopf/Abschnitten/Zeilen. */
+.sw-body { padding: 3px 10px 8px; }
+.sw-sec { padding-top: 6px; margin-top: 6px; border-top: 1px solid var(--line); }
+.sw-sec:first-child { padding-top: 4px; margin-top: 0; border-top: none; }
 .sw-subhead {
-  display: flex; align-items: center; gap: 5px; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 5px; margin-bottom: 4px;
   font-size: 11.5px; font-weight: 600; color: var(--text);
 }
 /* Das i-Icon: mittelgroß und anklickbar (@dpa: „mittelgroßes Icon 'i' … zum anclicken =
@@ -1600,14 +1602,14 @@ body {
   color: var(--muted); font-size: 9.5px; font-weight: 400;
   text-transform: uppercase; letter-spacing: .05em;
 }
-.sw-rows { display: flex; flex-direction: column; gap: 5px; }
+.sw-rows { display: flex; flex-direction: column; gap: 3px; }
 .sw-row { display: flex; align-items: center; gap: 7px; }
 .sw-row > label { color: var(--muted); font-size: 11px; flex: 0 0 82px; }
 .sw-row-full { display: block; }
 .sw-note { color: var(--muted); font-size: 10.5px; margin-top: 2px; }
 .sw-num, .sw-text, .sw-select {
   background: var(--bg); color: var(--text); border: 1px solid var(--line);
-  border-radius: 3px; padding: 3px 6px; font-size: 11.5px;
+  border-radius: 3px; padding: 2px 6px; font-size: 11.5px;
 }
 .sw-num { width: 72px; }
 .sw-text { flex: 1 1 auto; min-width: 0; }
