@@ -38,7 +38,7 @@ try:
         pg = b.new_page(viewport={"width": 1600, "height": 1100})
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
         pg.on("pageerror", lambda e: errors.append(str(e)))
-        pg.goto(f"http://localhost:{PORT}/", wait_until="networkidle", timeout=15000)
+        pg.goto(f"http://localhost:{PORT}/overcord/", wait_until="networkidle", timeout=15000)
 
         bang = pg.locator('.group[data-group="Transport / Tempo"] .btn-field[data-ctrl="b:bang"]')
         check(bang.count() == 1, f"'!'-Button (b:bang) nicht gefunden, count={bang.count()}")

@@ -46,7 +46,7 @@ try:
         ctx = browser.new_context(bypass_csp=True)
         page = ctx.new_page()
         page.on("pageerror", lambda e: errors.append(str(e)))
-        page.goto(f"http://localhost:{PORT}/", wait_until="domcontentloaded")
+        page.goto(f"http://localhost:{PORT}/overcord/", wait_until="domcontentloaded")
         page.wait_for_function("window.__scope && window.__env && window.__routing && window.__polysynth", timeout=15000)
 
         # Echter Mausklick (User-Geste) — OHNE die bleibt der AudioContext unter Chromiums

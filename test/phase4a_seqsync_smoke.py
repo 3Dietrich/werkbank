@@ -49,7 +49,7 @@ try:
         pg = b.new_page(viewport={"width": 1400, "height": 900})
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
         pg.on("pageerror", lambda e: errors.append(str(e)))
-        pg.goto(f"http://localhost:{PORT}/", wait_until="networkidle", timeout=15000)
+        pg.goto(f"http://localhost:{PORT}/overcord/", wait_until="networkidle", timeout=15000)
 
         check(pg.evaluate("() => !!window.__stepseq && !!window.__takt && !!window.__routing"),
               "window.__stepseq/__takt/__routing fehlt")

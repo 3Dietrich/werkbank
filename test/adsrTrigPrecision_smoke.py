@@ -53,7 +53,7 @@ try:
         browser = p.chromium.launch()
         page = browser.new_page()
         page.on("pageerror", lambda e: errors.append(str(e)))
-        page.goto(f"http://localhost:{PORT}/", wait_until="domcontentloaded")
+        page.goto(f"http://localhost:{PORT}/overcord/", wait_until="domcontentloaded")
         page.wait_for_function("window.__env && window.__polysynth && window.__routing", timeout=15000)
 
         result = page.evaluate("""() => {

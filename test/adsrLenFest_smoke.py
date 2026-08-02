@@ -51,7 +51,7 @@ try:
         page = browser.new_page()
         page.on("pageerror", lambda e: errors.append(str(e)))
         page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
-        page.goto(f"http://localhost:{PORT}/", wait_until="networkidle")
+        page.goto(f"http://localhost:{PORT}/overcord/", wait_until="networkidle")
         page.wait_for_timeout(500)
 
         vis = page.evaluate("""
