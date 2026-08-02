@@ -507,7 +507,11 @@ routing.connect({ module: 'polysynth', port: 'baseFreq' }, { module: 'takt', por
 // Vervielfältigbare ADSR-Envelopes ALS TEIL des Poly-Synth (eigene Groups, gemeinsamer State).
 // Werte-Knobs (A,D,S,R,Peak,GateLen,Len) auf dem Panel; Settings (aktiv, Kurven, Verlauf,
 // Trig/Gate, Skew) im Gruppen-Rechtsklick-Panel via groupKindSettings-Hook.
-import { createEnvManager } from '../lib/polysynth/multiEnv.js';
+import { createEnvManager, wireAdsrKnobVisibility } from '../lib/polysynth/multiEnv.js';
+// Amp-Env (dd.md 20260802, 2. Runde: "das ist noch nicht die ADSR!! Was machst Du denn??"):
+// dieselbe Sichtbarkeits-Verdrahtung wie jede Multi-ADSR-Instanz, nur sfx='' — sonst zeigt
+// das Panel A/D/S/R und BEIDE Len-Knobs immer, unabhängig von den Settings-Toggles.
+wireAdsrKnobVisibility({ host: polySynth, state: polySynthState, groupName: 'Amp-Env', sfx: '' });
 const adsrTpl = {
     KNOBS: { ...polySynthDefsObj.ADSR_KNOBS },
     BUTTONS: { ...polySynthDefsObj.ADSR_BUTTONS },
