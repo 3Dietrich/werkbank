@@ -42,10 +42,15 @@ try:
         pg.on("pageerror", lambda e: errors.append(str(e)))
         pg.goto(f"http://localhost:{PORT}/overcord/", wait_until="networkidle", timeout=15000)
 
-        # ── Zwei weitere Sq bauen: Sq0="Stepsequenzer", Sq1="Sequenzer 2", Sq2="Sequenzer 3" ──
+        # ── Start-Anzahl feststellen, dann 2 weitere Sq bauen ──
+        # (die Demo-Config bringt evtl. schon mehrere mit, @dpa dd.md 20260802 — relativ zur
+        # Start-Anzahl arbeiten statt fest "3" anzunehmen. sqName(i) ist ohnehin index-fest —
+        # Sq0="Stepsequenzer"/Sq2="Sequenzer 3" existieren so oder so, sobald n0>=3.)
+        n0 = pg.evaluate("() => window.__stepseq.mgr.count()")
         pg.evaluate("() => { window.__stepseq.mgr.addSq(); window.__stepseq.mgr.addSq(); }")
+        n_hi = n0 + 2
         n = pg.evaluate("() => window.__stepseq.mgr.count()")
-        check(n == 3, f"erwartet 3 Sq nach 2x addSq(), war {n}")
+        check(n == n_hi, f"erwartet {n_hi} Sq nach 2x addSq() (Start war {n0}), war {n}")
         kinds = pg.evaluate("() => window.__stepseq.host.groupNames()")
         check('Stepsequenzer' in kinds and 'Sequenzer 3' in kinds, f"Sq-Gruppennamen fehlen: {kinds!r}")
 
@@ -59,7 +64,11 @@ try:
         list_in_sq0 = pg.evaluate(f"() => {host_js}.listGroupSnaps('Stepsequenzer').map(s => s.name)")
         check('Pool-Snap' in list_in_sq0, f"'Pool-Snap' sollte auch in Sq0's Pool sichtbar sein: {list_in_sq0!r}")
 
-        ok = pg.evaluate(f"() => {host_js}.recallGroupSnap('Stepsequenzer', 0)")
+        # Per Name statt Index 0 finden — der geteilte Pool kann schon eigene Demo-Einträge
+        # haben (@dpa dd.md 20260802), 'Pool-Snap' muss also nicht an Position 0 landen.
+        idx_snap = pg.evaluate(f"() => {host_js}.listGroupSnaps('Stepsequenzer').findIndex(s => s.name === 'Pool-Snap')")
+        check(idx_snap >= 0, "'Pool-Snap' nicht im Pool von Sq0 gefunden")
+        ok = pg.evaluate(f"() => {host_js}.recallGroupSnap('Stepsequenzer', {idx_snap})")
         check(ok is True, "recallGroupSnap in Sq0 sollte true liefern")
         mult0 = pg.evaluate("() => window.__stepseq.state.get('seqMult_0')")
         check(mult0 == 7, f"Sq0 sollte nach Pool-Recall seqMult_0=7 haben (aus Sq2 gespeichert), war {mult0}")
@@ -78,26 +87,34 @@ try:
             s.set('ctrlStyles', cur);
         }""")
         pg.evaluate(f"() => {host_js}.saveGroupCombo('Sequenzer 3', 'Pool-Combo')")
-        combo_ok = pg.evaluate(f"() => {host_js}.recallGroupCombo('Stepsequenzer', 0)")
+        idx_combo = pg.evaluate(f"() => {host_js}.listGroupCombos('Stepsequenzer').findIndex(s => s.name === 'Pool-Combo')")
+        check(idx_combo >= 0, "'Pool-Combo' nicht im Pool von Sq0 gefunden")
+        combo_ok = pg.evaluate(f"() => {host_js}.recallGroupCombo('Stepsequenzer', {idx_combo})")
         check(combo_ok is True, "recallGroupCombo in Sq0 sollte true liefern")
         fg0 = pg.evaluate("() => (window.__stepseq.state.get('ctrlStyles')||{})['k:seqMult_0'].fg")
         check(fg0 == '#00ffaa', f"Sq0 sollte die in Sq2 gespeicherte Farbe übernehmen, war {fg0!r}")
 
         # ── Sq2 löschen: Pool-Inhalt bleibt (kein Verwaisen), nur ihr eigener Sel-Zeiger weg ──
+        # removeSq() baut immer die LETZTE Sq ab — erst auf genau 3 runter (Sq2 = "Sequenzer 3"
+        # ist dann die letzte), damit der nächste removeSq() wirklich Sq2 trifft, unabhängig
+        # davon, wie hoch n_hi über der Baseline liegt.
         sel_before = pg.evaluate("() => (window.__stepseq.state.get('groupSnapSel')||{})['Sequenzer 3']")
         check(sel_before == 'Pool-Snap', f"Sq2 sollte 'Pool-Snap' als Sel-Zeiger haben, war {sel_before!r}")
-        pg.evaluate("() => window.__stepseq.mgr.removeSq()")
+        while pg.evaluate("() => window.__stepseq.mgr.count()") > 3:
+            pg.evaluate("() => window.__stepseq.mgr.removeSq()")
+        pg.evaluate("() => window.__stepseq.mgr.removeSq()")   # jetzt trifft es Sq2
         n2 = pg.evaluate("() => window.__stepseq.mgr.count()")
-        check(n2 == 2, f"erwartet 2 Sq nach removeSq(), war {n2}")
+        check(n2 == 2, f"erwartet 2 Sq nach Abbau bis unter Sq2, war {n2}")
         list_after = pg.evaluate(f"() => {host_js}.listGroupSnaps('Stepsequenzer').map(s => s.name)")
         check('Pool-Snap' in list_after, f"Pool-Snap sollte nach Löschen von Sq2 weiter existieren: {list_after!r}")
         sel_after = pg.evaluate("() => (window.__stepseq.state.get('groupSnapSel')||{})['Sequenzer 3']")
         check(sel_after is None, f"Sq2's eigener Sel-Zeiger sollte nach removeSq() weg sein, war {sel_after!r}")
 
-        # ── Aufräumen: zurück auf 1 Sq, Testeinträge aus dem Pool entfernen ──
-        pg.evaluate("() => window.__stepseq.mgr.removeSq()")
-        pg.evaluate(f"() => {host_js}.deleteGroupSnap('Stepsequenzer', 0)")
-        pg.evaluate(f"() => {host_js}.deleteGroupCombo('Stepsequenzer', 0)")
+        # ── Aufräumen: zurück auf Start-Anzahl, Testeinträge aus dem Pool entfernen ──
+        while pg.evaluate("() => window.__stepseq.mgr.count()") > n0:
+            pg.evaluate("() => window.__stepseq.mgr.removeSq()")
+        pg.evaluate(f"() => {host_js}.deleteGroupSnap('Stepsequenzer', {idx_snap})")
+        pg.evaluate(f"() => {host_js}.deleteGroupCombo('Stepsequenzer', {idx_combo})")
 
         errs = [e for e in errors if "favicon" not in e.lower()]
         check(len(errs) == 0, f"Console-/Page-Errors: {errs}")

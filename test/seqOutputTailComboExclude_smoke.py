@@ -78,7 +78,7 @@ try:
         # tatsächlich (sichtbar) beschnitten sein, nicht nur "irgendwie rtl".
         pm_btn = pg.locator('.group[data-group="Stepsequenzer"] [data-ctrl="s:seqOutput_0"] .pm-btn')
         pm_btn.click()
-        pg.get_by_text("Poly-Synth → Höhen-Dämpf", exact=True).click()
+        pg.get_by_text("Poly-Synth / Audio-Osz → Höhen-Dämpf", exact=True).click()
         wrap = pg.locator('.group[data-group="Stepsequenzer"] [data-ctrl="s:seqOutput_0"]')
         wrap.click(button="right")
         panel2 = pg.locator('.elem-settings:visible')
@@ -100,7 +100,7 @@ try:
                 clipped: name.scrollWidth > name.clientWidth,
             };
         }""")
-        check(geo['text'] == 'Poly-Synth → Höhen-Dämpf', f"Sq-Output sollte den vollen Namen im DOM tragen (nur visuell gekürzt), war {geo['text']!r}")
+        check(geo['text'] == 'Poly-Synth / Audio-Osz → Höhen-Dämpf', f"Sq-Output sollte den vollen Namen im DOM tragen (nur visuell gekürzt), war {geo['text']!r}")
         check(geo['rightGap'] < 2, f"Sq-Output-Text sollte rechtsbündig in seiner eigenen Box sitzen (Gap<2px), war {geo['rightGap']}px")
         check(geo['clipped'], "Sq-Output-Text sollte bei 90px tatsächlich sichtbar beschnitten sein (scrollWidth > clientWidth)")
 
@@ -143,7 +143,11 @@ try:
             cs['u:seqGrid_0'] = { ...(cs['u:seqGrid_0']||{}), fg: '#111111', seqMin: 9 };
             s.set('ctrlStyles', cs);
         }""")
-        combo_ok = pg.evaluate(f"() => {host_js}.recallGroupCombo('Stepsequenzer', 0)")
+        # Per Name statt Index 0 finden — der geteilte Pool kann schon eigene Demo-Einträge
+        # haben (@dpa dd.md 20260802), 'ExcludeStepsTest' muss also nicht an Position 0 landen.
+        idx_combo = pg.evaluate(f"() => {host_js}.listGroupCombos('Stepsequenzer').findIndex(c => c.name === 'ExcludeStepsTest')")
+        check(idx_combo >= 0, "'ExcludeStepsTest' nicht im Combo-Pool von Stepsequenzer gefunden")
+        combo_ok = pg.evaluate(f"() => {host_js}.recallGroupCombo('Stepsequenzer', {idx_combo})")
         check(combo_ok is True, "recallGroupCombo sollte true liefern")
 
         after = pg.evaluate("""() => {
@@ -161,7 +165,7 @@ try:
         check(after['gridSeqMin'] == 9, f"seqGrid-Data (seqMin) sollte vom Combo-Recall UNANGETASTET bleiben (9), war {after['gridSeqMin']}")
 
         # ── Aufräumen ──
-        pg.evaluate(f"() => {host_js}.deleteGroupCombo('Stepsequenzer', 0)")
+        pg.evaluate(f"() => {host_js}.deleteGroupCombo('Stepsequenzer', {idx_combo})")
         pg.evaluate("""() => {
             const s = window.__stepseq.state;
             const km = { ...(s.get('knobMeta') || {}) }; delete km['seqLen_0']; s.set('knobMeta', km);
