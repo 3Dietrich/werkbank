@@ -10,7 +10,7 @@
  * lib/appId.js (`<html data-app>`). Für DIESE Seite ist das der Default 'werkbank', die
  * Keys heißen also unverändert werkbank_* — die Trennung kostet index.html nichts.
  */
-import { lsKey, toOwnKey } from '../lib/appId.js';
+import { APP, lsKey, toOwnKey } from '../lib/appId.js';
 import { MiniState } from '../lib/MiniState.js';
 import { mountInstrumentSettings } from '../lib/InstrumentSettings.js';
 import { HintBubble } from '../lib/HintBubble.js';
@@ -1091,7 +1091,9 @@ function exportConfig() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);   // YYYYMMDDHHMMSS, ohne den Millisekunden-Punkt
-    a.href = url; a.download = 'werkbank-config-' + ts + '.json'; a.click();
+    // Dateiname trägt den Ensemble-Namen (@dpa dd.md 20260802: "sollten ihren Namen vom
+    // Ensemblenamen übernehmen") — sonst heißen Exports aus verschiedenen Einstiegen gleich.
+    a.href = url; a.download = APP + '-config-' + ts + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 // Zahnrad statt ⚙-Glyph (@dpa dd.md 20260802: „Auch das schöne Zahnrad icon"): das SVG aus

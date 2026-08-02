@@ -29,7 +29,7 @@
  * index.html/werkbank.js selbst bleiben UNANGETASTET (deren Keys heißen unverändert
  * werkbank_*, weil 'werkbank' der Default von data-app ist — keine Migration nötig).
  */
-import { lsKey, toOwnKey } from '../lib/appId.js';
+import { APP, lsKey, toOwnKey } from '../lib/appId.js';
 import { MiniState } from '../lib/MiniState.js';
 import { mountInstrumentSettings } from '../lib/InstrumentSettings.js';
 import { HintBubble } from '../lib/HintBubble.js';
@@ -444,7 +444,9 @@ function exportConfig() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);   // YYYYMMDDHHMMSS
-    a.href = url; a.download = 'werkbank-config-' + ts + '.json'; a.click();
+    // Dateiname trägt den Ensemble-Namen (@dpa dd.md 20260802: "sollten ihren Namen vom
+    // Ensemblenamen übernehmen") — sonst heißen Exports aus verschiedenen Einstiegen gleich.
+    a.href = url; a.download = APP + '-config-' + ts + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 // Zahnrad-Icon + Text-Span (1:1-Muster aus werkbank.js, @dpa dd.md 20260802).
