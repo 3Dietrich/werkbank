@@ -43,6 +43,9 @@ import { createSqManager } from '../lib/stepseq/multiSq.js';
 import { makeWorkerTicker } from '../lib/workerTicker.js';
 import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
 import { createRecEngine } from '../lib/recInstrument/engine.js';
+import { debugPanelDefs } from '../lib/debugPanel/defs.js';
+import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
+import { mountDebugGroup } from '../lib/debugPanel/mount.js';
 import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser, getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper } from '../lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
 import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
@@ -1034,6 +1037,27 @@ const _scopeKindSettings = {
 })();
 window.__scope = { state: scopeState, host: scopeHost, mgr: scopeManager };
 
+// ── Debug – eigenes Instrument (@dpa ddw.md 20260802: „bei teslacoil die debug Gruppe..
+// die will ich auch in beiden, werkbank-leer und overcord") ────────────────────────────
+// Bündelt Audio (WAV, 2 Slots a/b) + Screenshot (PNG, alle sichtbaren Canvas gestapelt) +
+// Zustand (voller Config-Dump, s.u. buildConfig) + Begleit-Prompt zu Dateien — zum
+// Hochladen an eine KI. KEIN Sound-Parameter (s. lib/debugPanel/DebugPanel.js-Kopf):
+// debugName/debugPrompt hängen an einem eigenen Optik-Key (debugMeta), nicht an
+// data-ctrl-Werten — darum auch bewusst NICHT im ensembleStore weiter unten (wie
+// Master-Volume: kein Sound-Snapshot-Teilnehmer). `getFullState` reicht den fertigen
+// Config-Export dieser Seite durch (buildConfig() ist weiter unten deklariert — als
+// `function` gehoisted, hier als LAZY-Closure unproblematisch, da erst beim tatsächlichen
+// „Debug speichern"-Klick ausgewertet).
+const DEBUG_LS = lsKey('debug');
+const debugState = new MiniState(debugPanelDefs().DEFAULTS, DEBUG_LS);
+const debugRoot = document.querySelector('#debug');
+const dbg = new DebugPanel(debugState, { appPrefix: APP, getFullState: () => buildConfig() });
+const debugDefs = debugPanelDefs({ onAction: (id) => dbg.onAction(id) });
+const debugHost = mountGroups(debugRoot, debugState, debugDefs, {});
+mountDebugGroup(debugHost, debugState, dbg);
+mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
+window.__debug = { state: debugState, host: debugHost, panel: dbg };
+
 // Render-Loop: Base-Frq-Anzeigen (baseKeyboard/Tone-/Freq-Readout) UND LevelMeter zeichnen
 // sich nicht von allein — tickt wie in teslacoil.
 (function tick(nowMs) {
@@ -1080,8 +1104,8 @@ const mkHeaderToggle = (id, label, title, onToggle) => {
 // wurde später als die anderen drei ISMs angeflanscht, diese zwei Stellen wurden dabei nicht
 // nachgezogen. Tasten/MIDI-Learn wirkte über Stepseqs Controls (seqEnabled/seqOutput/
 // seqMult/seqDiv/u:seqGrid) dadurch NIE — kein Architektur-Thema, schlicht vergessen.
-const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setKeyEdit(on); polySynth.keyMidi.setKeyEdit(on); stepSeq.keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); });
-const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setMidiEdit(on); polySynth.keyMidi.setMidiEdit(on); stepSeq.keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); });
+const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setKeyEdit(on); polySynth.keyMidi.setKeyEdit(on); stepSeq.keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); debugHost.keyMidi.setKeyEdit(on); });
+const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => { keyMidi.setMidiEdit(on); polySynth.keyMidi.setMidiEdit(on); stepSeq.keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); debugHost.keyMidi.setMidiEdit(on); });
 keyBtn._radioPeer = midiBtn; midiBtn._radioPeer = keyBtn;
 
 // ── Help Hints (@dpa 20260720): die (editierten bzw. Auslieferungs-)Hilfetexte als Hover-Blase
@@ -1098,6 +1122,7 @@ const hintResolve = (el) => {
                  : c.closest('#polysynth') ? polySynthState
                  : c.closest('#stepseq') ? stepSeqState
                  : c.closest('#rec') ? recState
+                 : c.closest('#debug') ? debugState
                  : state;
         const own = (st.get('hintText') || {})[id];
         // Bugfix (@dpa ddw.md 20260724_153349, „De/En: die Hilfstexte auch!"): hier stand fest
@@ -1129,7 +1154,7 @@ if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // D
 // führt es von Anfang an mit. Jetzt auch hier — Export/Reset erfassen den Scope-Stand.
 // Die Keys tragen das Präfix DIESES Einstiegs (lsKey, s. lib/appId.js); für index.html ist
 // das unverändert 'werkbank_…', weil 'werkbank' der data-app-Default ist.
-const LS_KEYS = ['state', 'taktmetro', 'polysynth', 'stepseq', 'rec', 'levelmeter', 'master', 'ensemble', 'scope'].map(lsKey);
+const LS_KEYS = ['state', 'taktmetro', 'polysynth', 'stepseq', 'rec', 'levelmeter', 'master', 'ensemble', 'scope', 'debug'].map(lsKey);
 
 // ── Ensemble-Snapshot (@dpa 20260724, ddw.md „header Ensemble Snapshots") — vierte und
 // äußerste Ebene des Combo-/Snapshot-Speichers: EIN benannter Zustand über mehrere
