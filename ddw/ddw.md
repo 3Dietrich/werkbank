@@ -91,7 +91,14 @@ Scope:
 20260802_234615
     header:
         WS soll in Lim (settings) mit rein
-    mein Settings:
-        - Gruppenkopf Größe: help hintern Fenster ![alt text](image-6.png)    
-        - Farb setting für BG ![alt text](image-7.png) 
-    Out
+    main Settings:
+        - Gruppenkopf
+          - Größe: help hintern Fenster ![alt text](image-6.png)    
+          - BG Farbe für Gruppen header fehlt
+        - Farb setting für Ensemble BG ![alt text](image-7.png) 
+        - ein bisschen kompakter wäre doch ganz nett
+        - Backups (endlich da! thx!) der Text gehört in die {i} hilfe (btw: auch da bitte keine Romane und nichts über selbsverständlichkeiten (etwas wie "Größe ist die Schriftgröße, Höhe eine Mindesthöhe in Pixeln — 0 heißt „so hoch wie der Text es braucht"." ist fast komplett überflüssig, weil wohl bekannt! Sehr informativ ist hingegen der Text (Automatisch gesichert, solange sich etwas ändert (gestaffelt: max. 2/Min, 5/Std, 1/Tag, 1/Woche). Ein Backup zu laden ersetzt den KOMPLETTEN Zustand dieses Einstiegs.))
+        - fehlt noch der "ins neue Projekt starten" worüber wir schon geredet haben: die leere Werkbank in einen neuen Ordner- und Projektnamen mit allem nötigen script und file Umbenennungen für das neue eigene Projekt (wie overcord)..
+    Outs (für scope):
+        viel zu wenig, bitte diverse Outputs hinzufügen (controls nicht, aber Ausgänge aller art (envelopes, OSZ, ..) 
+    
