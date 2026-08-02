@@ -530,6 +530,15 @@ routing.registerModule('polysynth', {
         outputs: {
             baseFreq: { read: () => polySynthEngine.baseFreq() },
             baseTone: { read: () => polySynthEngine.baseTone() },
+            // Scope-Outputs Wave 2 (ddw.md 20260802_234615, „Outs (für scope): ... envelopes,
+            // OSZ, .."): ampEnv = lautester klingender Voice-Gain (frame-genauer Peak, s.
+            // engine.js ampEnvPeak()-Kommentar für die bewusste Polyphonie-Entscheidung KEIN
+            // eigener Node/hasNode). osc = roher Oszillator-Signalwert VOR Damp/ADSR-Gain, über
+            // einen stillen Sammel-Node ALLER Voice-Oszillatoren (engine.js oscMonitorNode()) —
+            // hasNode/node erlauben hier die „sample"-genaue Kurve am Scope, dasselbe Muster wie
+            // master.out und die ADSR in multiEnv.js.
+            ampEnv: { read: () => polySynthEngine.ampEnvPeak() },
+            osc: { read: () => polySynthEngine.oscPeak(), hasNode: true, node: () => polySynthEngine.oscMonitorNode() },
         },
         inputs: {
             // meta.srcId (Bugfix „lautes Getöse" bei 2+ aktiven Sq, ddw.md 20260724_192304):
