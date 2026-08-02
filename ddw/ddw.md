@@ -53,3 +53,7 @@ mir ist etwas durcheinander gekommen.. bitte prüf ob Du die Punkte schon gemach
 
 "Button '►' Gate-Anzeige: die Preview-Funktion (Klick spielt Referenzton) ist neu von mir gebaut, hat aber KEINE optische Gate-Anzeige. Das ist ein separater, noch offener Punkt."
     Ich meinte etwas anderes: Bei hereinkommenden Gates, die die Env trigger/gaten, soll der Button an und aus geschaltet werden - das Gate sichtbar gemacht. mehr nicht.
+
+Lim:    
+    - bei Att=0 müsste es eigentlich mindestens an einer stelle knacken. da ist noch etwas zu langsam!
+    - bitte den Lim Button neben Attack und Release (geordnet nach Limiter settings und Optik): BGoff, BGon (und der Vollständigkeit halber auch VG/schrift)
