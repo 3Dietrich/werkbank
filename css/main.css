@@ -490,6 +490,13 @@ body {
 .gs-op-unit { color: var(--muted); font-size: 9.5px; }
 /* Wertlose Sorten (Note, Anzeige): dezenter Strich statt eines leeren Lochs. */
 .gs-op-none { color: var(--muted); font-size: 10px; opacity: .6; }
+/* Wertlose Sorten (Note, Anzeige): Zahnrad-Knopf statt eines leeren Lochs (@dpa ddw.md
+   20260802 „Note hat noch kein Icon für die Panel-weg --> Settings Anzeige") - selbe
+   Optik/Größe wie .kme-panelbtn, damit alle kleinen Icon-Knöpfe im Settings-System gleich
+   aussehen. Öffnet dieselben Control-Settings wie der Rechtsklick auf die Zeile. */
+.gs-op-settings-btn { --ico: 14px; flex: 0 0 auto; background: none; border: 1px solid transparent;
+  border-radius: 3px; color: var(--muted); cursor: pointer; padding: 2px 3px; display: inline-flex; align-items: center; }
+.gs-op-settings-btn:hover { color: var(--text); border-color: var(--line); }
 /* Control ist vom Panel in die Gruppen-Settings umgezogen (@dpa dd.md 20260801, State-Key
    `ctrlOffPanel`). Es bleibt GEBAUT und im Gruppen-DOM stehen - nur unsichtbar. Grund:
    Combos/Snapshots sammeln über `[data-ctrl]` innerhalb der Gruppe (GroupHost
