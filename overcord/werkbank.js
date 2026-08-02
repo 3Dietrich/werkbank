@@ -515,8 +515,73 @@ const _adsrSettingsSelects = polySynthDefsObj.ADSR_SETTINGS_SELECTS;
 const _adsrSettingsSkews = polySynthDefsObj.ADSR_SETTINGS_SKEWS;
 const _adsrSettingsNums = polySynthDefsObj.ADSR_SETTINGS_NUMS;
 const _groupKindSettings = {
+    // Amp-Env teilt sich seit dd.md 20260802 den groupKind 'ADSR' mit Multi-ADSR (gemeinsamer
+    // Combo-/Snapshot-Pool, s. defs.js GROUPS-Eintrag 'Amp-Env') und landet damit hier auch im
+    // Settings-Hook. Verzweigung über sfx: '' = Amp-Env (statisch, eigene AMPENV_SETTINGS_*-Keys
+    // ohne Suffix, kein Copy/Delete/Nullpunkt/Len/TrigMode), sonst = Multi-ADSR-Instanz.
     ADSR: (name, pop, st, row, sfx) => {
-        if (!sfx) return;
+        if (!sfx) {
+            const get = (k) => polySynthState.get(k);
+            const set = (k, v) => polySynthState.set(k, v);
+
+            const sep0 = document.createElement('div'); sep0.className = 'gs-sep'; pop.appendChild(sep0);
+
+            const grid0 = document.createElement('div');
+            grid0.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
+
+            const toggleCol0 = document.createElement('div');
+            for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_TOGGLES)) {
+                const r = document.createElement('label');
+                r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
+                const cb = document.createElement('input'); cb.type = 'checkbox';
+                cb.checked = get(key) ?? polySynthDefsObj.DEFAULTS[key];
+                cb.addEventListener('change', () => set(key, cb.checked));
+                r.appendChild(cb);
+                r.appendChild(document.createTextNode(cfg.label));
+                toggleCol0.appendChild(r);
+            }
+            grid0.appendChild(toggleCol0);
+
+            const selectCol0 = document.createElement('div');
+            for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_SELECTS)) {
+                const r = document.createElement('label');
+                r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
+                const sel = document.createElement('select');
+                sel.style.cssText = 'font-size:11px; padding:1px 4px;';
+                for (const o of cfg.options) {
+                    const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
+                    sel.appendChild(opt);
+                }
+                sel.value = get(key) ?? polySynthDefsObj.DEFAULTS[key];
+                sel.addEventListener('change', () => set(key, sel.value));
+                r.appendChild(sel);
+                r.appendChild(document.createTextNode(cfg.label));
+                selectCol0.appendChild(r);
+            }
+            grid0.appendChild(selectCol0);
+            pop.appendChild(grid0);
+
+            const skewRow0 = document.createElement('div');
+            skewRow0.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
+            const skewLabel0 = document.createElement('span'); skewLabel0.textContent = 'Skew:'; skewRow0.appendChild(skewLabel0);
+            for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_SKEWS)) {
+                const l = document.createElement('label');
+                l.style.cssText = 'display:flex; align-items:center; gap:2px;';
+                const num = document.createElement('input'); num.type = 'number';
+                num.min = cfg.min; num.max = cfg.max; num.step = 0.1;
+                num.value = get(key) ?? cfg.default;
+                num.style.cssText = 'width:40px; font-size:11px; padding:1px 2px;';
+                num.addEventListener('input', () => {
+                    const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
+                    set(key, v);
+                });
+                l.appendChild(num);
+                l.appendChild(document.createTextNode(cfg.label.replace('-Skew', '')));
+                skewRow0.appendChild(l);
+            }
+            pop.appendChild(skewRow0);
+            return;
+        }
         const get = (k) => polySynthState.get(k + sfx);
         const set = (k, v) => polySynthState.set(k + sfx, v);
 
@@ -627,71 +692,6 @@ const _groupKindSettings = {
         });
         btnRow.appendChild(copyBtn); btnRow.appendChild(delBtn);
         pop.appendChild(btnRow);
-    },
-    // Amp-Env-Settings (@dpa dd.md 20260802: „die Env auf die ADSR übermodeln, so dass sie
-    // die selben Einstellungen hat") — 1:1 dasselbe Toggle/Select/Skew-Muster wie oben bei
-    // ADSR, aber ohne sfx (Amp-Env ist eine STATISCHE Gruppe, keine Multi-Instanz wie das
-    // Multi-ADSR — kein Copy/Delete, kein Nullpunkt/Len/TrigMode, s. defs.js amp*-Kommentar).
-    'Amp-Env': (name, pop, st, row) => {
-        const get = (k) => polySynthState.get(k);
-        const set = (k, v) => polySynthState.set(k, v);
-
-        const sep = document.createElement('div'); sep.className = 'gs-sep'; pop.appendChild(sep);
-
-        const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
-
-        const toggleCol = document.createElement('div');
-        for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_TOGGLES)) {
-            const r = document.createElement('label');
-            r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
-            const cb = document.createElement('input'); cb.type = 'checkbox';
-            cb.checked = get(key) ?? polySynthDefsObj.DEFAULTS[key];
-            cb.addEventListener('change', () => set(key, cb.checked));
-            r.appendChild(cb);
-            r.appendChild(document.createTextNode(cfg.label));
-            toggleCol.appendChild(r);
-        }
-        grid.appendChild(toggleCol);
-
-        const selectCol = document.createElement('div');
-        for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_SELECTS)) {
-            const r = document.createElement('label');
-            r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
-            const sel = document.createElement('select');
-            sel.style.cssText = 'font-size:11px; padding:1px 4px;';
-            for (const o of cfg.options) {
-                const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
-                sel.appendChild(opt);
-            }
-            sel.value = get(key) ?? polySynthDefsObj.DEFAULTS[key];
-            sel.addEventListener('change', () => set(key, sel.value));
-            r.appendChild(sel);
-            r.appendChild(document.createTextNode(cfg.label));
-            selectCol.appendChild(r);
-        }
-        grid.appendChild(selectCol);
-        pop.appendChild(grid);
-
-        const skewRow = document.createElement('div');
-        skewRow.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
-        const skewLabel = document.createElement('span'); skewLabel.textContent = 'Skew:'; skewRow.appendChild(skewLabel);
-        for (const [key, cfg] of Object.entries(polySynthDefsObj.AMPENV_SETTINGS_SKEWS)) {
-            const l = document.createElement('label');
-            l.style.cssText = 'display:flex; align-items:center; gap:2px;';
-            const num = document.createElement('input'); num.type = 'number';
-            num.min = cfg.min; num.max = cfg.max; num.step = 0.1;
-            num.value = get(key) ?? cfg.default;
-            num.style.cssText = 'width:40px; font-size:11px; padding:1px 2px;';
-            num.addEventListener('input', () => {
-                const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
-                set(key, v);
-            });
-            l.appendChild(num);
-            l.appendChild(document.createTextNode(cfg.label.replace('-Skew', '')));
-            skewRow.appendChild(l);
-        }
-        pop.appendChild(skewRow);
     },
 };
 
