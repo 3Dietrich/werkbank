@@ -87,3 +87,6 @@ Scope:
     
     und ich brauche noch enien header Button für den e-Mode
     alle header Buttons sollen Button Settings, key- und Midilearn haben 
+
+20260802_234615
+    WS soll in Lim (settings) mit rein
