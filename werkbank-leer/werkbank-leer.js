@@ -132,6 +132,31 @@ window.__master = { state: masterState, volume: masterVolume };
 const routing = createRoutingRegistry();
 window.__routing = { reg: routing };
 
+// ── Master-Bus-Output (1:1 aus werkbank.js, ddw.md 20260802 „Ein-/Ausgänge-Kette", Wave 1)
+// EIN Output-Tap auf den geteilten Analyser aus audioBus.js — hängt dort automatisch nach
+// Limiter/Fader um (s. audioBus.js setLimiterOn()), read() liefert einen billigen linearen
+// Peak (0..1) als frame-Fallback, hasNode/node erlauben die genaue "sample"-Kurve am Scope.
+let _masterPeakBuf = null;
+routing.registerModule('master', {
+    label: 'Master',
+    outputs: {
+        out: {
+            type: 'Value', label: 'Output',
+            read: () => {
+                const a = getBusAnalyser();
+                if (!a) return 0;
+                if (!_masterPeakBuf || _masterPeakBuf.length !== a.fftSize) _masterPeakBuf = new Float32Array(a.fftSize);
+                a.getFloatTimeDomainData(_masterPeakBuf);
+                let peak = 0;
+                for (let i = 0; i < _masterPeakBuf.length; i++) { const v = Math.abs(_masterPeakBuf[i]); if (v > peak) peak = v; }
+                return peak;
+            },
+            hasNode: true, node: () => getBusAnalyser(),
+        },
+    },
+    inputs: {},
+});
+
 // ── Takt + Metronom (1:1 aus werkbank.js Z.143-231, minus Stepseq-Verweise: sqManager
 // existiert hier nicht, darum onAction nur noch Attrappe fürs Sq-Sync-Feintuning weglassen) ─
 const TAKT_LS = lsKey('taktmetro');

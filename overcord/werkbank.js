@@ -155,6 +155,36 @@ window.__master = { state: masterState, volume: masterVolume };
 const routing = createRoutingRegistry();
 window.__routing = { reg: routing };
 
+// ── Master-Bus-Output (ddw.md 20260802, „Ein-/Ausgänge-Kette", Wave 1) ────────────────
+// EIN Output-Tap auf den geteilten Analyser aus audioBus.js. Der hängt dort schon
+// automatisch um (nach dem Limiter bei [Lim] an, direkt nach dem Fader bei [Lim] aus, s.
+// audioBus.js setLimiterOn()) — der Scope zeigt darüber also automatisch das begrenzte
+// ODER das rohe Signal, je nach Limiter-Stand, ohne dass hier irgendeine eigene
+// Umschaltlogik nötig wäre (@dpa: „mit Lim=off kann man sehen was den Limiter zum
+// Clippen bringt"). read() liefert einen billigen linearen Peak (0..1, „frame"-Fallback,
+// dieselbe Rechnung wie LevelMeter.js tick()); die genaue Kurve gibt's am Scope selbst
+// über Umschalten auf "sample" (hasNode/node, dasselbe Muster wie die ADSR in multiEnv.js).
+let _masterPeakBuf = null;
+routing.registerModule('master', {
+    label: 'Master',
+    outputs: {
+        out: {
+            type: 'Value', label: 'Output',
+            read: () => {
+                const a = getBusAnalyser();
+                if (!a) return 0;
+                if (!_masterPeakBuf || _masterPeakBuf.length !== a.fftSize) _masterPeakBuf = new Float32Array(a.fftSize);
+                a.getFloatTimeDomainData(_masterPeakBuf);
+                let peak = 0;
+                for (let i = 0; i < _masterPeakBuf.length; i++) { const v = Math.abs(_masterPeakBuf[i]); if (v > peak) peak = v; }
+                return peak;
+            },
+            hasNode: true, node: () => getBusAnalyser(),
+        },
+    },
+    inputs: {},
+});
+
 // ── Takt + Metronom – Neu-Port (P1) + echter Ton (P4) ──────────────────────────
 // Der frühere Mount lief über taktgebers eigene ui.js (der „eigene Scheiß"). Jetzt füttert
 // EINE deklarative defs-Quelle (lib/taktmetro/defs.js, gemappt aus taktgeber-Manifest +
