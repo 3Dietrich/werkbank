@@ -89,4 +89,9 @@ Scope:
     alle header Buttons sollen Button Settings, key- und Midilearn haben 
 
 20260802_234615
-    WS soll in Lim (settings) mit rein
+    header:
+        WS soll in Lim (settings) mit rein
+    mein Settings:
+        - Gruppenkopf Größe: help hintern Fenster ![alt text](image-6.png)    
+        - Farb setting für BG ![alt text](image-7.png) 
+    Out
