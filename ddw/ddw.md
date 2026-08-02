@@ -58,4 +58,13 @@ Lim:
     - bei Att=0 müsste es eigentlich mindestens an einer stelle knacken. da ist noch etwas zu langsam!
     - bitte den Lim Button neben Attack und Release (geordnet nach Limiter settings und Optik): BGoff, BGon (und der Vollständigkeit halber auch VG/schrift)
 
-Während du Schwierigkeiten hattest, das zu prüfen, konnte ich schon ein bisschen testen. es gibt noch immer peaks die als clip dargestellt werden (sikorr, aber da würde ich sagen wir finden eine zeit im einstelligen millisekunden bereich die die peaks ignoriert 
+
+Ich dachte gerade an ein mini predeay für das zu liimittende Audio (was dann von vorherein etwas früher abgespielt  wird, so dass es korrekt in time rauskomt.. das mit den Latenzen hatten wir ja schon eingebaut.. da müsste man die -Delayzeiten (erste Quelle entsprechend früher) recht "einfach" einstellen können..? (das wäre etwas für Opus) 
+Damit hätte man "genügend" Zeit für den Attack (der auf korrekte minimum Zeit (eben nicht 0) herunterregelt und mit einem predelay die Spitzen abfängt...
+
+"Ein Predelay VOR dem Limiter bringt nichts. Der Compressor sieht dann einfach das verzögerte Signal u"
+Nee. Missverständnis!
+Man verzögert nur einen Teil in dem Limiter. Und zwar der, der den Peak angibt. Der andere (leicht verzögerte) wird dann von dem Limiter gelimitet. damit die Verzögerung nicht hörbar ist, muss diese ganz vorne (Gates und trigger) nach vorne verzögen werden, So dass am Ende null Zeitsprung rauskommt. Verstehst du? 
+
+WaveShaperNode
+Klingt interessant, bau es gerne ein mit ein/aus-Schalter. 
