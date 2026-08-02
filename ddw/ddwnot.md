@@ -1,4 +1,7 @@
-nicht für die KI, nur personlicher promptspeicher
+!: nicht für die KI, nur personlicher promptspeicher!
+
+
+
 ADSR:
 Die Settings sind zwar alle da, aber funktionieren teils noch nicht teils will ich die Struktur klären:
     Logik und Funktion: Gate Länge
