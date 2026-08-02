@@ -68,3 +68,9 @@ Man verzögert nur einen Teil in dem Limiter. Und zwar der, der den Peak angibt.
 
 WaveShaperNode
 Klingt interessant, bau es gerne ein mit ein/aus-Schalter. 
+
+20260802_200509
+Ringpuffer! genau!! jo geil! Der ist die Lösung für die "Kette"/n, da kann man beliebig ein steigen, man hat eine zeit/Samplezahl in welcher zeit man zugreift! 
+
+WS Button erzeugt direkt Verzerrung. trotz Limiter! Da ist noch etwas mit dessen Lautsärke.
+Der Wunsch Dir ein Debug übergeben zu können ist gerade groß, deswegen zusätzlich oder extra session oder subagent, entscheide Du: bei teslacoil die debug Gruppe.. die will ich auch in beiden, werkbank-leer und overcord.
