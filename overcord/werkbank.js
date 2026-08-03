@@ -19,6 +19,7 @@ import { factoryHint } from '../lib/hints.js';
 import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
 import { SettingsWindow } from '../lib/SettingsWindow.js';
 import { buildMainSettings } from '../lib/mainSettings.js';
+import { openNewEntryFlow } from '../lib/newEntryFlow.js';
 import { readBackups, pushBackup, watchAutoBackup } from '../lib/Backup.js';
 import { wireGlobalLook } from '../lib/globalLook.js';
 import { installSelectOnFocus } from '../lib/selectOnFocus.js';
@@ -1268,6 +1269,7 @@ const openCfg = () => {
         onExport: () => exportConfig(),
         onImport: () => fileIn.click(),
         onReset: doReset,
+        onNewEntry: (btn) => openNewEntryFlow(btn),
         reopen: () => { cfgWin.close(); openCfg(); },
         backups,
     }), () => cfgBtn.classList.remove('active'));
