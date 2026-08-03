@@ -223,6 +223,86 @@ function writeStartScript(dir, slugName) {
     }
 }
 
+/**
+ * Doppelklick-Lösch-Skript (@dpa 20260803: „davon eine Kopie oder Alias in die Ordner! ...
+ * einfach zu finden, einfach doppelzuklicken"). Liegt IM Einstiegs-Ordner, ruft von dort aus
+ * `tools/remove-entry.mjs <slug>` auf (dasselbe Skript, dieselbe Sperrliste/Aufräumlogik —
+ * KEINE zweite Löschimplementierung). Anders als start.command bewusst NICHT einfach
+ * loslegend: löscht den eigenen Ordner, also erst eine Rückfrage (y/N), sonst würde ein
+ * versehentlicher Doppelklick sofort unwiderruflich Daten wegräumen.
+ * @param {string} slugName
+ * @returns {string} Skriptinhalt
+ */
+function buildRemoveScript(slugName) {
+    return `#!/bin/bash
+# remove.command — Doppelklick-Löschung für den Werkbank-Einstieg "${slugName}" (von
+# tools/new-entry.mjs erzeugt, @dpa 20260803). Ruft nur tools/remove-entry.mjs auf, keine
+# eigene Löschlogik. Fragt vorher nach, weil ein Doppelklick sonst ohne Warnung löscht.
+cd "$(dirname "$0")/.." || { echo "Projekt-Root nicht gefunden."; read -p "Enter zum Schließen..."; exit 1; }
+
+echo "Das löscht den kompletten Ordner \\"${slugName}/\\" (samt presets/${slugName}-config.json"
+echo "und ggf. seiner Landing-Page-Karte) unwiderruflich vom Datenträger."
+read -p "Wirklich löschen? [y/N] " ANTWORT
+if [ "$ANTWORT" != "y" ] && [ "$ANTWORT" != "Y" ]; then
+  echo "Abgebrochen."
+  read -p "Enter zum Schließen..."
+  exit 0
+fi
+
+node tools/remove-entry.mjs "${slugName}"
+read -p "Enter zum Schließen dieses Fensters..."
+`;
+}
+
+/** Lösch-Skript in den Zielordner schreiben + ausführbar machen. Gibt den Pfad zurück (für
+ *  touchedPaths) oder null, falls das Schreiben fehlschlägt (nicht kritisch — @dpa kann
+ *  weiterhin `node tools/remove-entry.mjs <slug>` von Hand aufrufen). */
+function writeRemoveScript(dir, slugName) {
+    const p = path.join(dir, 'remove.command');
+    try {
+        fs.writeFileSync(p, buildRemoveScript(slugName));
+        fs.chmodSync(p, 0o755);
+        return p;
+    } catch (e) {
+        console.warn(`new-entry: Lösch-Skript konnte nicht angelegt werden (${e.message}) — nicht kritisch, "node tools/remove-entry.mjs ${slugName}" funktioniert weiterhin von Hand.`);
+        return null;
+    }
+}
+
+/**
+ * README im neuen Ordner (@dpa: "klarer Hinweis, dass einfach Ordnerlöschen unvollständig
+ * ist"). Kurz halten (@dpa-Prinzip: keine Romane) — nur die zwei Dinge, die ein Doppelklick
+ * im Finder NICHT von selbst nahelegt: dass es hier eigene Start-/Lösch-Skripte gibt, und
+ * dass ein simples "Ordner in den Papierkorb ziehen" Reste hinterlässt (Preset-Datei, ggf.
+ * Landing-Page-Karte).
+ * @param {string} slugName
+ * @returns {string}
+ */
+function buildReadme(slugName) {
+    return `# ${slugName}
+
+Ein Werkbank-Pool-Einstieg (aus \`werkbank-leer/\` kopiert, s. \`../ARCHITEKTUR.md\`).
+
+- **Starten:** \`start.command\` doppelklicken (oder \`../tools/new-entry.mjs\`-Server von Hand).
+- **Löschen:** \`remove.command\` doppelklicken — NICHT einfach diesen Ordner in den Papierkorb
+  ziehen, das lässt \`presets/${slugName}-config.json\` und (falls veröffentlicht) die
+  Landing-Page-Karte zurück. \`remove.command\` räumt beides mit auf.
+`;
+}
+
+/** README in den Zielordner schreiben. Gibt den Pfad zurück oder null bei Fehler (nicht
+ *  kritisch — reine Doku, kein Funktionsverlust). */
+function writeReadme(dir, slugName) {
+    const p = path.join(dir, 'README.md');
+    try {
+        fs.writeFileSync(p, buildReadme(slugName));
+        return p;
+    } catch (e) {
+        console.warn(`new-entry: README konnte nicht angelegt werden (${e.message}) — nicht kritisch.`);
+        return null;
+    }
+}
+
 const presetsDir = path.join(ROOT, 'presets');
 const srcPreset = path.join(presetsDir, `${sourceSlug}-config.json`);
 // Alle neu angelegten/geänderten Pfade sammeln — Grundlage für den automatischen `git add`
@@ -238,13 +318,20 @@ if (fs.existsSync(srcPreset)) {
     console.warn(`new-entry: presets/${sourceSlug}-config.json fehlt — keine Demo-Datei für die Kopie angelegt (Seite startet mit leeren Defaults, kein Fehler).`);
 }
 
-// Start-Skript IN den neuen Ordner (@dpa ddw.md 20260803_135251 Punkt 5) — nach der
-// Demo-Datei, damit es in der Konsolen-Ausgabe zuletzt und damit gut sichtbar erscheint.
+// Start-/Lösch-Skript + README IN den neuen Ordner (@dpa ddw.md 20260803_135251 Punkt 5,
+// Lösch-Pendant + README @dpa 20260803) — nach der Demo-Datei, damit sie in der
+// Konsolen-Ausgabe zuletzt und damit gut sichtbar erscheinen.
 const startScriptPath = writeStartScript(destDir, slug);
 if (startScriptPath) touchedPaths.push(startScriptPath);
+const removeScriptPath = writeRemoveScript(destDir, slug);
+if (removeScriptPath) touchedPaths.push(removeScriptPath);
+const readmePath = writeReadme(destDir, slug);
+if (readmePath) touchedPaths.push(readmePath);
 
 console.log(`new-entry: "${slug}/" angelegt aus ${sourceSlug}/ (data-app="${slug}").`);
 if (startScriptPath) console.log(`new-entry: Start-Skript "${slug}/start.command" angelegt (Doppelklick startet Server + öffnet die Seite).`);
+if (removeScriptPath) console.log(`new-entry: Lösch-Skript "${slug}/remove.command" angelegt (Doppelklick fragt nach, löscht dann vollständig).`);
+if (readmePath) console.log(`new-entry: "${slug}/README.md" angelegt (Start/Löschen-Hinweis).`);
 
 /**
  * Landing-Page-Karte (index.html, Muster: bestehende Overcord-/Leer-Karten) + Tabellenzeile
