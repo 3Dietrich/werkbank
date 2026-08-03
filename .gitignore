@@ -7,3 +7,6 @@ __pycache__/
 # project-root.txt (tools/new-entry.mjs, @dpa 20260803): wird bei JEDEM Lauf neu geschrieben,
 # enthaelt den ABSOLUTEN lokalen Pfad dieser Maschine - waere fuer jeden anderen Clone falsch.
 /project-root.txt
+# Playwright-Testartefakte (test-results/, .last-run.json etc.) - reine Laufzeit-Ausgabe,
+# gehoert nie ins Repo.
+/test-results/
