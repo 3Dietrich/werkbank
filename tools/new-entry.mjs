@@ -159,23 +159,33 @@ fs.writeFileSync(path.join(destDir, `${slug}.js`), js);
 // ohnehin im Browser-localStorage, nicht in einer presets-Datei; das ist hier bewusst nicht
 // Teil des Kopiervorgangs (s. Datei-Kopf "--source": es geht nur um die CODE-Quelle).
 /**
- * Doppelklick-Start-Skript für diesen Einstieg (@dpa ddw.md 20260803_135251 Punkt 5: "im
+ * Doppelklick-Start-Skripte für diesen Einstieg (@dpa ddw.md 20260803_135251 Punkt 5: "im
  * Ordner vielleicht ein Script welches cd .. && python3 -m http.server .. && open http.. easy
- * ausführen kann?"). macOS-`.command`-Datei (Terminal.app führt sie per Doppelklick aus, s.
- * `chmod +x` unten) — liegt IM neuen Ordner selbst, `"$(dirname "$0")/.."` ist darum unabhängig
- * vom tatsächlichen Projekt-Pfad immer das Repo-Root (derselbe gemeinsame Server für ALLE
- * Einstiege, s. CLAUDE.md "Starten/Testen" — kein eigener Port pro Einstieg).
+ * ausführen kann?"). DREI Varianten nebeneinander (@dpa 20260803: "das ist alles Mac
+ * spezifisch.. richtig? Das muss man klar dazusagen.. bzw. muss es für Windows und Linux auch
+ * anbieten") — ein `.command` allein läuft nur auf macOS (Terminal.app-Doppelklick-Konvention).
+ * Alle drei rufen dieselbe Logik in derselben Reihenfolge auf (Port-Suche, Server, Browser-
+ * Öffnen) — bewusst DREI kleine eigenständige Skripte statt eines "portablen" Universalskripts,
+ * weil Shell/CMD/Batch keine gemeinsame Syntax teilen und ein Erkennungs-Wrapper selbst schon
+ * plattformspezifischen Code bräuchte, um überhaupt zu erkennen WAS er ausführen soll.
  *
- * Port-Kollision (@dpa: "Port hochzählen ... nicht überengineeren"): startet `python3 -m
- * http.server` auf einem Port, prüft kurz danach per `kill -0`, ob der Prozess noch lebt (ein
- * Fehlschlag wegen "Address already in use" beendet ihn sofort wieder) — falls nicht, nächster
- * Port, bis zu 20 Versuche. Kein Vorab-Lock-Check (TOCTOU), das reicht für diesen Zweck.
+ * macOS: `.command` (Terminal.app führt sie per Doppelklick aus, s. `chmod +x` unten).
+ * Linux: `.sh` — Doppelklick-Verhalten ist NICHT garantiert (abhängig von Dateimanager/
+ * Desktop-Umgebung, viele fragen erst nach "Im Terminal ausführen" oder öffnen im Editor
+ * statt es auszuführen) — README weist deshalb zusätzlich auf `./start.sh` im Terminal hin.
+ * Windows: `.bat` (Explorer führt sie per Doppelklick über cmd.exe aus) — nutzt `python` statt
+ * `python3` (unter Windows üblicher Name/Launcher-Alias) und `start` statt `open`/`xdg-open`.
+ *
+ * Port-Kollision (@dpa: "Port hochzählen ... nicht überengineeren"): startet den Server auf
+ * einem Port, prüft kurz danach, ob der Prozess noch lebt (ein Fehlschlag wegen "Address
+ * already in use" beendet ihn sofort wieder) — falls nicht, nächster Port, bis zu 20 Versuche.
+ * Kein Vorab-Lock-Check (TOCTOU), das reicht für diesen Zweck.
  * @param {string} slugName
- * @returns {string} Skriptinhalt
+ * @returns {string} Skriptinhalt (macOS/Linux, identische Bash-Logik)
  */
-function buildStartScript(slugName) {
+function buildStartScript(slugName, fileName, opener) {
     return `#!/bin/bash
-# start.command — Doppelklick-Start für den Werkbank-Einstieg "${slugName}" (von
+# ${fileName} — Doppelklick-Start für den Werkbank-Einstieg "${slugName}" (von
 # tools/new-entry.mjs erzeugt, @dpa ddw.md 20260803_135251 Punkt 5). Liegt IM
 # Einstiegs-Ordner — "$(dirname "$0")/.." ist darum das Projekt-Root, unabhängig davon,
 # wohin der Ordner verschoben/kopiert wird.
@@ -201,41 +211,87 @@ for i in $(seq 0 20); do
 done
 
 sleep 1
-open "http://localhost:$PORT/$SLUG/"
+${opener} "http://localhost:$PORT/$SLUG/"
 echo "Server läuft auf Port $PORT (PID $SERVER_PID) — dieses Fenster kann geschlossen werden,"
 echo "der Server läuft im Hintergrund weiter (beenden: kill $SERVER_PID)."
 read -p "Enter zum Schließen dieses Fensters..."
 `;
 }
 
-/** Start-Skript in den Zielordner schreiben + ausführbar machen. Gibt den Pfad zurück (für
- *  touchedPaths) oder null, falls das Schreiben fehlschlägt (nicht kritisch — @dpa kann den
- *  Server weiterhin von Hand starten, s. CLAUDE.md "Starten/Testen"). */
-function writeStartScript(dir, slugName) {
-    const p = path.join(dir, 'start.command');
-    try {
-        fs.writeFileSync(p, buildStartScript(slugName));
-        fs.chmodSync(p, 0o755);
-        return p;
-    } catch (e) {
-        console.warn(`new-entry: Start-Skript konnte nicht angelegt werden (${e.message}) — nicht kritisch, Server lässt sich weiterhin von Hand starten.`);
-        return null;
+/** Windows-Äquivalent (`start.bat`, Explorer-Doppelklick über cmd.exe) — eigene Syntax,
+ *  keine Ableitung aus der Bash-Fassung möglich. `python` statt `python3` (Windows-üblicher
+ *  Name/py-Launcher-Alias), `start` statt `open`/`xdg-open`. */
+function buildStartScriptWin(slugName) {
+    return `@echo off
+rem start.bat - Doppelklick-Start fuer den Werkbank-Einstieg "${slugName}" (von
+rem tools/new-entry.mjs erzeugt, @dpa 20260803). Liegt IM Einstiegs-Ordner - %~dp0..
+rem ist darum das Projekt-Root, unabhaengig davon, wohin der Ordner verschoben wird.
+rem Port-Check per PowerShell-TCP-Probe (verlaesslicher als tasklist-Grepping) - braucht
+rem Windows PowerShell, die auf jedem Windows seit Vista mitkommt.
+cd /d "%~dp0.."
+set SLUG=${slugName}
+set PORT=8002
+
+:tryport
+start /b "" python -m http.server %PORT% >nul 2>nul
+timeout /t 1 /nobreak >nul
+powershell -NoProfile -Command "try { (New-Object Net.Sockets.TcpClient).Connect('localhost', %PORT%); exit 0 } catch { exit 1 }" >nul 2>nul
+if errorlevel 1 (
+  set /a PORT+=1
+  if %PORT% lss 8022 goto tryport
+  echo Konnte auf keinem Port zwischen 8002 und 8021 starten.
+  echo Laeuft "python" ueberhaupt? Ggf. "py" statt "python" versuchen.
+  pause
+  exit /b 1
+)
+
+start "" "http://localhost:%PORT%/%SLUG%/"
+echo Server laeuft auf Port %PORT% - dieses Fenster kann geschlossen werden,
+echo der Server laeuft im Hintergrund weiter.
+pause
+`;
+}
+
+/** Start-Skripte (macOS/Linux/Windows) in den Zielordner schreiben + ausführbar machen (wo
+ *  nötig). Gibt die tatsächlich geschriebenen Pfade zurück (für touchedPaths) — einzelne
+ *  Fehlschläge sind nicht kritisch (@dpa kann den Server weiterhin von Hand starten, s.
+ *  CLAUDE.md "Starten/Testen"), darum pro Datei einzeln versucht statt alles-oder-nichts. */
+function writeStartScripts(dir, slugName) {
+    const variants = [
+        { file: 'start.command', content: buildStartScript(slugName, 'start.command', 'open'), exec: true },
+        { file: 'start.sh', content: buildStartScript(slugName, 'start.sh', 'xdg-open'), exec: true },
+        { file: 'start.bat', content: buildStartScriptWin(slugName), exec: false },
+    ];
+    const written = [];
+    for (const v of variants) {
+        const p = path.join(dir, v.file);
+        try {
+            fs.writeFileSync(p, v.content);
+            if (v.exec) fs.chmodSync(p, 0o755);
+            written.push(p);
+        } catch (e) {
+            console.warn(`new-entry: "${v.file}" konnte nicht angelegt werden (${e.message}) — nicht kritisch.`);
+        }
     }
+    return written;
 }
 
 /**
- * Doppelklick-Lösch-Skript (@dpa 20260803: „davon eine Kopie oder Alias in die Ordner! ...
- * einfach zu finden, einfach doppelzuklicken"). Liegt IM Einstiegs-Ordner, ruft von dort aus
- * `tools/remove-entry.mjs <slug>` auf (dasselbe Skript, dieselbe Sperrliste/Aufräumlogik —
- * KEINE zweite Löschimplementierung). Anders als start.command bewusst NICHT einfach
- * loslegend: löscht den eigenen Ordner, also erst eine Rückfrage (y/N), sonst würde ein
- * versehentlicher Doppelklick sofort unwiderruflich Daten wegräumen.
+ * Doppelklick-Lösch-Skripte (@dpa 20260803: „davon eine Kopie oder Alias in die Ordner! ...
+ * einfach zu finden, einfach doppelzuklicken" — und, wie bei den Start-Skripten: „das ist
+ * alles Mac spezifisch.. muss es für Windows und Linux auch anbieten"). Alle drei Varianten
+ * liegen IM Einstiegs-Ordner, rufen von dort aus NUR `tools/remove-entry.mjs <slug>` auf
+ * (dasselbe Skript, dieselbe Sperrliste/Aufräumlogik — KEINE eigene Löschimplementierung pro
+ * Plattform). Anders als die Start-Skripte bewusst NICHT einfach loslegend: löscht den
+ * eigenen Ordner, also erst eine Rückfrage (y/N), sonst würde ein versehentlicher Doppelklick
+ * sofort unwiderruflich Daten wegräumen.
  * @param {string} slugName
- * @returns {string} Skriptinhalt
+ * @param {string} fileName
+ * @returns {string} Skriptinhalt (macOS/Linux, identische Bash-Logik)
  */
-function buildRemoveScript(slugName) {
+function buildRemoveScript(slugName, fileName) {
     return `#!/bin/bash
-# remove.command — Doppelklick-Löschung für den Werkbank-Einstieg "${slugName}" (von
+# ${fileName} — Doppelklick-Löschung für den Werkbank-Einstieg "${slugName}" (von
 # tools/new-entry.mjs erzeugt, @dpa 20260803). Ruft nur tools/remove-entry.mjs auf, keine
 # eigene Löschlogik. Fragt vorher nach, weil ein Doppelklick sonst ohne Warnung löscht.
 cd "$(dirname "$0")/.." || { echo "Projekt-Root nicht gefunden."; read -p "Enter zum Schließen..."; exit 1; }
@@ -254,26 +310,58 @@ read -p "Enter zum Schließen dieses Fensters..."
 `;
 }
 
-/** Lösch-Skript in den Zielordner schreiben + ausführbar machen. Gibt den Pfad zurück (für
- *  touchedPaths) oder null, falls das Schreiben fehlschlägt (nicht kritisch — @dpa kann
- *  weiterhin `node tools/remove-entry.mjs <slug>` von Hand aufrufen). */
-function writeRemoveScript(dir, slugName) {
-    const p = path.join(dir, 'remove.command');
-    try {
-        fs.writeFileSync(p, buildRemoveScript(slugName));
-        fs.chmodSync(p, 0o755);
-        return p;
-    } catch (e) {
-        console.warn(`new-entry: Lösch-Skript konnte nicht angelegt werden (${e.message}) — nicht kritisch, "node tools/remove-entry.mjs ${slugName}" funktioniert weiterhin von Hand.`);
-        return null;
+/** Windows-Äquivalent (`remove.bat`) — eigene Syntax, `set /p` statt `read -p`. */
+function buildRemoveScriptWin(slugName) {
+    return `@echo off
+rem remove.bat - Doppelklick-Loeschung fuer den Werkbank-Einstieg "${slugName}" (von
+rem tools/new-entry.mjs erzeugt, @dpa 20260803). Ruft nur tools/remove-entry.mjs auf.
+cd /d "%~dp0.."
+
+echo Das loescht den kompletten Ordner "${slugName}\\" (samt presets\\${slugName}-config.json
+echo und ggf. seiner Landing-Page-Karte) unwiderruflich vom Datentraeger.
+set /p ANTWORT=Wirklich loeschen? [j/N]
+if /i not "%ANTWORT%"=="j" (
+  echo Abgebrochen.
+  pause
+  exit /b 0
+)
+
+node tools\\remove-entry.mjs "${slugName}"
+pause
+`;
+}
+
+/** Lösch-Skripte (macOS/Linux/Windows) in den Zielordner schreiben + ausführbar machen (wo
+ *  nötig). Gibt die tatsächlich geschriebenen Pfade zurück (für touchedPaths) — einzelne
+ *  Fehlschläge sind nicht kritisch (@dpa kann weiterhin `node tools/remove-entry.mjs <slug>`
+ *  von Hand aufrufen), darum pro Datei einzeln versucht statt alles-oder-nichts. */
+function writeRemoveScripts(dir, slugName) {
+    const variants = [
+        { file: 'remove.command', content: buildRemoveScript(slugName, 'remove.command'), exec: true },
+        { file: 'remove.sh', content: buildRemoveScript(slugName, 'remove.sh'), exec: true },
+        { file: 'remove.bat', content: buildRemoveScriptWin(slugName), exec: false },
+    ];
+    const written = [];
+    for (const v of variants) {
+        const p = path.join(dir, v.file);
+        try {
+            fs.writeFileSync(p, v.content);
+            if (v.exec) fs.chmodSync(p, 0o755);
+            written.push(p);
+        } catch (e) {
+            console.warn(`new-entry: "${v.file}" konnte nicht angelegt werden (${e.message}) — nicht kritisch.`);
+        }
     }
+    return written;
 }
 
 /**
  * README im neuen Ordner (@dpa: "klarer Hinweis, dass einfach Ordnerlöschen unvollständig
- * ist"). Kurz halten (@dpa-Prinzip: keine Romane) — nur die zwei Dinge, die ein Doppelklick
- * im Finder NICHT von selbst nahelegt: dass es hier eigene Start-/Lösch-Skripte gibt, und
- * dass ein simples "Ordner in den Papierkorb ziehen" Reste hinterlässt (Preset-Datei, ggf.
+ * ist" — UND: "das ist alles Mac spezifisch.. muss man klar dazusagen"). Kurz halten
+ * (@dpa-Prinzip: keine Romane) — nur die drei Dinge, die ein Doppelklick im Dateimanager
+ * NICHT von selbst nahelegt: welche der drei Start-/Lösch-Dateien zur eigenen Plattform
+ * gehört, dass Linux' Doppelklick-Verhalten für `.sh` nicht garantiert ist, und dass ein
+ * simples "Ordner in den Papierkorb ziehen" Reste hinterlässt (Preset-Datei, ggf.
  * Landing-Page-Karte).
  * @param {string} slugName
  * @returns {string}
@@ -283,10 +371,20 @@ function buildReadme(slugName) {
 
 Ein Werkbank-Pool-Einstieg (aus \`werkbank-leer/\` kopiert, s. \`../ARCHITEKTUR.md\`).
 
-- **Starten:** \`start.command\` doppelklicken (oder \`../tools/new-entry.mjs\`-Server von Hand).
-- **Löschen:** \`remove.command\` doppelklicken — NICHT einfach diesen Ordner in den Papierkorb
-  ziehen, das lässt \`presets/${slugName}-config.json\` und (falls veröffentlicht) die
-  Landing-Page-Karte zurück. \`remove.command\` räumt beides mit auf.
+## Starten
+Je nach Betriebssystem doppelklicken:
+- **macOS:** \`start.command\`
+- **Windows:** \`start.bat\`
+- **Linux:** \`start.sh\` — Doppelklick startet je nach Dateimanager evtl. nur im Editor statt
+  auszuführen; notfalls im Terminal \`./start.sh\`.
+
+(Oder von Hand: \`python3 -m http.server\` im Projekt-Root, dann \`/${slugName}/\` öffnen.)
+
+## Löschen
+**NICHT** einfach diesen Ordner in den Papierkorb ziehen — das lässt
+\`presets/${slugName}-config.json\` und (falls veröffentlicht) die Landing-Page-Karte zurück.
+Stattdessen \`remove.command\` (macOS) / \`remove.bat\` (Windows) / \`remove.sh\` (Linux)
+doppelklicken — räumt alles sauber mit auf.
 `;
 }
 
@@ -318,20 +416,20 @@ if (fs.existsSync(srcPreset)) {
     console.warn(`new-entry: presets/${sourceSlug}-config.json fehlt — keine Demo-Datei für die Kopie angelegt (Seite startet mit leeren Defaults, kein Fehler).`);
 }
 
-// Start-/Lösch-Skript + README IN den neuen Ordner (@dpa ddw.md 20260803_135251 Punkt 5,
-// Lösch-Pendant + README @dpa 20260803) — nach der Demo-Datei, damit sie in der
-// Konsolen-Ausgabe zuletzt und damit gut sichtbar erscheinen.
-const startScriptPath = writeStartScript(destDir, slug);
-if (startScriptPath) touchedPaths.push(startScriptPath);
-const removeScriptPath = writeRemoveScript(destDir, slug);
-if (removeScriptPath) touchedPaths.push(removeScriptPath);
+// Start-/Lösch-Skripte (macOS+Windows+Linux, @dpa 20260803: "das ist alles Mac spezifisch..
+// muss es für Windows und Linux auch anbieten") + README IN den neuen Ordner — nach der
+// Demo-Datei, damit sie in der Konsolen-Ausgabe zuletzt und damit gut sichtbar erscheinen.
+const startScriptPaths = writeStartScripts(destDir, slug);
+touchedPaths.push(...startScriptPaths);
+const removeScriptPaths = writeRemoveScripts(destDir, slug);
+touchedPaths.push(...removeScriptPaths);
 const readmePath = writeReadme(destDir, slug);
 if (readmePath) touchedPaths.push(readmePath);
 
 console.log(`new-entry: "${slug}/" angelegt aus ${sourceSlug}/ (data-app="${slug}").`);
-if (startScriptPath) console.log(`new-entry: Start-Skript "${slug}/start.command" angelegt (Doppelklick startet Server + öffnet die Seite).`);
-if (removeScriptPath) console.log(`new-entry: Lösch-Skript "${slug}/remove.command" angelegt (Doppelklick fragt nach, löscht dann vollständig).`);
-if (readmePath) console.log(`new-entry: "${slug}/README.md" angelegt (Start/Löschen-Hinweis).`);
+if (startScriptPaths.length) console.log(`new-entry: Start-Skripte angelegt (${startScriptPaths.map((p) => path.basename(p)).join(', ')}) — je nach Betriebssystem doppelklicken.`);
+if (removeScriptPaths.length) console.log(`new-entry: Lösch-Skripte angelegt (${removeScriptPaths.map((p) => path.basename(p)).join(', ')}) — fragen vorher nach, löschen dann vollständig.`);
+if (readmePath) console.log(`new-entry: "${slug}/README.md" angelegt (Start/Löschen-Hinweis, plattformübergreifend).`);
 
 /**
  * Landing-Page-Karte (index.html, Muster: bestehende Overcord-/Leer-Karten) + Tabellenzeile
