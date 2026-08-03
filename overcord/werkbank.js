@@ -1229,13 +1229,14 @@ const backups = {
     },
     saveNow: () => { try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'manuell'); } catch { alert('Backup fehlgeschlagen (Speicher voll?).'); } },
 };
-// Zahnrad statt ⚙-Glyph (@dpa dd.md 20260802: „Auch das schöne Zahnrad icon"): das SVG aus
-// lib/icons.js füllt seinen Rahmen aus, ein Unicode-⚙ tut das je nach Systemfont nicht (s.
-// Kopf von icons.js). Der Text sitzt im .hdr-btn-text-Span, damit das Umbenennen über die
-// Rechtsklick-Settings das Icon nicht mitlöscht.
+// Kein fest verdrahtetes Icon mehr (@dpa 20260803: „Settings hat einen eingebauten '⚙︎'
+// Icon, was ich nicht beeinflussen kann — weg mit diesem Icon, ich habe ja 🛠️"). Bis dahin
+// saß hier zusätzlich zum .hdr-btn-text-Span ein festes SVG-Zahnrad (dd.md 20260802), das
+// sich mit @dpas eigener Emoji-Wahl über die Rechtsklick-Optik (ctrlStyles hdr:cfgmenu
+// textOn/textOff) überlagerte — jetzt genau wie bei Tasten/MIDI/Hints EIN Text-Span, frei
+// über die Optik bestimmbar.
 const cfgBtn = document.createElement('button');
 cfgBtn.className = 'pb-btn hdr-btn-ico'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
-cfgBtn.appendChild(icon('gear', 14));
 const cfgBtnText = document.createElement('span'); cfgBtnText.className = 'hdr-btn-text';
 i18nText(cfgBtnText, 'Einstellungen');
 cfgBtn.appendChild(cfgBtnText);

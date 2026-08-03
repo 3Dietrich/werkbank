@@ -537,10 +537,11 @@ const backups = {
     },
     saveNow: () => { try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'manuell'); } catch { alert('Backup fehlgeschlagen (Speicher voll?).'); } },
 };
-// Zahnrad-Icon + Text-Span (1:1-Muster aus werkbank.js, @dpa dd.md 20260802).
+// Kein festes Icon mehr (@dpa 20260803: „Settings hat einen eingebauten '⚙︎' Icon, was ich
+// nicht beeinflussen kann — weg mit diesem Icon, ich habe ja 🛠️", 1:1-Fix aus werkbank.js) —
+// nur noch der Text-Span, frei über die Rechtsklick-Optik (ctrlStyles hdr:cfgmenu) bestimmbar.
 const cfgBtn = document.createElement('button');
 cfgBtn.className = 'pb-btn hdr-btn-ico'; cfgBtn.id = 'cfgmenu'; cfgBtn.type = 'button';
-cfgBtn.appendChild(icon('gear', 14));
 const cfgBtnText = document.createElement('span'); cfgBtnText.className = 'hdr-btn-text';
 i18nText(cfgBtnText, 'Einstellungen');
 cfgBtn.appendChild(cfgBtnText);
