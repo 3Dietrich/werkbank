@@ -1018,6 +1018,7 @@ const _scopeKindSettings = {
     h2.appendChild(wrap);
 })();
 window.__scope = { state: scopeState, host: scopeHost, mgr: scopeManager };
+window.__scope.instr = scopeInstr;   // wie __takt/__rec/__levelMeter (Konsistenz + Test-Haken)
 
 // ── Debug – eigenes Instrument (@dpa ddw.md 20260802: „bei teslacoil die debug Gruppe..
 // die will ich auch in beiden, werkbank-leer und overcord") ────────────────────────────
@@ -1039,6 +1040,7 @@ const debugHost = mountGroups(debugRoot, debugState, debugDefs, {});
 mountDebugGroup(debugHost, debugState, dbg);
 const debugInstr = mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
 window.__debug = { state: debugState, host: debugHost, panel: dbg };
+window.__debug.instr = debugInstr;   // wie __takt/__rec/__levelMeter (Konsistenz + Test-Haken)
 
 // Render-Loop: Base-Frq-Anzeigen (baseKeyboard/Tone-/Freq-Readout) UND LevelMeter zeichnen
 // sich nicht von allein — tickt wie in teslacoil.
