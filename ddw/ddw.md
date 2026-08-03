@@ -144,4 +144,18 @@ viel besser!
 
 20260803_123707
 weiter im Sonsitgen (WB-leer UND overcord):
-    
+    main Settings
+        - Zeilen 98 - 101
+
+Du (KI) arbeitest bei jedem Schritt gefühlt Stunden.. ich glaube viel oder einiges davon sind die ganzen Routinen und Tests (richtig?) kann man manches davon vielleicht am ende einmal ausführen? Kannst ja drauf hinweisen (etwa
+    - Hilfstexte sind noch nicht geprüft
+    - Reset ist noch nicht angebaut
+    - [irgendeine andere Kleinigkeit] ist noch nicht geprüft
+    - ..
+) und ich kann das vollstandig machen, wenn ich denke dass ich mit den Details am meinem neuen Details stimmen und bleiben..?
+
+
+
+
+    Outs (für scope):
+        - irgendeine Möglichkeit zwischen Gesamtmix und einzelne Voices und durch die Voices (schnell und einfach) zu schalten..?
