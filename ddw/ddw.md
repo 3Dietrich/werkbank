@@ -183,4 +183,10 @@ Du (KI) arbeitest bei jedem Schritt gefühlt Stunden.. ich glaube viel oder eini
 20260803_170701
 Lim/WS: bitte mit einem {i} info über den Grund (schnelle peaks die clipping herbeiführen unterbinden)
 
-sind alle Dateien in KI_html/ sinnvoll
+sind alle Dateien in KI_html/ noch sinnvoll? bitte räum es auf, altes outgedatetes weg.
+
+![header Buttons](image-15.png)
+Ich habe diese Gestaltung gewählt: Labels oben, Button mit nur dem Icon, breite 60, höhe:je nach Icon, meist 20.
+Bei Tasten fällt auf dass die (schöne) Tastaturdarstellung zu tief sitzt und dass bei Settings das Icon schon eingabaut ist. Ich habe jetzt eins aus Mac Emojis genommen.. muss ja alles allgemeinkompatibel sein.. 
+Die Breiten (Buttons 60, Vol 120, Snaoshot 140) könnten bei engerem Screen automatisch schmaler werden, bis nur noch das Symbol reinpasst bzw. ein handhabbares minimum erreicht ist, wenn es noch enger ist soll die Minimale Breite für allesbleiben, also nicht mehr alles  auf dem Screensichtbar, (ohne "Zeilenumbruch"!).
+json für werkbank-leer attached. kannst Du (frage!) das in overcord so umbauen? Ne wa? das muss ich selbst machen oder .. ich gebe Dir das export json und dort in das JSON baust du die headeränderungen ein und ich lade es wieder..?
