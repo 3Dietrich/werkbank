@@ -179,3 +179,8 @@ Du (KI) arbeitest bei jedem Schritt gefühlt Stunden.. ich glaube viel oder eini
     es gibt für das Ensemble ja kein extra Setting. Das wäre aber gut, um ISM auch wegschalten zu können.. so wie in den Gruppen die Controls. Das wäre supercool. vielleicht in die main 'Config', die man einfach Settings nennt, und darin eine Unterrubrbrik für die "unsichtbar" geschalteten ISMs hat, die dort wiederum Ihre Settings aufrufen können, um sie wieder sichtbar machen zu können. Dann kann man alle standards (Tempo & MM,Scope,Debug,Rec und Meter) via deren Settings (gleicher Button wie in Controls, Hilfe angepasst) die ISMs wegschalten.. das ware echt cool. Muss aber "bekannt" sein, also in Anleitung, Controls? Achtiktur? vermerken.. sowieso immer bei neuen funktionen..
 
     ⚙ Rec-Format weg vom Panel, rein in die globalen Settings
+    
+20260803_170701
+Lim/WS: bitte mit einem {i} info über den Grund (schnelle peaks die clipping herbeiführen unterbinden)
+
+sind alle Dateien in KI_html/ sinnvoll

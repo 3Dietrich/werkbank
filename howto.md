@@ -5,10 +5,10 @@
 Im Ordner `KI_html/Werkbank/`:
 
 ```bash
-python3 -m http.server 8000
+python3 -m http.server 8002
 ```
-Dann im Browser öffnen: <http://localhost:8000/> (Landing-Page mit Ensemble-Auswahl,
-direkt zum vollen Baukasten: <http://localhost:8000/overcord/>)
+Dann im Browser öffnen: <http://localhost:8002/> (Landing-Page mit Ensemble-Auswahl,
+direkt zum vollen Baukasten: <http://localhost:8002/overcord/>)
 
 Oder alles in einem Befehl (Server im Hintergrund + Browser öffnet automatisch):
 

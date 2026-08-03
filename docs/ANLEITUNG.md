@@ -25,11 +25,14 @@
 | **Tempo & Metronom** | BPM (Tap-Tempo, Nudge +/−, Resync `!` / `!!`), Taktart, Metronom-Klang (Cutoff/Reso/Morph), Aufnahme-Einstellungen |
 | **Stepsequenzer** | Beliebig viele Sequenzer (`＋` / `－` im ISM-Kopf), jeder mit eigenem Tempo-Verhältnis (`speed Mult/Div`), Schrittzahl, Werte-Grid und **Output-Ziel** |
 | **Poly-Synth** | Polyphone Stimmen (Square-PW / Sine-FM), ADSR, Spiel-Keyboard, Basis-Frequenz (Quelle: Freq / Tempo / Ton) und ein **Akkord-Speicher** |
-| **Rec** | Nimmt den gemeinsamen Master-Bus auf (WAV/MP3, Name frei wählbar) |
-| **Master / Level** | Gesamt-Lautstärke + Ausgangspegel-Anzeige |
+| **Rec** | Nimmt den gemeinsamen Master-Bus auf (Format in ⚙ Einstellungen → Aufnahme-Format) |
+| **Master / Level** | Gesamt-Lautstärke, Limiter (`Lim`) + WaveShaper-Soft-Clip, Ausgangspegel-Anzeige |
+| **Signal-Scopes** | Beliebig viele schmale Oszilloskope (`＋`/`－`), jedes zeigt eine frei wählbare Signalquelle (Frame/Sample-genau) |
+| **Debug** | Ein Klick sichert Audio + Screenshot + Zustand + eigener Notiz als Datei-Bündel — zum Hochladen an eine KI bei einem Klang-/Bedien-Problem |
 
 Jedes Instrument hat oben rechts ein **≡-Menü** (ISM-Einstellungen: Name, Hintergrund,
-Hilfe-Text, **ISM-Snapshots**, Zurücksetzen).
+Hilfe-Text, **ISM-Snapshots**, Zurücksetzen, **Sichtbar**-Schalter zum kompletten Ausblenden —
+ausgeblendete Standard-Instrumente finden sich in ⚙ Einstellungen → ISMs wieder).
 
 ---
 

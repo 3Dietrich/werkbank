@@ -3,7 +3,8 @@
 > **Zweck:** Eine KI (auch ein kleines Modell) soll für einen ddw.md-Punkt NUR diese Karte
 > + die 1–2 Zieldateien laden müssen — nicht das ganze Projekt. Die Modul-Köpfe (erste
 > ~30 Zeilen jeder Datei) sind ausführlich; bei Unklarheit zuerst dort lesen.
-> Stand: 2026-08-02 (Landing-Page + overcord/-Umzug ergänzt — Rest der Tabelle weiterhin vom
+> Stand: 2026-08-03 (doc-sync-Audit vor erstem GitHub-Push: Master-Bus/Limiter/WaveShaper,
+> Debug-ISM, "+ Neu"/Pool-Werkzeuge, Settings-Fenster ergänzt — Rest der Tabelle weiterhin vom
 > 2026-07-23-Stand, s. Hinweis am Tabellenende). Zeilenangaben sind Richtwerte, nicht exakt.
 > Inventar (welche Controls/Gruppen/ISMs es aktuell gibt): [docs/BESTAND.md](docs/BESTAND.md).
 
@@ -32,6 +33,19 @@ Demo-Datei löst [lib/appId.js](lib/appId.js) über `import.meta.url` auf, damit
 > **Unterordner trennen KEINE Daten.** localStorage hängt am Origin (Schema+Host+**Port**),
 > der Pfad zählt nicht mit – eine Seite in `/werkbank-leer/` sieht denselben Speicher wie
 > `/`. Die Datentrennung macht allein `data-app`/`lsKey()`, s. unten.
+
+**Neuer Einstieg per Werkzeug statt von Hand** (@dpa 20260803, ddw.md 20260803_135251):
+Panel → ⚙ Einstellungen → "+ Neu" ([lib/newEntryFlow.js](lib/newEntryFlow.js)) fragt einen
+Namen ab, prüft Kollisionen, zeigt einen fertigen Terminalbefehl (schon in der Zwischenablage).
+Die eigentliche Kopie macht [tools/new-entry.mjs](tools/new-entry.mjs) (Node, läuft NICHT im
+Browser — die Werkbank hat keinen Server, der Dateien anlegen könnte): kopiert `werkbank-leer/`
+(oder mit `--source` einen bestehenden, bereits gewachsenen Einstieg — "Auslagern"-Modus,
+Knopf heißt dann so statt "+ Neu"), schreibt `data-app`/Titel/Preset-Keys um, legt
+Start-/Lösch-Skripte für macOS/Windows/Linux (`start.command`/`.bat`/`.sh`,
+`remove.command`/`.bat`/`.sh`) + eine kurze `README.md` in den neuen Ordner, staged alles per
+`git add` (NIE `git commit`). Gegenstück: [tools/remove-entry.mjs](tools/remove-entry.mjs)
+(dieselbe Sperrliste aus [lib/slugify.js](lib/slugify.js), räumt Ordner + Preset-Datei + ggf.
+Landing-Page-Karte/ARCHITEKTUR-Zeile aus `--publish`-Einträgen wieder auf).
 
 **Jeder Einstieg hat seinen eigenen Datentopf** ([lib/appId.js](lib/appId.js), @dpa dd.md
 20260801_2). Früher trennte der **Port** die Projekte (localStorage hängt am Origin =
@@ -86,6 +100,18 @@ sich ein Export nur dort einlesen, wo er entstanden ist.
 | Werkbank-Rahmen-Styles | `css/werkbank.css` (114 Z.) | |
 | Takt-Styles (NICHT zusätzlich zu main.css laden — Kollision, s. Memory) | `css/takt.css` (210 Z.) | |
 | Alt-Original taktgeber (Referenz, nicht Ziel von Änderungen) | `lib/taktgeber/` | eigene ui.js/css bleiben ungenutzt |
+| Master-Bus (Fader/Limiter/WaveShaper, gemeinsamer AudioContext) | `lib/audioBus.js` (151 Z.) | `ensureAudio()`, `setLimiterOn/Attack/Release`, `setWaveshaperOn`; Rec zapft `master` VOR dieser Kette ab |
+| Eigener sample-genauer Peak-Limiter (Lookahead-Ringpuffer) | `lib/audio/limiterProcessor.js` (195 Z.) | AudioWorkletProcessor + reine `processBlock()`, node-testbar (`lib/audio/test/`) |
+| Master-Lautstärke/Limiter-UI im Header | `lib/MasterVolume.js` (180 Z.) | `[Lim]`-Button + Popover (Attack/Release/WaveShaper/Optik) |
+| Haupt-Settings-Fenster (⚙ „Einstellungen") | `lib/mainSettings.js` (388 Z.) | Sprache, Gruppenkopf-Optik, ISMs-Unterrubrik (ausgeblendete Standard-ISMs), Aufnahme-Format, Backups, Daten (Export/Import/Reset/+Neu) |
+| Settings-Fenster-Rahmen (Overlay, Drag, ESC) | `lib/SettingsWindow.js` (340 Z.) | von mainSettings.js + Config genutzt |
+| Auto-Backup, gestaffelt (2/Min · 5/Std · 1/Tag · 1/Woche) | `lib/Backup.js` (108 Z.) | UI in `lib/mainSettings.js` |
+| Ensemble-weite Presets/Snapshots (Header „Snapshots") | `lib/EnsembleStore.js` (86 Z.) | eine Ebene über ISM-Snapshots |
+| Debug-Instrument (ISM, Port aus teslacoil) | `lib/debugPanel/` (`DebugPanel.js` · `DebugRecorder.js` · `defs.js` · `mount.js`) | Audio+Screenshot+Zustand+Prompt-Bündel; Tap-Punkt NACH Limiter/Waveshaper (anders als Rec) |
+| "+ Neu"/"Auslagern"-Panel-Trigger (neuer Pool-Einstieg) | `lib/newEntryFlow.js` (359 Z.) | ruft `tools/new-entry.mjs` NICHT selbst auf — bereitet nur Name/Befehl vor, s. „Einstiegspunkte (Pool)" oben |
+| Slug-Normalisierung + Sperrliste (geteilt: Panel + Node-Skripte) | `lib/slugify.js` (50 Z.) | `slugify()`, `isReservedSlug()`, `RESERVED_SLUGS` |
+| Neuen Pool-Einstieg anlegen (Node, kein Browser) | `tools/new-entry.mjs` | `--source`/`--publish`, legt Start-/Lösch-Skripte + README an |
+| Pool-Einstieg wieder entfernen (Node, kein Browser) | `tools/remove-entry.mjs` | räumt Ordner+Preset+ggf. Landing-Page-Karte auf |
 
 > Lücke (doc-sync 20260727): `lib/stepseq/multiSq.js`, `lib/recInstrument/`, `lib/group/registry`-
 > nahe Multi-Instanz-Bausteine sind ebenfalls noch nicht in dieser Tabelle — vorbestehend seit

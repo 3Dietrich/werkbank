@@ -83,7 +83,8 @@ bevor du Code suchst.** Die Modul-Köpfe (erste ~30 Zeilen jeder Datei) sind aus
   `ctrlPos`, `groupPos`, `groupStyles`, `groupOrder`, `controlOrder`), nie über Sound-Werte.
 - **Instrumente (ism)** haben je `defs.js` + `engine.js` + eigene `.wb-bench`-Sektion +
   eigene `InstrumentSettings.js`-Instanz. Beispiele: `lib/taktmetro/`, `lib/stepseq/`,
-  `lib/polysynth/`. UI (defs/GroupHost) und Audio (engine) wissen nichts voneinander –
+  `lib/polysynth/`, `lib/recInstrument/`, `lib/debugPanel/`. UI (defs/GroupHost) und Audio
+  (engine) wissen nichts voneinander –
   die Naht ist `onAction(id)` / `onApply(id, style)`.
 - **DSP-Bausteine** sind reine Audio-Mathematik in `audio/`/`dsp/`, kein UI, 1:1 kopierbar.
 - **Persistenz ist geschachtelt:** Control → Gruppen-Snapshot → ISM → Config. Features hängen

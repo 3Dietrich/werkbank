@@ -49,6 +49,10 @@ Server belegt → `kill $(lsof -ti :8002)`, oder den laufenden weiterbenutzen.
 | Takt + Metronom (aus taktgeber) | `lib/taktmetro/` |
 | Step-Sequenzer | `lib/stepseq/` |
 | Poly-Synth (Voices, ADSR, Keyboard, Akkord-Speicher) | `lib/polysynth/` |
+| Rec (Master-Bus-Aufnahme, Downbeat-synct) | `lib/recInstrument/` |
+| LevelMeter / Out-Meter | `lib/LevelMeter.js` |
+| Signal-Scopes (vervielfältigbar, Routing-Quelle wählbar) | `lib/scope/`, `lib/SignalScope.js` |
+| Debug (Audio+Screenshot+Zustand-Bündel für KI-Feedback) | `lib/debugPanel/` |
 
 **Controls & Infrastruktur** (Auswahl – vollständige Karte in [ARCHITEKTUR.md](ARCHITEKTUR.md)):
 
