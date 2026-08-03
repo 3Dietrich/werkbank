@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Headless-Smoke: "+ Neu"-Rebuild in werkbank-leer (@dpa ddw.md 20260803, kompletter Rebuild
-nach @dpas Kritik am ersten Versuch — s. lib/newEntryFlow.js-Kopf für das volle Zitat).
+nach @dpas Kritik am ersten Versuch — s. lib/newEntryFlow.js-Kopf für das volle Zitat) UND die
+drei Nachbesserungen aus ddw.md 20260803_122138 ("viel besser!" + drei Punkte).
 
-Prüft die zwei wichtigsten, konkret benannten Regressionen:
+Prüft die zwei wichtigsten, ursprünglich konkret benannten Regressionen:
   1. Der kopierte Terminalbefehl referenziert das Skript über einen ABSOLUTEN Pfad (aus
      project-root.txt) — das ist der eigentliche Bugfix (@dpa reproduziert: der alte,
      relative Befehl `node tools/new-entry.mjs "…"` schlug in `~` fehl). Hier NICHT nochmal
@@ -14,11 +15,22 @@ Prüft die zwei wichtigsten, konkret benannten Regressionen:
 Zusätzlich: derselbe Ablauf ist über den kleinen "+ Neu"-Knopf im Einstellungs-Fenster
 (lib/mainSettings.js, beide Einstiege) weiterhin erreichbar und öffnet DASSELBE Fenster.
 
+Und die drei Nachbesserungen (20260803_122138):
+  Punkt 1 "mittiger!": #newEntryCard überlappt KEIN `.wb-bench` (Bounding-Box-Vergleich,
+     kein Screenshot-Diffing) — werkbank-leer.js `placeNewEntryCard()` platziert die Karte
+     laufzeit-berechnet unterhalb aller Instrumente (die per `instrPos` frei positioniert
+     sein können, s. lib/InstrumentSettings.js).
+  Punkt 2 "Öffnen-Knopf": erscheint in Schritt 2 erst, NACHDEM der Zielordner wirklich
+     existiert — hier per `page.route()` gemockt (kein echtes Minuten-Pollen im Test).
+  Punkt 3 "Auslagern": in einem ECHTEN, für diesen Testlauf per `tools/new-entry.mjs`
+     erzeugten (und danach wieder entfernten) Klon zeigt derselbe Ablauf "Auslagern" statt
+     "+ Neu", KEINE zentrale Karte, und der generierte Befehl trägt `--source <Klon>`.
+
 Lauf: python3 test/newEntryFlow_smoke.py
 Hart begrenzt (Watchdog killt nach 40s), kein Pollen.
 """
-import subprocess, sys, time, os, threading
-from playwright.sync_api import sync_playwright
+import subprocess, sys, time, os, threading, shutil
+from playwright.sync_api import sync_playwright, expect
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = 8236
@@ -34,11 +46,43 @@ threading.Thread(target=watchdog, daemon=True).start()
 with open(os.path.join(ROOT, "project-root.txt"), "r", encoding="utf-8") as fh:
     EXPECTED_ROOT = fh.read().strip()
 
+errors, fails = [], []
+check = lambda ok, msg: None if ok else fails.append(msg)
+
+# ── Punkt 3: ECHTER Testklon für den "Auslagern"-Fall (tools/new-entry.mjs --source) ──────
+# CLONE_A = ein "bereits geklonter Einstieg" (Quelle: werkbank-leer, wie ein normales "+ Neu"
+# es auch täte) — daran wird geprüft, dass so ein Klon "Auslagern" statt "+ Neu" zeigt.
+# CLONE_B beweist den ECHTEN --source-Durchlauf: kopiert aus CLONE_A (nicht aus werkbank-leer).
+# Beide werden am Ende IMMER entfernt (finally), egal ob der Test sonst durchläuft.
+CLONE_A = "smoke-src-clone"
+CLONE_B = "smoke-outsource-target"
+
+def run_new_entry(name, source=None):
+    args = ["node", os.path.join(ROOT, "tools", "new-entry.mjs"), name]
+    if source:
+        args += ["--source", source]
+    return subprocess.run(args, cwd=ROOT, capture_output=True, text=True, timeout=20)
+
+def cleanup_clone(slug):
+    d = os.path.join(ROOT, slug)
+    if os.path.isdir(d):
+        subprocess.run(["git", "reset", "--", d], cwd=ROOT, capture_output=True)
+        shutil.rmtree(d, ignore_errors=True)
+    preset = os.path.join(ROOT, "presets", f"{slug}-config.json")
+    if os.path.isfile(preset):
+        subprocess.run(["git", "reset", "--", preset], cwd=ROOT, capture_output=True)
+        os.remove(preset)
+
+gen_a = run_new_entry(CLONE_A)
+check(gen_a.returncode == 0, f"tools/new-entry.mjs {CLONE_A} fehlgeschlagen: {gen_a.stdout}\n{gen_a.stderr}")
+gen_b = run_new_entry(CLONE_B, source=CLONE_A)
+check(gen_b.returncode == 0, f"tools/new-entry.mjs {CLONE_B} --source {CLONE_A} fehlgeschlagen: {gen_b.stdout}\n{gen_b.stderr}")
+check(f"angelegt aus {CLONE_A}/" in gen_b.stdout,
+      f"--source sollte {CLONE_A}/ als Quelle nennen, stdout war: {gen_b.stdout!r}")
+
 srv = subprocess.Popen([sys.executable, "-m", "http.server", str(PORT)],
                        cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
-errors, fails = [], []
-check = lambda ok, msg: None if ok else fails.append(msg)
 
 try:
     with sync_playwright() as p:
@@ -89,6 +133,61 @@ try:
         time.sleep(0.1)
         check(pg.locator(".ne-window:visible").count() == 0, "Fenster sollte nach ✕ zu sein")
 
+        # ── 6. Punkt 1 (ddw.md 20260803_122138, "mittiger!"): kein Overlap mit irgendeinem
+        # .wb-bench. Bounding-Box-Vergleich, kein Screenshot-Diffing. `placeNewEntryCard()`
+        # (werkbank-leer.js) braucht zwei requestAnimationFrame-Umläufe, bis das Layout
+        # steht — auf `position:absolute` warten statt eines pauschalen sleep. ──
+        pg.wait_for_function(
+            "() => document.querySelector('#newEntryCard')?.style.position === 'absolute'",
+            timeout=5000)
+
+        def intersects(a, bx):
+            return not (a["x"] + a["width"] <= bx["x"] or bx["x"] + bx["width"] <= a["x"]
+                        or a["y"] + a["height"] <= bx["y"] or bx["y"] + bx["height"] <= a["y"])
+
+        card_box = pg.locator("#newEntryCard").bounding_box()
+        check(card_box is not None, "#newEntryCard hat keine Bounding-Box (unsichtbar?)")
+        for sel in ["#bench-taktgeber", "#bench-rec", "#bench-scope", "#bench-debug"]:
+            bench_box = pg.locator(sel).bounding_box()
+            check(bench_box is not None, f"{sel} hat keine Bounding-Box")
+            if card_box and bench_box:
+                check(not intersects(card_box, bench_box),
+                      f"#newEntryCard überlappt {sel}: card={card_box} bench={bench_box}")
+
+        # ── 7. Punkt 2 ("Öffnen"-Knopf): erscheint erst, NACHDEM der Ordner existiert —
+        # per page.route() gemockt (derselbe HEAD-Trick wie der Kollisions-Check in Schritt 1,
+        # nur umgekehrte Bedingung), kein echtes Minuten-Pollen im Test. ──
+        poll_slug = "smoke-openbtn-ghost"
+        found = {"v": False}
+        def handle_poll_route(route):
+            if route.request.method == "HEAD":
+                route.fulfill(status=200 if found["v"] else 404, body="")
+            else:
+                route.continue_()
+        pg.route(f"**/{poll_slug}/index.html", handle_poll_route)
+
+        pg.locator("#newEntryCard").click()
+        win2 = pg.locator(".ne-window:visible")
+        win2.locator("#ne-name-input").fill("Smoke Openbtn Ghost")
+        win2.locator("button:has-text('Weiter')").click()
+        pg.wait_for_function(
+            "() => document.querySelector('.ne-code') && document.querySelector('.ne-code').textContent.includes('new-entry.mjs')",
+            timeout=5000)
+        open_btn = win2.locator("button:has-text('öffnen')")
+        check(open_btn.count() == 1, "Öffnen-Knopf fehlt in Schritt 2")
+        check(open_btn.is_hidden(), "Öffnen-Knopf sollte anfangs unsichtbar sein (Ordner existiert noch nicht) — kein hartes Fehlschlagen bei zu frühem Klick möglich")
+        found["v"] = True   # Ordner "entsteht" jetzt (simuliert) — Poll-Intervall im Code ist 1.5s
+        expect(open_btn).to_be_visible(timeout=4000)
+        popups = []
+        pg.on("popup", lambda p2: popups.append(p2.url))
+        open_btn.click()
+        pg.wait_for_timeout(200)
+        check(len(popups) == 1 and f"/{poll_slug}/" in popups[0],
+              f"Klick auf Öffnen sollte /{poll_slug}/ in neuem Tab öffnen, war {popups!r}")
+        win2.locator(".sw-close").click()
+        time.sleep(0.1)
+        pg.unroute(f"**/{poll_slug}/index.html")
+
         # ── 4. overcord: KEINE zentrale Karte (nur der kleine Knopf in den Einstellungen) ──
         pg.goto(f"http://localhost:{PORT}/overcord/", wait_until="networkidle", timeout=15000)
         check(pg.locator("#newEntryCard").count() == 0, "#newEntryCard sollte in overcord NICHT existieren")
@@ -99,12 +198,47 @@ try:
         check(pg.locator(".ne-window:visible").count() == 1,
               "'+ Neu' im Einstellungs-Fenster sollte dasselbe .ne-window öffnen")
         check(dialogs == [], f"Auch hier kein natives prompt() mehr, kam aber: {dialogs!r}")
+        pg.locator(".ne-window:visible .sw-close").click()
+
+        # ── 8. Punkt 3 ("Auslagern"): im ECHTEN Testklon CLONE_A (erzeugt aus werkbank-leer,
+        # s. Kopf) zeigt derselbe Ablauf "Auslagern" statt "+ Neu", KEINE zentrale Karte, und
+        # der generierte Befehl trägt --source <CLONE_A>. Nur, wenn die Klon-Erzeugung oben
+        # geklappt hat — sonst wurde das schon dort gemeldet. ──
+        if gen_a.returncode == 0:
+            pg.goto(f"http://localhost:{PORT}/{CLONE_A}/", wait_until="networkidle", timeout=15000)
+            check(pg.locator("#newEntryCard").count() == 0,
+                  f"#newEntryCard sollte im Klon {CLONE_A}/ NICHT existieren (NUR im Original werkbank-leer)")
+            pg.locator('#cfgmenu').click()
+            panel = pg.locator('.sw-window:visible')
+            outsource_btn = panel.locator('button:has-text("Auslagern")')
+            check(outsource_btn.count() == 1, f"Settings-Knopf sollte im Klon 'Auslagern' heißen, nicht '+ Neu' (Panel-Text: {panel.inner_text()[:200]!r})")
+            outsource_btn.click()
+            win3 = pg.locator(".ne-window:visible")
+            check(win3.count() == 1, "'Auslagern' sollte dasselbe .ne-window öffnen")
+            # win3.locator(...) statt pg.locator(...): das Haupt-Settings-Fenster liegt hier
+            # NOCH offen darunter (beide teilen die Klasse .sw-head) — ".first" auf Seitenebene
+            # träfe dessen Titel ("Einstellungen"), nicht den des ne-window.
+            check(win3.locator(".sw-head span").first.inner_text() == "Als eigenes Projekt auslagern",
+                  "Fenstertitel im Auslagern-Fall sollte 'Als eigenes Projekt auslagern' sein")
+            win3.locator("#ne-name-input").fill("Smoke Outsourced Target 2")
+            win3.locator("button:has-text('Weiter')").click()
+            pg.wait_for_function(
+                "() => document.querySelector('.ne-code') && document.querySelector('.ne-code').textContent.includes('new-entry.mjs')",
+                timeout=5000)
+            cmd3 = pg.locator(".ne-code").inner_text()
+            check(f'--source "{CLONE_A}"' in cmd3,
+                  f"Befehl im Auslagern-Fall sollte --source \"{CLONE_A}\" tragen, war {cmd3!r}")
+            win3.locator(".sw-close").click()
 
         b.close()
 except Exception as e:
     fails.append(f"Exception: {e}")
 finally:
     srv.terminate()
+    # Testklone IMMER entfernen, egal ob der Test sonst durchlief (@dpa: nichts Fremdes im
+    # Repo liegen lassen). CLONE_B zuerst (falls er je auf CLONE_A verweisen würde), dann A.
+    cleanup_clone(CLONE_B)
+    cleanup_clone(CLONE_A)
 
 # "Failed to load resource … 404" ist der ABSICHTLICHE Kollisions-Check (HEAD auf
 # /<slug>/index.html, muss 404 liefern, damit der Name als frei gilt) — kein echter Fehler,
