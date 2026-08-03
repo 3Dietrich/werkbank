@@ -27,19 +27,33 @@
  * Projekte landen also NICHT automatisch auf der Landing-Page, bis das ausdrücklich gewünscht
  * ist.
  *
- * Committet NICHTS selbst — tools/build_pages.sh baut die GitHub-Pages-Seite per `git archive`
- * aus dem committeten Stand (s. dortiger Kopf); ein unkommitteter neuer Ordner würde sonst
- * still NICHT mit deployt. Deshalb der Hinweis am Ende dieses Skripts.
+ * Staged die neuen/geänderten Dateien automatisch per `git add` (@dpa ddw.md 20260803-Rebuild:
+ * die alte Fassung verlangte "danach git add/commit nicht vergessen" von der/dem Bedienenden —
+ * "das kann man keinem User anbieten". `git add` lässt sich automatisieren, OHNE die
+ * Commit-Entscheidung wegzunehmen: NUR staging, NIEMALS ein `git commit` — das bleibt bewusst
+ * @dpas eigener Schritt (Commit-Message, Zeitpunkt). tools/build_pages.sh baut die
+ * GitHub-Pages-Seite per `git archive` aus dem COMMITTETEN Stand; ein nicht committeter Ordner
+ * deployt also weiterhin nicht mit, aber "git add vergessen" als Fehlerquelle ist raus.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { slugify, isReservedSlug } from '../lib/slugify.js';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SRC_DIR = path.join(ROOT, 'werkbank-leer');
 const SRC_HTML = 'index.html';
 const SRC_JS = 'werkbank-leer.js';
+
+// project-root.txt selbst aktuell halten (self-healing, @dpa ddw.md 20260803-Bugfix "relativer
+// Pfad im kopierten Terminalbefehl"): der Panel-Trigger (lib/newEntryFlow.js) liest daraus den
+// ABSOLUTEN Projekt-Pfad, um einen cwd-UNABHÄNGIGEN Befehl zu bauen (`node "<root>/tools/
+// new-entry.mjs" "<Name>"` — funktioniert egal, in welchem Ordner das Terminal gerade steht,
+// weil ROOT oben bereits unabhängig vom cwd über import.meta.url aufgelöst wird). EINE Quelle
+// statt eines von Hand gepflegten Werts: bei jedem Lauf hier neu geschrieben — verschiebt/klont
+// @dpa den Projektordner, korrigiert sich die Datei beim nächsten new-entry.mjs-Lauf von selbst.
+try { fs.writeFileSync(path.join(ROOT, 'project-root.txt'), ROOT + '\n'); } catch { /* nicht kritisch — Panel-Trigger fällt auf Fehlertext zurück */ }
 
 function fail(msg) {
     console.error(`new-entry: ${msg}`);
@@ -111,10 +125,15 @@ fs.writeFileSync(path.join(destDir, `${slug}.js`), js);
 // in der Datei selbst.
 const presetsDir = path.join(ROOT, 'presets');
 const srcPreset = path.join(presetsDir, 'werkbank-leer-config.json');
+// Alle neu angelegten/geänderten Pfade sammeln — Grundlage für den automatischen `git add`
+// weiter unten (EINE Stelle statt an jeder Schreibstelle einzeln zu staged).
+const touchedPaths = [destDir];
 if (fs.existsSync(srcPreset)) {
     let preset = fs.readFileSync(srcPreset, 'utf8');
     preset = preset.split('werkbank-leer_').join(`${slug}_`);
-    fs.writeFileSync(path.join(presetsDir, `${slug}-config.json`), preset);
+    const destPreset = path.join(presetsDir, `${slug}-config.json`);
+    fs.writeFileSync(destPreset, preset);
+    touchedPaths.push(destPreset);
 } else {
     console.warn('new-entry: presets/werkbank-leer-config.json fehlt — keine Demo-Datei für die Kopie angelegt (Seite startet mit leeren Defaults, kein Fehler).');
 }
@@ -125,8 +144,10 @@ console.log(`new-entry: "${slug}/" angelegt aus werkbank-leer/ (data-app="${slug
  * Landing-Page-Karte (index.html, Muster: bestehende Overcord-/Leer-Karten) + Tabellenzeile
  * in ARCHITEKTUR.md ergänzen. Nur bei --publish aufgerufen — ohne Flag bleiben beide Dateien
  * UNANGETASTET (Opt-in-Sichtbarkeit, @dpa 20260803).
+ * @returns {string[]} tatsächlich geänderte Pfade (für den automatischen `git add`).
  */
 function publishEntry(slugName, displayName) {
+    const touched = [];
     // Landing-Page: neue Karte direkt VOR dem schließenden </div> des .lp-grid einfügen.
     // Ohne eigenen Screenshot (den gibt es für eine frische Kopie noch nicht) bleibt die
     // <img class="lp-shot"> bewusst weg statt auf eine nicht existierende Datei zu zeigen —
@@ -144,6 +165,7 @@ function publishEntry(slugName, displayName) {
     if (idx.includes(gridClose)) {
         idx = idx.replace(gridClose, `${card}  </div>\n\n  <div class="lp-tips">`);
         fs.writeFileSync(idxPath, idx);
+        touched.push(idxPath);
         console.log('new-entry: Karte in index.html ergänzt (--publish).');
     } else {
         console.warn('new-entry: .lp-grid-Struktur in index.html nicht wie erwartet gefunden — Karte NICHT automatisch ergänzt, bitte von Hand eintragen.');
@@ -158,16 +180,27 @@ function publishEntry(slugName, displayName) {
     if (anchorLine.test(arch)) {
         arch = arch.replace(anchorLine, (m) => m + row);
         fs.writeFileSync(archPath, arch);
+        touched.push(archPath);
         console.log('new-entry: Zeile in ARCHITEKTUR.md ergänzt (--publish).');
     } else {
         console.warn('new-entry: Einstiegspunkte-Tabelle in ARCHITEKTUR.md nicht wie erwartet gefunden — Zeile NICHT automatisch ergänzt, bitte von Hand eintragen.');
     }
+    return touched;
 }
 
 if (publish) {
-    publishEntry(slug, rawName);
+    touchedPaths.push(...publishEntry(slug, rawName));
 } else {
     console.log('new-entry: --publish nicht gesetzt — Landing-Page/ARCHITEKTUR.md bleiben UNVERÄNDERT (Einstieg ist unsichtbar, nur per URL /' + slug + '/ erreichbar).');
 }
 
-console.log('new-entry: NICHT committet — git add/git commit nicht vergessen, sonst deployt tools/build_pages.sh das nicht mit (baut aus dem git-Stand per "git archive").');
+// ── `git add` automatisch, NIEMALS `git commit` (@dpa ddw.md 20260803-Rebuild) ────────────
+// Nimmt genau den Schritt weg, den @dpa als "das kann man keinem User anbieten" kritisiert hat
+// ("git add/commit nicht vergessen"), statt ihn nur netter zu erklären. Committen bleibt
+// @dpas eigene, bewusste Entscheidung (Message, Zeitpunkt) — hier ausdrücklich NICHT automatisiert.
+try {
+    execFileSync('git', ['add', '--', ...touchedPaths], { cwd: ROOT, stdio: 'ignore' });
+    console.log(`new-entry: zu Git hinzugefügt (git add, noch NICHT committet): ${touchedPaths.map((p) => path.relative(ROOT, p)).join(', ')}`);
+} catch (e) {
+    console.warn(`new-entry: "git add" fehlgeschlagen (${e.message.split('\n')[0]}) — bitte von Hand nachholen: git add ${touchedPaths.map((p) => `"${path.relative(ROOT, p)}"`).join(' ')}`);
+}
