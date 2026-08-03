@@ -584,7 +584,9 @@ const openCfg = () => {
             { name: 'Scope', instr: scopeInstr },
             { name: 'Debug', instr: debugInstr },
             { name: 'Rec', instr: recInstr },
-            { name: 'Meter', instr: levelMeterInstr },
+            // noHeader: LevelMeter hat kein h2 (kein Rechtsklick-Weg möglich) — mainSettings.js
+            // listet es darum IMMER hier, nicht nur wenn schon ausgeblendet (ddw.md 20260803).
+            { name: 'Meter', instr: levelMeterInstr, noHeader: true },
         ],
     }), () => cfgBtn.classList.remove('active'));
 };
