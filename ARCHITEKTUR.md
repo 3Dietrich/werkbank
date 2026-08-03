@@ -99,7 +99,7 @@ In der Werkbank gibt es keine sichtbaren ⚙-Icons. Alles wird über **Rechtskli
 | Ebene | Wo (Rechtsklick) | Modul | Inhalt |
 |---|---|---|---|
 | **Ensemble** | Header "Config" (Linksklick) | `overcord/werkbank.js` (`cfgPanel`) | Globale Optik (Labels, Gruppen-Köpfe), Sprache, Export/Import/Reset. |
-| **Instrument** (ISM) | ISM-Header (auf Name) | `lib/InstrumentSettings.js` | Name, BG-Farbe, Zoom, Position, **ISM-Snapshots** (Werte aller Gruppen). |
+| **Instrument** (ISM) | ISM-Header (auf Name) | `lib/InstrumentSettings.js` | Name, BG-Farbe, Zoom, Position, **ISM-Snapshots** (Werte aller Gruppen), **Sichtbar**-Umschalter (ddw.md 20260803_135251, `ismHidden`) — versteckt die ganze `.wb-bench`-Sektion; ausgeblendete Standard-ISMs stehen in einer Unterrubrik von Ensemble-Settings → Config. |
 | **Gruppe** | Gruppen-Header | `lib/group/GroupHost.js` | Name, BG/VG-Farbe, Breite/Höhe, **Combos** (Optik-Pool) + **Snapshots** (Werte-Pool). |
 | **Control (Knob)** | Auf den Regler | `lib/KnobMetaEditor.js` | Min/Max/Step, Kurve/Skew, Default, Einheit, Gestalt (Fader/Knob), Design-Presets. |
 | **Control (Rest)** | Auf das Element | `lib/ElementSettings.js` | Label-Position, Farben, Button-Modi, Design-Presets. |
@@ -120,6 +120,13 @@ In der Werkbank gibt es keine sichtbaren ⚙-Icons. Alles wird über **Rechtskli
   (nur CSS-Klasse `.ctrl-offpanel`) — Combos/Snapshots sammeln über `[data-ctrl]` innerhalb der
   Gruppe, ein herausgenommenes Element fiele still aus beidem. Nicht verwechseln mit der
   Regler-Gestalt „Ohne" (`viewSize:'none'`): das ist Paneldesign, kein Umzug.
+- **ISM-Sichtbarkeit (ddw.md 20260803_135251):** `lib/InstrumentSettings.js` — `ismHidden`
+  lebt im ISM-EIGENEN State (wie `instrPos`/`instrBg`), nicht in `ismSnaps` (Sound-Werte).
+  Dasselbe UI-Muster wie `ctrlOffPanel` bei Controls (Icon `panelIn`/`panelOut`), eine Ebene
+  höher: versteckt die ganze `.wb-bench`-Sektion (`.ism-hidden`, bleibt im DOM). Rückgabe von
+  `mountInstrumentSettings()`: `isHidden()`/`setHidden()`/`name()`/`openSettings()` — Letzteres
+  öffnet das Panel auch ohne sichtbaren Header (LevelMeter hat nie einen, ein verstecktes ISM
+  auch nicht mehr). `lib/mainSettings.js` listet ausgeblendete Standard-ISMs zum Zurückholen.
 - **Settings-Panels → Control:** `onApply(id, style)` schreibt `state.ctrlStyles[id]`; die
   DOM-Anwendung macht der Aufrufer (`target.applyStyle`). Settings verstellen NIE Control-Werte.
 - **Buttons → Audio:** `onAction(id)` mit den Button-ids aus defs (`start/bang/bang2/slow/fast/

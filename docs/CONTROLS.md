@@ -104,6 +104,8 @@ Die Werkbank ist konsequent auf **Rechtsklick-Bedienung** ausgelegt. Es gibt vie
 ### 1. Ensemble-Settings (Config)
 Der Button **Config** im Haupt-Header öffnet die globalen Einstellungen.
 *   **Inhalt:** Sprache (DE/EN), globale Label-Farbe/Größe, Wert-Hintergründe, Gruppen-Kopf-Optik.
+*   **ISMs (ddw.md 20260803_135251):** Unterrubrik, die ausgeblendete Standard-Instrumente
+    listet und je einen Knopf zum Wieder-Einblenden mitbringt — s. Punkt 2 unten.
 *   **Daten:** Hier liegen auch die Knöpfe für Export, Import und den totalen Reset.
 
 ### 2. Instrument-Settings (ISM)
@@ -111,6 +113,11 @@ Rechtsklick auf den Namen eines Instruments (z.B. "Poly-Synth" oder "Takt/Metron
 *   **Allgemein:** Jedes ISM hat seinen eigenen Namen, Hintergrundfarbe und Zoom-Faktor.
 *   **Verschieben:** Über den Header können Instrumente frei auf der Seite platziert werden (Position wird gespeichert).
 *   **ISM-Snapshot:** Speichert die Werte **aller** Gruppen dieses Instruments auf einmal.
+*   **Sichtbar (ddw.md 20260803_135251):** derselbe Panel?-Knopf wie bei Controls (s.u.), nur
+    eine Ebene höher — blendet das GANZE ISM aus (`.wb-bench`-Sektion, State-Key `ismHidden`
+    im ISM-eigenen State). Ausgeblendete Standard-ISMs (Tempo&MM/Scope/Debug/Rec/Meter) tauchen
+    in einer eigenen Unterrubrik der Haupt-Settings (⚙ „Einstellungen" → „ISMs") auf und lassen
+    sich von dort wieder einblenden — sonst wären sie nicht mehr auffindbar.
 
 ### 3. Gruppen-Settings
 Rechtsklick auf den Header einer Gruppe.

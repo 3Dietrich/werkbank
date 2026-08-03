@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!-- data-app = Kennung dieses Pool-Einstiegs (@dpa dd.md 20260801_2, s. lib/appId.js):
+     eigene localStorage-Keys (werkbank-leer_*) + eigene Demo-Datei
+     (presets/werkbank-leer-config.json). Frühere Fassungen teilten sich den State mit
+     index.html — das war gewollt, solange es nur einen Datentopf gab, hieß aber auch,
+     dass ein Demo-Export von hier den Erstbesuch-Stand von index.html mit überschrieb. -->
+<html lang="de" data-app="smoke-script-test">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Werkbank – Smoke Script Test</title>
+<!-- file://-Hinweis (@dpa ddw.md 20260803_135251 Punkt 4: "der Aufruf der html aus dem
+     Finder/Explorer funktioniert ja nicht ... kann in diesem Aufruf nur der Hinweis darauf
+     stehen?"). ES-Module (die `type="module"`-Importe unten) lösen unter `file://` GRUNDSÄTZLICH
+     nicht auf (Browser-CORS-Sperre, s. CLAUDE.md "Starten/Testen") — ein Doppelklick im
+     Finder/Explorer öffnet sonst eine halb geladene Seite mit kryptischen Konsolenfehlern statt
+     eines verständlichen Hinweises. Läuft als ALLERERSTES im Kopf (klassisches <script>, KEIN
+     type="module", blockiert kurz den Parser, läuft also VOR den Stylesheets/Modul-Scripts
+     unten): bei `file:` bekommt <html> die Klasse `no-server`, das CSS weiter unten blendet
+     dafür #app/.topbar aus und zeigt stattdessen #fileProtocolHint (Markup direkt nach <body>).
+     Bewusst 1:1 dasselbe Muster in JEDEM Einstieg (hier + overcord/index.html) — WICHTIG für
+     tools/new-entry.mjs: die Kopie DIESER Datei ist die Quelle für jeden neuen Klon und wird nur
+     gezielt (data-app/title/script-src) umgeschrieben, der Rest bleibt verbatim — dieser Block
+     landet also automatisch in jeder Kopie, ohne dass new-entry.mjs selbst etwas dafür tun muss. -->
+<script>
+  if (location.protocol === 'file:') document.documentElement.classList.add('no-server');
+</script>
+<link rel="stylesheet" href="../css/main.css" />
+<link rel="stylesheet" href="../css/werkbank.css" />
+<style>
+  /* Siehe Kopf-Kommentar oben ("file://-Hinweis"): #fileProtocolHint ist normalerweise
+     unsichtbar/leer im DOM-Fluss; erst `html.no-server` schaltet es sichtbar und blendet den
+     Rest der Seite aus (die ohnehin nicht funktionieren würde). */
+  html.no-server .topbar, html.no-server #app { display: none !important; }
+  #fileProtocolHint { display: none; }
+  html.no-server #fileProtocolHint {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 40px; text-align: center; gap: 14px;
+    background: var(--bg); color: var(--text);
+  }
+  #fileProtocolHint h1 { margin: 0; font-size: 20px; }
+  #fileProtocolHint p { margin: 0; max-width: 520px; color: var(--muted); line-height: 1.5; }
+  #fileProtocolHint code { background: var(--panel2); padding: 2px 6px; border-radius: 4px; }
+
+  /* "+ Neu"-Karte (@dpa ddw.md 20260803-Rebuild) — NUR hier in werkbank-leer, nicht in
+     overcord/ (s. Karten-Kommentar unten): Optik bewusst scoped/inline wie die lp-card-Regeln
+     der Landing-Page (../index.html), statt einer geteilten Klasse in css/werkbank.css, weil
+     dieses Muster ausdrücklich NUR an dieser einen Stelle gebraucht wird. Strukturmuster aus
+     ddw/image-10.png übernommen (Karte, fette Überschrift, kurzer Text darunter) — NICHT
+     dessen Farben/Schrift/Text, ins bestehende dunkle Theme übersetzt (var(--panel2)/
+     var(--sel-line), wie ../index.html .lp-card). Überschrift bewusst GRÖSSER als im Vorbild
+     (@dpa: "Überschrift (größer als Bsp)").
+
+     Position wird zur LAUFZEIT berechnet, nicht hier per CSS (@dpa ddw.md 20260803_122138
+     Punkt 1, Screenshot ddw/image-11.png: die Karte saß als einzelne Grid-Zelle direkt neben
+     "Tempo, MM" und wurde von der Taktgeber-Gruppe ÜBERDECKT — abgeschnittener Kartentext war
+     hinter der davorliegenden Taktgeber-Platte sichtbar). Grund, warum eine reine CSS-Lösung
+     (Grid-Spalte/-Zeile) NICHT reicht: jedes Instrument kann per Header frei gezogen werden
+     (`instrPos`, s. lib/InstrumentSettings.js) UND wird dabei `position:absolute` — UND schon
+     die mitgelieferte Demo (presets/werkbank-leer-config.json) positioniert alle vier "immer
+     dabei"-ISMs von Anfang an absolut (kein "freier Grid-Fluss", den die Karte einfach neben
+     ihnen einnehmen könnte). Die tatsächlich freie Stelle hängt also von echten Pixel-Werten
+     ab, die sich jederzeit ändern (weiteres Ziehen) — ein fester CSS-Wert würde beim nächsten
+     Verschieben wieder stillschweigend veraltet sein. `placeNewEntryCard()`
+     (werkbank-leer.js, läuft NACH den mountInstrumentSettings()-Aufrufen, die `instrPos`
+     anwenden) misst darum bei jedem Laden/Resize/Scroll die tatsächlichen Bounding-Boxen aller
+     `.wb-bench` UND sucht darin die GRÖSSTE freie Fläche INNERHALB des gerade sichtbaren
+     Fensterausschnitts (`window.innerHeight`, nicht die Dokumentgesamthöhe — @dpa ddw.md
+     20260803_135251 Punkt 1: der erste Fix vermied nur Überlappung, landete dabei aber
+     unsichtbar am Ende des Dokumentflusses, s. ddw/image-13.png). Reicht die größte freie
+     Fläche nicht für die volle Kartengröße, schrumpft die Karte auf das Verfügbare statt zu
+     überlappen (Details im Funktionskopf). Hier nur die Optik + ein neutraler Default
+     (`position:static` im normalen Fluss), falls das Skript aus irgendeinem Grund nicht läuft
+     — dann landet die Karte wenigstens lesbar am Ende von #app statt unsichtbar/verdeckt. Mit
+     Playwright verifiziert (kein Overlap mit irgendeinem `.wb-bench`, Karte innerhalb des
+     Viewports) — s. test/newEntryFlow_smoke.py. */
+  .ne-card {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    width: 100%; text-align: left; cursor: pointer; font: inherit;
+    background: var(--panel2); border: 1px solid var(--sel-line); border-radius: 8px;
+    padding: 14px 16px 16px; transition: border-color .15s, transform .15s;
+    grid-column: 1 / -1; max-width: 640px;
+    /* Defensive Absicherung ZUSÄTZLICH zur berechneten Position (werkbank-leer.js
+       placeNewEntryCard()): falls @dpa NACH dem Platzieren noch ein Instrument live über die
+       Karte zieht (placeNewEntryCard() läuft nur bei Laden/Resize, nicht bei jeder
+       Mausbewegung), sorgt z-index dafür, dass der Kartentext trotzdem lesbar/klickbar oben
+       bleibt statt abgeschnitten zu wirken (genau @dpas Beschwerde am Screenshot). */
+    z-index: 1;
+  }
+  .ne-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .ne-card h2 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text); }
+  .ne-card p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.55; }
+</style>
+</head>
+<body>
+<!-- file://-Hinweis-Overlay (s. Kopf-Kommentar) — steht bewusst ALS ERSTES im <body>, damit es
+     bei `file:` das Einzige ist, was inhaltlich sichtbar wird. -->
+<div id="fileProtocolHint">
+  <h1>Diese Seite braucht einen lokalen Server</h1>
+  <p>Ein Doppelklick im Finder/Explorer öffnet sie über <code>file://</code> — die ES-Module
+     dieser Seite laden so nicht (Browser-Sicherheit). Falls im Ordner ein Start-Skript liegt
+     (<code>*.command</code>), reicht ein Doppelklick darauf. Sonst im Terminal von Hand:</p>
+  <p><code>cd &lt;Projektordner&gt; &amp;&amp; python3 -m http.server 8002 &amp;&amp; open
+     http://localhost:8002/</code></p>
+</div>
+<!-- werkbank-leer/ – ZWEITER, schlankerer Pool-Einstieg neben index.html, erreichbar
+     unter /werkbank-leer (@dpa 20260801). Bewusst ein NEUTRALES leeres Basis-Scaffold:
+     nur die vier "immer dabei"-ISMs (Takt/Metronom, Rec, LevelMeter, Signal-Scopes) +
+     alle Header-Funktionen (Tasten/MIDI, Hints, Config, Ensemble, Struktur-Ansicht,
+     Rec-Format, Audio-Reset) — KEIN Poly-Synth, KEIN Stepsequenzer. Aus diesem Ordner
+     heraus kopiert @dpa künftig neue Projekte, wenn ein neues Kernmodul ansteht (daher
+     der Name "leer", nicht themenbezogen): Ordner kopieren, umbenennen, im data-app
+     oben denselben neuen Namen eintragen — fertig, eigener Stand + eigene Demo-Datei.
+     index.html/werkbank.js bleiben UNANGETASTET — eigener, gleichrangiger Einstieg über
+     dieselbe lib/+css/ (von hier aus per ../ erreichbar), aber mit EIGENEN Daten
+     (werkbank-leer_*, s. lib/appId.js + Kopf von werkbank-leer.js). -->
+<div class="topbar">
+    <h1>Werkbank</h1>
+    <div class="topbar-right">
+        <!-- Untertitel + Dauertext raus (@dpa 20260722_013727: „sollte nicht den Header
+             vollmachen"): dieselbe Info steckt jetzt in der Hilfe-Blase des ⓘ-Icons — nutzt
+             das ohnehin vorhandene Hint-System (Header-Knopf „Hints"), statt permanent Platz
+             zu belegen. -->
+        <span class="wb-tip-ico" data-hint="Bausteine aus teslacoil – bearbeiten, verfeinern, rüberkopieren. Rechtsklick = Settings · Regler ziehen/Doppelklick · alles überlebt den Reload.">ⓘ</span>
+        <div id="master-vol"></div>
+        <!-- „Zurücksetzen" entfernt (@dpa 20260719_040136: „wie eine Bombe die man nicht berühren
+             sollte"). Reset gibt es weiter über MiniState.reset()/localStorage, nur nicht als Knopf. -->
+    </div>
+</div>
+
+<div id="app">
+    <section class="wb-bench wb-wide" id="bench-taktgeber">
+        <!-- Ein-/Ausklapp-Icon LINKS an der Übergruppen-Headline (@dpa 20260718_203341).
+             Eingeklappt = Hauptbildschirm leer (ausdrücklich okay). Die Headline bleibt
+             (Instrumentenname), eigene Settings potentiell später. -->
+        <h2><button class="wb-collapse" id="taktCollapse" type="button" title="Ein-/Ausklappen">▾</button> <span class="wb-instr-name">Takt + Metronom</span></h2>
+        <div id="taktgeber"></div>
+        <details class="wb-note">
+            <summary>Transport / Tempo · Takt / Metronom — Neu-Port (P1–P4)</summary>
+            Zwei Gruppen aus <b>einer</b> deklarativen defs-Quelle (gemappt aus taktgeber),
+            gezeigt mit teslacoils Fabriken. <b>e</b> = Anordnen-Modus (Gruppen/Controls frei
+            verschiebbar). Rechtsklick auf Gruppen-Titel = Settings, Rechtsklick auf ein Control
+            = dessen Optik. Gezogene Werte = „Knob ohne Knob". Der Header-Schalter
+            <b>⌨ Tasten/MIDI</b> zeigt/ändert Tastenbelegung + MIDI-Learn über allen Controls.
+            <b>▶</b> (oder die belegte Taste) startet das Metronom — echter Ton aus taktgebers
+            metro.js/clock.js.
+        </details>
+    </section>
+
+    <section class="wb-bench" id="bench-rec">
+        <h2><span class="wb-instr-name">Rec</span></h2>
+        <div id="rec"></div>
+        <details class="wb-note">
+            <summary>Eigenes Instrument (@dpa 20260721)</summary>
+            War Teil von Takt+Metronom, ist jetzt eigenständig: nimmt den gemeinsamen
+            Master-Bus ab (lib/audioBus.js) — alle Instrumente zusammen, nicht nur eins.
+            Start/Stop synchronisiert weiterhin auf den nächsten Downbeat des
+            Taktmetro-Instruments.
+        </details>
+    </section>
+
+    <!-- LevelMeter (@dpa 20260722, ddw.md): eigenes Instrument (ISM), aber "kein Header
+         besitzen und keinen extra BG" — wb-bare nimmt Rahmen/Hintergrund/Padding raus,
+         die einzelne GroupHost-Gruppe darin verliert ihre Titelleiste (css/werkbank.css). -->
+    <section class="wb-bench wb-bare" id="bench-levelmeter">
+        <div id="levelmeter"></div>
+    </section>
+
+    <!-- "+ Neu" (@dpa ddw.md 20260803-Rebuild, s. lib/newEntryFlow.js-Kopf): zentrale
+         Auslöser-Karte NUR hier in werkbank-leer — die einzige Werkbank, aus der neue
+         Pool-Einstiege entstehen (s. Datei-Kopf oben). Bewusst KEIN <section class="wb-bench">/
+         ISM/Control (s. ARCHITEKTUR.md "Welche Modul-Sorte …") — sie hat keinen State, keine
+         defs.js/engine.js, nichts Hörbares; ein einfacher <button>, der denselben Ablauf
+         öffnet wie der kleine "+ Neu"-Knopf in den Einstellungen (lib/mainSettings.js). Steht
+         trotzdem als eigene Kachel im selben #app-Grid wie die ISMs — rein visuell an
+         zentraler Stelle, wie @dpa es wollte ("vielleicht in der Mitte … nur wegen der Lage
+         so beschrieben"). -->
+    <!-- Kartentext 1:1 von @dpa vorgegeben (ddw.md 20260803_135251 Punkt 2) — die Zeile
+         "(Klick für weiter..)" ist selbst schon der Call-to-Action, darum kein separates
+         ".ne-go"-Span mehr darunter (wäre doppelt gemoppelt). -->
+    <button type="button" class="ne-card" id="newEntryCard">
+        <h2>+ Neu</h2>
+        <p>Diese Werkbank ist die Vorlage für neue Projekte und sollte leer bleiben. Ein
+           eigenes 'Ensemble' (Ordner mit neuer html) entsteht als Kopie davon, in ein paar
+           Schritten im Terminal. (Klick für weiter..)</p>
+    </button>
+
+    <!-- Signal-Scopes (@dpa 20260726): schmale Steuersignal-Oszilloskope zum
+         "Reinklinken" (Debug-Helfer + Anzeige-Control). Vervielfältigbar wie ADSR. -->
+    <section class="wb-bench" id="bench-scope">
+        <h2><span>Signal-Scopes</span></h2>
+        <div id="scopes"></div>
+    </section>
+
+    <!-- Debug (@dpa ddw.md 20260802): Diagnose-Werkzeug — bündelt Audio (WAV) + Screenshot
+         (PNG) + Zustand (JSON) + Begleit-Prompt (TXT) zu Dateien, zum Hochladen an eine KI.
+         Eigenes Instrument (ISM) wie Rec — kein Sound-Parameter, s. lib/debugPanel/. -->
+    <section class="wb-bench" id="bench-debug">
+        <h2><span class="wb-instr-name">Debug</span></h2>
+        <div id="debug"></div>
+    </section>
+</div>
+
+<!-- Klassisches Skript, VOR dem type=module-Skript: hängt globalThis.lamejs auf
+     (siehe lib/vendor/lame.js, Rec-Instrument-TODO 3 – MP3-Encoder). -->
+<script src="../lib/vendor/lame.js"></script>
+<!-- Erstbesuch-Demo-Stand (presets/default-config.json) VOR der App in den
+     localStorage legen — nur leere Keys, nie überschreiben (s. Datei-Kopf). -->
+<script type="module" src="../lib/defaultConfig.js"></script>
+<script type="module" src="smoke-script-test.js"></script>
+</body>
+</html>
