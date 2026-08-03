@@ -10,10 +10,51 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Werkbank – Overcord</title>
+<!-- file://-Hinweis (@dpa ddw.md 20260803_135251 Punkt 4: "der Aufruf der html aus dem
+     Finder/Explorer funktioniert ja nicht ... kann in diesem Aufruf nur der Hinweis darauf
+     stehen?"). ES-Module (die `type="module"`-Importe unten) lösen unter `file://` GRUNDSÄTZLICH
+     nicht auf (Browser-CORS-Sperre, s. CLAUDE.md "Starten/Testen") — ein Doppelklick im
+     Finder/Explorer öffnet sonst eine halb geladene Seite mit kryptischen Konsolenfehlern statt
+     eines verständlichen Hinweises. Läuft als ALLERERSTES im Kopf (klassisches <script>, KEIN
+     type="module", blockiert kurz den Parser, läuft also VOR den Stylesheets/Modul-Scripts
+     unten): bei `file:` bekommt <html> die Klasse `no-server`, das CSS weiter unten blendet
+     dafür #app/.topbar aus und zeigt stattdessen #fileProtocolHint (Markup direkt nach <body>).
+     Bewusst 1:1 dasselbe Muster in JEDEM Einstieg (hier + werkbank-leer/index.html) — new-entry.mjs
+     kopiert index.html größtenteils UNVERÄNDERT in jeden neuen Klon (nur data-app/title/script-src
+     werden gezielt ersetzt, s. tools/new-entry.mjs), dieser Block landet also automatisch in jeder
+     Kopie, ohne dass dort extra Template-Logik nötig wäre. -->
+<script>
+  if (location.protocol === 'file:') document.documentElement.classList.add('no-server');
+</script>
 <link rel="stylesheet" href="../css/main.css" />
 <link rel="stylesheet" href="../css/werkbank.css" />
+<style>
+  /* Siehe Kopf-Kommentar oben ("file://-Hinweis"): #fileProtocolHint ist normalerweise
+     unsichtbar/leer im DOM-Fluss; erst `html.no-server` schaltet es sichtbar und blendet den
+     Rest der Seite aus (die ohnehin nicht funktionieren würde). */
+  html.no-server .topbar, html.no-server #app { display: none !important; }
+  #fileProtocolHint { display: none; }
+  html.no-server #fileProtocolHint {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 40px; text-align: center; gap: 14px;
+    background: var(--bg); color: var(--text);
+  }
+  #fileProtocolHint h1 { margin: 0; font-size: 20px; }
+  #fileProtocolHint p { margin: 0; max-width: 520px; color: var(--muted); line-height: 1.5; }
+  #fileProtocolHint code { background: var(--panel2); padding: 2px 6px; border-radius: 4px; }
+</style>
 </head>
 <body>
+<!-- file://-Hinweis-Overlay (s. Kopf-Kommentar) — steht bewusst ALS ERSTES im <body>, damit es
+     bei `file:` das Einzige ist, was inhaltlich sichtbar wird. -->
+<div id="fileProtocolHint">
+  <h1>Diese Seite braucht einen lokalen Server</h1>
+  <p>Ein Doppelklick im Finder/Explorer öffnet sie über <code>file://</code> — die ES-Module
+     dieser Seite laden so nicht (Browser-Sicherheit). Falls im Ordner ein Start-Skript liegt
+     (<code>*.command</code>), reicht ein Doppelklick darauf. Sonst im Terminal von Hand:</p>
+  <p><code>cd &lt;Projektordner&gt; &amp;&amp; python3 -m http.server 8002 &amp;&amp; open
+     http://localhost:8002/</code></p>
+</div>
 <div class="topbar">
     <h1>Werkbank</h1>
     <div class="topbar-right">
