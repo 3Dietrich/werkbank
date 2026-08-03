@@ -7,9 +7,10 @@ modales Fenster (lib/SettingsWindow.js) über abgedunkeltem Grund, dessen Inhalt
 lib/mainSettings.js kommt — gemeinsam für alle Pool-Einstiege.
 
 Prüft:
-  - ⚙ Einstellungen öffnet ein .sw-window mit 5 Themen-Abschnitten in fester Reihenfolge
-    (Sprache/Beschriftung/Gruppen-Kopf/Backups/Daten — Sprache zuerst, s. mainSettings.js
-    Kopf; Backups s. ddw.md 20260802 Punkt 4, lib/Backup.js).
+  - ⚙ Einstellungen öffnet ein .sw-window mit 7 Themen-Abschnitten in fester Reihenfolge
+    (Sprache/Beschriftung/Gruppen-Kopf/ISMs/Aufnahme-Format/Backups/Daten — Sprache zuerst,
+    s. mainSettings.js Kopf; Backups s. ddw.md 20260802 Punkt 4, lib/Backup.js; ISMs +
+    Aufnahme-Format s. ddw.md 20260803_135251 Punkt A+B, lib/InstrumentSettings.js).
   - Label-Farbe wirkt sofort auf ein echtes Knob-Label (CSS-Var --lab-col).
   - Gruppen-Kopf-Größe wirkt sofort auf .group-title (CSS-Var --grp-head-size).
   - Sprache EN (jetzt ein <select>, kein Knopfpaar) übersetzt einen bestehenden Hint sofort
@@ -54,8 +55,8 @@ try:
         check(pg.locator('.mini-settings.sw-window').count() == 0, "⚙ sollte kein MiniSettings-Popover mehr sein")
 
         sections = panel.locator('.sw-subhead > span:first-child').all_inner_texts()
-        check(sections == ['Sprache', 'Beschriftung', 'Gruppen-Kopf', 'Backups', 'Daten'],
-              f"Erwartet 5 Themen-Abschnitte in fester Reihenfolge, war {sections!r}")
+        check(sections == ['Sprache', 'Beschriftung', 'Gruppen-Kopf', 'ISMs', 'Aufnahme-Format', 'Backups', 'Daten'],
+              f"Erwartet 7 Themen-Abschnitte in fester Reihenfolge, war {sections!r}")
 
         # ── Label-Farbe wirkt sofort ──
         color_input = panel.locator('input[type="color"]').first

@@ -13,7 +13,8 @@ Prüft:
   4. Header-Buttons vorhanden + reagieren: Config öffnet, keyedit/midiedit setzen .active,
      Struktur-Ansicht zeigt NUR takt+rec als registrierte Module (LevelMeter/Scope
      registrieren sich bewusst nicht bei der Routing-Registry, s. multiScope.js).
-  5. Rec-Format-Menü öffnet.
+  5. Aufnahme-Format-Sektion steht in den Haupt-Settings (ddw.md 20260803_135251 Punkt B:
+     aus dem eigenen Header-Knopf ⚙ Rec-Format hierher umgezogen, kein #recfmtmenu mehr).
   6. Ensemble-Menü öffnet, "+ Neu" legt einen Snapshot mit allen 4 ISM-Werten an.
   7. Scope +/− Header-Buttons legen/entfernen eine Scope-Gruppe an.
   8. Reset-Button klickbar ohne Fehler (kein Play-Klick-Test — Headless-Audio-Falle, s.
@@ -117,11 +118,26 @@ try:
         pg.keyboard.press("Escape")
         time.sleep(0.1)
 
-        # ── 5. Rec-Format-Menü öffnet ──
-        pg.locator('#recfmtmenu').click()
+        # ── 5. Aufnahme-Format-Sektion in den Haupt-Settings (ddw.md 20260803_135251 Punkt B) ──
+        check(pg.locator('#recfmtmenu').count() == 0, "#recfmtmenu (alter Header-Knopf) sollte weg sein")
+        pg.locator('#cfgmenu').click()
         time.sleep(0.15)
-        check(pg.locator('.cfg-pop').count() == 1, "⚙ Rec-Format öffnet kein Popup")
-        pg.locator('#recfmtmenu').click()
+        cfg_panel = pg.locator('.sw-window:visible')
+        rec_section = cfg_panel.locator('.sw-subhead', has_text='Aufnahme-Format')
+        check(rec_section.count() == 1, "Sektion 'Aufnahme-Format' fehlt in den Haupt-Settings")
+        # Exakter Label-Textvergleich statt has_text/has (der matcht Teilstrings wie
+        # "Aufnahme-Format" gegen "Format" und ist bei verschachtelten Locators unzuverlässig,
+        # s. test/ismVisibility_smoke.py für dieselbe Lösung).
+        rows = cfg_panel.locator('.sw-row')
+        fmt_idx = -1
+        for i in range(rows.count()):
+            lab = rows.nth(i).locator('label')
+            if lab.count() and lab.first.text_content().strip() == 'Format':
+                fmt_idx = i
+                break
+        check(fmt_idx >= 0 and rows.nth(fmt_idx).locator('select').count() == 1,
+              "Format-Auswahl in der Aufnahme-Format-Sektion fehlt")
+        cfg_panel.locator('.sw-close').click()
         time.sleep(0.1)
 
         # ── 6. Ensemble-Menü + "+ Neu" legt Snapshot mit allen 4 ISMs an ──

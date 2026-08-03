@@ -29,8 +29,6 @@ import { createEnsembleStore } from '../lib/EnsembleStore.js';
 import { ElementSettings } from '../lib/ElementSettings.js';
 import { taktMetroDefs } from '../lib/taktmetro/defs.js';
 import { createTaktEngine } from '../lib/taktmetro/engine.js';
-import { MP3_CBR_PRESETS } from '../lib/mp3Encoder.js';
-import { WAV_SAMPLE_RATES, WAV_BIT_DEPTHS } from '../lib/wavEncoder.js';
 import { polySynthDefs } from '../lib/polysynth/defs.js';
 import { createPolySynthEngine } from '../lib/polysynth/engine.js';
 import { PlayKeyboard } from '../lib/polysynth/ui/PlayKeyboard.js';
@@ -1276,6 +1274,9 @@ const openCfg = () => {
         onNewEntry: (btn) => openNewEntryFlow(btn),
         reopen: () => { cfgWin.close(); openCfg(); },
         backups,
+        // Aufnahme-Format (ddw.md 20260803_135251 Punkt B): aus dem Header hierher
+        // umgezogen, s. Kommentar bei der alten Stelle weiter oben.
+        recState,
         // ISM-Sichtbarkeit (ddw.md 20260803_135251): die fünf „Standard"-ISMs dieses
         // Einstiegs — mainSettings.js zeigt daraus die Unterrubrik der ausgeblendeten.
         isms: [
@@ -1372,113 +1373,14 @@ structureBtn.addEventListener('click', activateStructureBtn);
 keyMidi.register('hdr:structurebtn', structureBtn, '⧉ Struktur', activateStructureBtn, { self: true });
 window.__structure = { view: structureView };
 
-// ── Aufnahme-Format (Rec-Instrument-TODO 2, @dpa 20260721): globaler App-Default fürs
-// Rec-Ausgabeformat — EIN Wert für alle Aufnahmen, keine Pro-Instanz-Einstellung. Die
-// eigentlichen Encoder für MP3 (lamejs) und WAV (PCM-Writer) sind eigene Folge-Schritte
-// (TODO 3/4); bis die stehen, speichert dieser Schalter nur die Auswahl in taktState —
-// recStart() (engine.js) nimmt bis dahin unverändert immer webm/opus auf. ──
-const REC_FORMATS = [
-    { v: 'webm', l: 'WebM/Opus' },
-    { v: 'mp3', l: 'MP3' },
-    { v: 'wav', l: 'WAV' },
-];
-const recFmtBtn = document.createElement('button');
-recFmtBtn.className = 'pb-btn'; recFmtBtn.id = 'recfmtmenu'; recFmtBtn.type = 'button';
-recFmtBtn.textContent = '⚙ Rec-Format'; recFmtBtn.title = 'Aufnahme-Ausgabeformat (global, für alle Aufnahmen)';
-document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format'));
-let recFmtPop = null;
-const closeRecFmt = () => { if (recFmtPop) { recFmtPop.remove(); recFmtPop = null; document.removeEventListener('mousedown', recFmtOutside, true); recFmtBtn.classList.remove('active'); } };
-const recFmtOutside = (e) => { if (recFmtPop && !recFmtPop.contains(e.target) && e.target !== recFmtBtn) closeRecFmt(); };
-recFmtBtn.addEventListener('click', () => {
-    if (recFmtPop) { closeRecFmt(); return; }
-    recFmtPop = document.createElement('div'); recFmtPop.className = 'cfg-pop';
-    const wrap = document.createElement('label'); wrap.className = 'select-field segment-field';
-    const span = document.createElement('span'); span.textContent = 'Format';
-    const seg = document.createElement('div'); seg.className = 'segmented';
-    const cur = () => recState.get('recFormat') || 'webm';
-
-    // MP3-Unterzeilen (Bitrate + Mono/Stereo, Rec-Instrument-TODO 3) — nur sichtbar bei
-    // recFormat==='mp3'. Nur CBR (@dpa-Entscheidung 20260721: VBR fehlt lamejs strukturell,
-    // siehe lib/vendor/lame.js); Qualität fest auf 3, kein UI-Feld dafür.
-    const mp3Wrap = document.createElement('label'); mp3Wrap.className = 'select-field segment-field';
-    const mp3Span = document.createElement('span'); mp3Span.textContent = 'Bitrate';
-    const mp3Seg = document.createElement('div'); mp3Seg.className = 'segmented';
-    const curBitrate = () => recState.get('recMp3Bitrate') || 192;
-    const mp3PaintBitrate = () => { const c = curBitrate(); mp3Btns.forEach((b, i) => b.classList.toggle('seg-on', MP3_CBR_PRESETS[i] === c)); };
-    const mp3Btns = MP3_CBR_PRESETS.map((kbps) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
-        b.textContent = String(kbps); b.title = kbps + ' kbps (CBR)';
-        b.addEventListener('click', () => { recState.set('recMp3Bitrate', kbps); mp3PaintBitrate(); });
-        mp3Seg.appendChild(b); return b;
-    });
-    mp3Wrap.appendChild(mp3Span); mp3Wrap.appendChild(mp3Seg);
-
-    const chWrap = document.createElement('label'); chWrap.className = 'select-field segment-field';
-    const chSpan = document.createElement('span'); chSpan.textContent = 'Kanäle';
-    const chSeg = document.createElement('div'); chSeg.className = 'segmented';
-    const CH_OPTS = [{ v: false, l: 'Mono' }, { v: true, l: 'Stereo' }];
-    const curStereo = () => recState.get('recMp3Stereo') !== false;
-    const chPaint = () => { const c = curStereo(); chBtns.forEach((b, i) => b.classList.toggle('seg-on', CH_OPTS[i].v === c)); };
-    const chBtns = CH_OPTS.map((o) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
-        b.textContent = o.l;
-        b.addEventListener('click', () => { recState.set('recMp3Stereo', o.v); chPaint(); });
-        chSeg.appendChild(b); return b;
-    });
-    chWrap.appendChild(chSpan); chWrap.appendChild(chSeg);
-
-    // WAV-Unterzeilen (Samplerate + Bittiefe, Rec-Instrument-TODO 4) — nur sichtbar bei
-    // recFormat==='wav'. Resampling linear, kein Dithering (siehe lib/wavEncoder.js).
-    const wavRateWrap = document.createElement('label'); wavRateWrap.className = 'select-field segment-field';
-    const wavRateSpan = document.createElement('span'); wavRateSpan.textContent = 'Samplerate';
-    const wavRateSeg = document.createElement('div'); wavRateSeg.className = 'segmented';
-    const curWavRate = () => recState.get('recWavSampleRate') || 44100;
-    const wavRatePaint = () => { const c = curWavRate(); wavRateBtns.forEach((b, i) => b.classList.toggle('seg-on', WAV_SAMPLE_RATES[i] === c)); };
-    const wavRateBtns = WAV_SAMPLE_RATES.map((rate) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
-        b.textContent = String(rate / 1000); b.title = rate + ' Hz';
-        b.addEventListener('click', () => { recState.set('recWavSampleRate', rate); wavRatePaint(); });
-        wavRateSeg.appendChild(b); return b;
-    });
-    wavRateWrap.appendChild(wavRateSpan); wavRateWrap.appendChild(wavRateSeg);
-
-    const wavBitWrap = document.createElement('label'); wavBitWrap.className = 'select-field segment-field';
-    const wavBitSpan = document.createElement('span'); wavBitSpan.textContent = 'Bittiefe';
-    const wavBitSeg = document.createElement('div'); wavBitSeg.className = 'segmented';
-    const curWavBit = () => recState.get('recWavBitDepth') || 16;
-    const wavBitPaint = () => { const c = curWavBit(); wavBitBtns.forEach((b, i) => b.classList.toggle('seg-on', WAV_BIT_DEPTHS[i] === c)); };
-    const wavBitBtns = WAV_BIT_DEPTHS.map((bd) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
-        b.textContent = bd + ' Bit';
-        b.addEventListener('click', () => { recState.set('recWavBitDepth', bd); wavBitPaint(); });
-        wavBitSeg.appendChild(b); return b;
-    });
-    wavBitWrap.appendChild(wavBitSpan); wavBitWrap.appendChild(wavBitSeg);
-
-    const updateFormatVisibility = () => {
-        const c = cur();
-        const showMp3 = c === 'mp3'; mp3Wrap.style.display = showMp3 ? '' : 'none'; chWrap.style.display = showMp3 ? '' : 'none';
-        const showWav = c === 'wav'; wavRateWrap.style.display = showWav ? '' : 'none'; wavBitWrap.style.display = showWav ? '' : 'none';
-    };
-
-    const paint = () => { const c = cur(); btns.forEach((b, i) => b.classList.toggle('seg-on', REC_FORMATS[i].v === c)); updateFormatVisibility(); };
-    const btns = REC_FORMATS.map((o) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-btn';
-        b.textContent = o.l; b.title = 'Aufnahme als ' + o.l + ' speichern';
-        b.addEventListener('click', () => { recState.set('recFormat', o.v); paint(); });
-        seg.appendChild(b); return b;
-    });
-    mp3PaintBitrate(); chPaint(); wavRatePaint(); wavBitPaint(); paint();
-    wrap.appendChild(span); wrap.appendChild(seg);
-    recFmtPop.appendChild(wrap);
-    recFmtPop.appendChild(mp3Wrap);
-    recFmtPop.appendChild(chWrap);
-    recFmtPop.appendChild(wavRateWrap);
-    recFmtPop.appendChild(wavBitWrap);
-    document.querySelector('.topbar-right').appendChild(recFmtPop);
-    recFmtBtn.classList.add('active');
-    setTimeout(() => document.addEventListener('mousedown', recFmtOutside, true), 0);
-});
+// Aufnahme-Format (Rec-Instrument-TODO 2, @dpa 20260721) ist ddw.md 20260803_135251 Punkt B
+// aus dem Header IN die Haupt-Settings umgezogen (⚙ Einstellungen → „Aufnahme-Format") —
+// @dpa wollte es nicht mehr live im Panel/Header sehen. Funktion + State-Keys (recFormat/
+// recMp3Bitrate/recMp3Stereo/recWavSampleRate/recWavBitDepth in recState) unverändert, nur
+// der UI-Ort wechselt. Der Aufbau lebt jetzt zentral in lib/mainSettings.js (buildMainSettings
+// bekommt recState mit) statt hier UND in werkbank-leer.js doppelt zu stehen. Damit verliert
+// der Schalter sein eigenes Tasten-/MIDI-Learn-Target (hdr:recfmtmenu, s. Abschlussbericht) —
+// wie alle anderen Themen im Settings-Fenster (Sprache, Backups, …) auch keins haben.
 
 // Die Haupt-Buttons SELBST tasten-/MIDI-zuweisbar (@dpa 20260719_120425): self-Targets —
 // kein Badge über dem Button, das Learning erscheint DARUNTER (mit [↵] bei der Taste).
@@ -1496,7 +1398,6 @@ keyMidi.register('hdr:arrangemode', arrangeBtn, '⇄ Anordnen', () => arrangeBtn
 // das WS als Popover-Zeile nicht mehr hat — offener Punkt, s. Abschlussbericht.
 keyMidi.register('hdr:limbtn', masterVolume.limBtn, 'Lim', () => masterVolume.limBtn.click(), { self: true });
 keyMidi.register('hdr:cfgmenu', cfgBtn, 'Einstellungen', () => cfgBtn.click(), { self: true });
-keyMidi.register('hdr:recfmtmenu', recFmtBtn, '⚙ Rec-Format', () => recFmtBtn.click(), { self: true });
 // Globale Verteilung: ein belegter Tastendruck löst sein Control aus (nur außerhalb des
 // Overlay-Modus; KeyMidi selbst hält sich von echter Texteingabe fern). Jedes Instrument hat
 // sein EIGENES KeyMidi (eigener mountGroups-Aufruf, s.o.) — bisher wurde nur takt.keyMidi
