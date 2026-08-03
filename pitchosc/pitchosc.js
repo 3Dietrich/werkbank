@@ -46,6 +46,7 @@ import { mountGroups } from '../lib/group/GroupHost.js';
 import { PickMenu } from '../lib/PickMenu.js';
 import { createEnsembleStore } from '../lib/EnsembleStore.js';
 import { ElementSettings } from '../lib/ElementSettings.js';
+import { makeWireHeaderBtnSettings } from '../lib/headerBtn.js';
 import { taktMetroDefs } from '../lib/taktmetro/defs.js';
 import { createTaktEngine } from '../lib/taktmetro/engine.js';
 import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
@@ -125,45 +126,10 @@ hdrElemSettings.onApply = (id, style) => {
     if (style && Object.keys(style).length) cur[id] = style; else delete cur[id];
     state.set('ctrlStyles', cur);
 };
-function wireHeaderBtnSettings(id, btn, defLabel) {
-    const field = document.createElement('div'); field.className = 'btn-field hdr-btn-field';
-    const labelEl = document.createElement('span'); labelEl.className = 'btn-label';
-    field.append(labelEl, btn);
-    field.dataset.ctrl = id;
-    // Sichtbarer Text in einem eigenen Span, damit ein Icon im Button (⚙) das Umbenennen
-    // überlebt — `btn.textContent` würde ALLE Kinder ersetzen (s. werkbank.js, dd.md 20260802).
-    let txtEl = btn.querySelector('.hdr-btn-text');
-    if (!txtEl) {
-        txtEl = document.createElement('span'); txtEl.className = 'hdr-btn-text';
-        txtEl.textContent = btn.textContent; btn.textContent = ''; btn.appendChild(txtEl);
-    }
-    const baseText = txtEl.textContent;
-    const applyStyle = (s) => {
-        labelEl.textContent = s.label || '';
-        field.classList.remove('btn-label-top', 'btn-label-left', 'btn-label-right', 'btn-label-bottom', 'btn-label-off');
-        field.classList.add('btn-label-' + (s.labelPos || 'off'));
-        const onText = s.textOn || baseText, offText = s.textOff || baseText;
-        btn._applyBtnStyle = () => {
-            const on = btn.classList.contains('active');
-            txtEl.textContent = on ? onText : offText;
-            btn.style.background = on ? (s.bgOn || '') : (s.bg || '');
-        };
-        btn.style.color = s.fg || '';
-        btn.style.fontSize = s.size ? s.size + 'px' : '';
-        btn.style.padding = s.pad != null ? s.pad + 'px' : '';
-        btn.style.width = s.boxSize ? s.boxSize + 'px' : '';
-        btn.style.height = s.boxH ? s.boxH + 'px' : '';
-        btn._applyBtnStyle();
-    };
-    new MutationObserver(() => btn._applyBtnStyle && btn._applyBtnStyle())
-        .observe(btn, { attributes: true, attributeFilter: ['class'] });
-    field.addEventListener('contextmenu', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        hdrElemSettings.open({ id, type: 'button', el: field, defLabel, applyStyle });
-    });
-    applyStyle((state.get('ctrlStyles') || {})[id] || {});
-    return field;
-}
+// wireHeaderBtnSettings() selbst kommt seit @dpa 20260804 aus lib/headerBtn.js (war bis auf
+// Kommentare byte-identisch dreifach dupliziert — dasselbe Duplikat-Risiko wie bei
+// ADSR/Scope/mountBenchHelp, s. lib/adsrPanel.js-Kommentar).
+const wireHeaderBtnSettings = makeWireHeaderBtnSettings({ hdrElemSettings, state });
 
 // ── Master Volume (1:1 aus werkbank.js) ────────────────────────────────────────────────
 const MASTER_LS = lsKey('master');

@@ -27,6 +27,7 @@ import { mountGroups, kbStyle } from '../lib/group/GroupHost.js';
 import { PickMenu } from '../lib/PickMenu.js';
 import { createEnsembleStore } from '../lib/EnsembleStore.js';
 import { ElementSettings } from '../lib/ElementSettings.js';
+import { makeWireHeaderBtnSettings } from '../lib/headerBtn.js';
 import { taktMetroDefs } from '../lib/taktmetro/defs.js';
 import { createTaktEngine } from '../lib/taktmetro/engine.js';
 import { polySynthDefs } from '../lib/polysynth/defs.js';
@@ -93,50 +94,10 @@ hdrElemSettings.onApply = (id, style) => {
     if (style && Object.keys(style).length) cur[id] = style; else delete cur[id];
     state.set('ctrlStyles', cur);
 };
-function wireHeaderBtnSettings(id, btn, defLabel) {
-    const field = document.createElement('div'); field.className = 'btn-field hdr-btn-field';
-    const labelEl = document.createElement('span'); labelEl.className = 'btn-label';
-    field.append(labelEl, btn);
-    field.dataset.ctrl = id;
-    // Der sichtbare Text lebt in einem eigenen Span (@dpa dd.md 20260802, Zahnrad im ⚙-Knopf):
-    // Umbenennen schrieb bisher `btn.textContent`, und das ersetzt ALLE Kinder — ein SVG-Icon
-    // im Button wäre beim ersten applyStyle() still verschwunden. Der Aufrufer darf jetzt ein
-    // Icon vor den Text hängen; angefasst wird nur noch der Span.
-    let txtEl = btn.querySelector('.hdr-btn-text');
-    if (!txtEl) {
-        txtEl = document.createElement('span'); txtEl.className = 'hdr-btn-text';
-        txtEl.textContent = btn.textContent; btn.textContent = ''; btn.appendChild(txtEl);
-    }
-    const baseText = txtEl.textContent;
-    const applyStyle = (s) => {
-        labelEl.textContent = s.label || '';
-        field.classList.remove('btn-label-top', 'btn-label-left', 'btn-label-right', 'btn-label-bottom', 'btn-label-off');
-        field.classList.add('btn-label-' + (s.labelPos || 'off'));
-        const onText = s.textOn || baseText, offText = s.textOff || baseText;
-        btn._applyBtnStyle = () => {
-            const on = btn.classList.contains('active');
-            txtEl.textContent = on ? onText : offText;
-            btn.style.background = on ? (s.bgOn || '') : (s.bg || '');
-        };
-        btn.style.color = s.fg || '';
-        btn.style.fontSize = s.size ? s.size + 'px' : '';
-        btn.style.padding = s.pad != null ? s.pad + 'px' : '';
-        btn.style.width = s.boxSize ? s.boxSize + 'px' : '';
-        btn.style.height = s.boxH ? s.boxH + 'px' : '';
-        btn._applyBtnStyle();
-    };
-    // `.active` wird von jedem Header-Button anders/eigenständig geschaltet (s.o.) — statt
-    // an jeder Stelle einzeln nachzuziehen, EIN MutationObserver auf die Klasse: repaint
-    // (Text/BG) läuft dann für alle 7 Buttons automatisch mit, ohne deren Klick-Logik anzufassen.
-    new MutationObserver(() => btn._applyBtnStyle && btn._applyBtnStyle())
-        .observe(btn, { attributes: true, attributeFilter: ['class'] });
-    field.addEventListener('contextmenu', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        hdrElemSettings.open({ id, type: 'button', el: field, defLabel, applyStyle });
-    });
-    applyStyle((state.get('ctrlStyles') || {})[id] || {});
-    return field;
-}
+// wireHeaderBtnSettings() selbst kommt seit @dpa 20260804 aus lib/headerBtn.js (war bis auf
+// Kommentare byte-identisch dreifach dupliziert — dasselbe Duplikat-Risiko wie bei
+// ADSR/Scope/mountBenchHelp, s. lib/adsrPanel.js-Kommentar).
+const wireHeaderBtnSettings = makeWireHeaderBtnSettings({ hdrElemSettings, state });
 
 // ── Master Volume (@dpa 20260722, ddw.md „wir brauchen einen Master Volume") ──────────
 // Header-Fader, eigener State (nicht an ein Instrument gebunden — wirkt auf lib/audioBus.js,
