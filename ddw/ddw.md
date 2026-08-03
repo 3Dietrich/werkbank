@@ -154,8 +154,28 @@ Du (KI) arbeitest bei jedem Schritt gefühlt Stunden.. ich glaube viel oder eini
     - ..
 ) und ich kann das vollstandig machen, wenn ich denke dass ich mit den Details am meinem neuen Details stimmen und bleiben..?
 
-
-
-
     Outs (für scope):
         - irgendeine Möglichkeit zwischen Gesamtmix und einzelne Voices und durch die Voices (schnell und einfach) zu schalten..?
+
+20260803_135251
+"wb-leer"- +Neu:
+    man eh! jetzt ist es ganz unten, versteckt wenn man nicht danach sucht: ![alt text](image-13.png)!! 
+    es soll ![hier hin](<image-13 Kopie.png>), in die mitte des sichtbaren screens!
+
+    Verbesserung der ersten Seite:
+    "Diese Werkbank ist die Vorlage für neue Projekte und sollte leer bleiben. Ein eigenes "Ensemble" (Ordner mit neuer html) entsteht als Kopie davon, in ein paar Schritten im Terminal. (Klick für weiter..)"
+
+    der Aufruf der html aus dem Finder/Explorer funktioniert ja nicht. Geht es vielleicht, dass ist diesem Aufruf (also html doppelclick) nur der Hinweis darauf steht?
+    und im Ordner vielleicht ein script welches 
+    cd [..] && python3 -m htt[..] && open http[..] easy ausführen kann?
+
+    in dem Zweiten Fenster "Neues Projekt starten" ist unten noch immer das +Neu fenster.. Das ist jetzt etwas pingelig, aber das kann, Wenn man in diesem Fenster ist, weg. 
+
+    kann man die Ordner (z.B. /Users/dpa/audio/KI_html/werkbank/pitch-osz) einfach löschen? wenn nicht - bitte auch dafür ein script bereitstellen.
+
+    header Rec-Format: kann das auch für Debug gelten oder gibt's dann Schwierigkeiten bei debuggen? Das entscheidet, ob das ism "Rec" dabei bleiben muss oder ob debug ausreicht.
+
+    ohman.. mir fällt so viel ein.. sorry, das muss auf noch mit dazu:
+    es gibt für das Ensemble ja kein extra Setting. Das wäre aber gut, um ISM auch wegschalten zu können.. so wie in den Gruppen die Controls. Das wäre supercool. vielleicht in die main 'Config', die man einfach Settings nennt, und darin eine Unterrubrbrik für die "unsichtbar" geschalteten ISMs hat, die dort wiederum Ihre Settings aufrufen können, um sie wieder sichtbar machen zu können. Dann kann man alle standards (Tempo & MM,Scope,Debug,Rec und Meter) via deren Settings (gleicher Button wie in Controls, Hilfe angepasst) die ISMs wegschalten.. das ware echt cool. Muss aber "bekannt" sein, also in Anleitung, Controls? Achtiktur? vermerken.. sowieso immer bei neuen funktionen..
+
+    ⚙ Rec-Format weg vom Panel, rein in die globalen Settings
