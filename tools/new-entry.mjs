@@ -11,12 +11,21 @@
  * bereitet nur vor (Name abfragen, Kollision prüfen, fertigen Befehl anzeigen + in die
  * Zwischenablage kopieren) — DIESES Skript führt die Kopie tatsächlich aus.
  *
- * Quelle ist AUSSCHLIESSLICH werkbank-leer/ (das neutrale Basis-Scaffold), NIE overcord/ (der
+ * Quelle ist standardmäßig werkbank-leer/ (das neutrale Basis-Scaffold), NIE overcord/ (der
  * volle Baukasten mit Poly-Synth/Stepsequenzer) — s. werkbank-leer/index.html-Kopf: "Aus
  * diesem Ordner heraus kopiert @dpa künftig neue Projekte".
  *
+ * --source <ordner> (@dpa ddw.md 20260803_122138 Punkt 3, "Auslagern"): kopiert stattdessen
+ * aus einem BEREITS GEKLONTEN, gewachsenen Einstieg statt aus der leeren Vorlage — für den
+ * Fall, dass @dpa den bisherigen Stand eines Klons (nicht werkbank-leer) als eigenständiges
+ * neues Projekt abspalten will ("Teilung/Auslagerung", nicht "neu"). Der Panel-Trigger
+ * (lib/newEntryFlow.js) setzt dieses Flag automatisch, wenn er selbst NICHT im Original
+ * werkbank-leer läuft (erkannt über `data-app`/APP, s. lib/appId.js) — <ordner> ist dann
+ * genau der eigene Slug/Ordnername dieses Einstiegs. Das Kopierziel bleibt in JEDEM Fall ein
+ * NEUER, leerer Ordner — nur die Quelle wechselt, der aktuelle Einstieg bleibt unangetastet.
+ *
  * Aufruf:
- *   node tools/new-entry.mjs "<Name>" [--publish]
+ *   node tools/new-entry.mjs "<Name>" [--source <ordner>] [--publish]
  *
  * <Name> wird über lib/slugify.js (GETEILT mit dem Panel-Trigger, damit beide Seiten
  * garantiert denselben Ordnernamen berechnen) zu einem Ordner-Slug normalisiert.
@@ -42,9 +51,7 @@ import { execFileSync } from 'node:child_process';
 import { slugify, isReservedSlug } from '../lib/slugify.js';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const SRC_DIR = path.join(ROOT, 'werkbank-leer');
 const SRC_HTML = 'index.html';
-const SRC_JS = 'werkbank-leer.js';
 
 // project-root.txt selbst aktuell halten (self-healing, @dpa ddw.md 20260803-Bugfix "relativer
 // Pfad im kopierten Terminalbefehl"): der Panel-Trigger (lib/newEntryFlow.js) liest daraus den
@@ -60,11 +67,23 @@ function fail(msg) {
     process.exit(1);
 }
 
-const rawName = process.argv[2];
-const publish = process.argv.includes('--publish');
+// Positionsargument (Name) + zwei optionale Flags. `--source` nimmt IMMER das direkt
+// folgende Argument als Wert — kein `--source=x`-Gleichheitszeichen-Stil, um mit dem Rest
+// des Skripts (einfaches argv-Scannen, kein arg-parser-Paket) konsistent zu bleiben.
+const argv = process.argv.slice(2);
+const rawName = argv[0];
+const publish = argv.includes('--publish');
+const sourceFlagAt = argv.indexOf('--source');
+const sourceSlug = sourceFlagAt >= 0 ? argv[sourceFlagAt + 1] : 'werkbank-leer';
 
 if (!rawName || rawName.startsWith('--')) {
-    fail('Name fehlt. Aufruf: node tools/new-entry.mjs "<Name>" [--publish]');
+    fail('Name fehlt. Aufruf: node tools/new-entry.mjs "<Name>" [--source <ordner>] [--publish]');
+}
+if (sourceFlagAt >= 0 && (!sourceSlug || sourceSlug.startsWith('--'))) {
+    fail('--source braucht einen Ordnernamen dahinter, z.B. --source pitch-osz');
+}
+if (sourceSlug.includes('/') || sourceSlug.includes('\\') || sourceSlug.includes('..')) {
+    fail(`--source darf nur einen direkten Ordnernamen unter dem Projekt-Root enthalten, kein Pfad: "${sourceSlug}"`);
 }
 
 // Verschachtelte Slugs sind verboten (s. lib/slugify.js-Kopf): die Kopie unterstützt nur EINE
@@ -87,6 +106,15 @@ if (isReservedSlug(slug)) {
     fail(`"${slug}" ist ein reservierter Name (bestehende Root-Struktur) — anderen Namen wählen.`);
 }
 
+// Quelle auflösen (default 'werkbank-leer', s. Datei-Kopf "--source"): muss ein echter
+// Pool-Einstieg unter ROOT sein (index.html + <sourceSlug>.js), egal ob Original oder
+// bereits ein gewachsener Klon ("Auslagern"-Fall) — sonst gäbe es nichts zum Kopieren.
+const SRC_DIR = path.join(ROOT, sourceSlug);
+const SRC_JS = `${sourceSlug}.js`;
+if (!fs.existsSync(path.join(SRC_DIR, SRC_HTML)) || !fs.existsSync(path.join(SRC_DIR, SRC_JS))) {
+    fail(`Quelle "${sourceSlug}/" nicht gefunden — erwartet ${sourceSlug}/index.html + ${sourceSlug}/${SRC_JS}.`);
+}
+
 const destDir = path.join(ROOT, slug);
 // Case-insensitives Dateisystem (macOS/APFS, s. Risiko-Liste im Plan): existsSync() mit dem
 // bereits erzwungenen lowercase-Slug fängt auch eine vorhandene GROSS/Kleinschreibungs-Variante
@@ -99,46 +127,53 @@ fs.mkdirSync(destDir);
 
 // ── index.html kopieren + gezielt umschreiben ──────────────────────────────────────────
 // Relative Pfade (../css/…, ../lib/…) bleiben UNVERÄNDERT — die Kopie liegt in derselben
-// Verzeichnistiefe wie werkbank-leer/. <h1>Werkbank</h1> bleibt ebenfalls unverändert
-// (globaler Marken-Header, wie bei overcord/werkbank-leer auch).
+// Verzeichnistiefe wie die Quelle. <h1>Werkbank</h1> bleibt ebenfalls unverändert
+// (globaler Marken-Header, wie bei overcord/werkbank-leer auch). data-app/script-src werden
+// GENERISCH gegen `sourceSlug` ersetzt (nicht mehr hart "werkbank-leer") — im Auslagern-Fall
+// trägt die Quelle bereits ihren EIGENEN Slug in beiden Stellen. Der <title> wird per Regex
+// ersetzt statt eines exakten String-Vergleichs, weil eine Auslagern-Quelle einen beliebigen,
+// schon selbst vergebenen Titel tragen kann (nicht mehr zwingend "Werkbank – leer").
 let html = fs.readFileSync(path.join(SRC_DIR, SRC_HTML), 'utf8');
-html = html.replace('data-app="werkbank-leer"', `data-app="${slug}"`);
-html = html.replace('<title>Werkbank – leer</title>', `<title>Werkbank – ${rawName}</title>`);
-html = html.replace('src="werkbank-leer.js"', `src="${slug}.js"`);
+html = html.replace(`data-app="${sourceSlug}"`, `data-app="${slug}"`);
+html = html.replace(/<title>.*?<\/title>/, `<title>Werkbank – ${rawName}</title>`);
+html = html.replace(`src="${sourceSlug}.js"`, `src="${slug}.js"`);
 fs.writeFileSync(path.join(destDir, SRC_HTML), html);
 
-// ── werkbank-leer.js → <slug>.js ───────────────────────────────────────────────────────
+// ── <sourceSlug>.js → <slug>.js ────────────────────────────────────────────────────────
 // Dateiname = Ordnername (Konvention, wie overcord/werkbank.js und werkbank-leer/
 // werkbank-leer.js). Import-Pfade bleiben unverändert (gleiche Tiefe). Kopf-/Prosa-Kommentare,
-// die wörtlich "werkbank-leer" nennen, werden auf den neuen Slug umgeschrieben — rein
+// die wörtlich den Quell-Slug nennen, werden auf den neuen Slug umgeschrieben — rein
 // kosmetisch für lesbare Kommentare, FUNKTIONAL nicht zwingend: `APP` kommt zur Laufzeit aus
 // dem DOM (`data-app`, s. lib/appId.js), nicht aus dem Dateinamen oder Kommentartext.
 let js = fs.readFileSync(path.join(SRC_DIR, SRC_JS), 'utf8');
-js = js.split('werkbank-leer').join(slug);
+js = js.split(sourceSlug).join(slug);
 fs.writeFileSync(path.join(destDir, `${slug}.js`), js);
 
-// ── Demo-/Erstbesuch-Datei mitkopieren ─────────────────────────────────────────────────
-// presets/werkbank-leer-config.json → presets/<slug>-config.json, Keys darin von
-// 'werkbank-leer_' auf '<slug>_' umgeschrieben — nur Lesbarkeit: lib/defaultConfig.js biegt
+// ── Demo-/Erstbesuch-Datei mitkopieren (falls die Quelle eine hat) ─────────────────────
+// presets/<sourceSlug>-config.json → presets/<slug>-config.json, Keys darin von
+// '<sourceSlug>_' auf '<slug>_' umgeschrieben — nur Lesbarkeit: lib/defaultConfig.js biegt
 // fremde Präfixe zur Laufzeit ohnehin über toOwnKey() um (s. lib/appId.js), ohne diesen
 // Schritt bliebe der Demo-Stand also trotzdem gültig, nur mit "falsch beschrifteten" Keys
-// in der Datei selbst.
+// in der Datei selbst. Ein Auslagern-Klon hat i.d.R. GAR KEINE presets-Datei (nur
+// werkbank-leer/ bringt die mitgelieferte Demo mit) — der gewachsene Stand des Klons steckt
+// ohnehin im Browser-localStorage, nicht in einer presets-Datei; das ist hier bewusst nicht
+// Teil des Kopiervorgangs (s. Datei-Kopf "--source": es geht nur um die CODE-Quelle).
 const presetsDir = path.join(ROOT, 'presets');
-const srcPreset = path.join(presetsDir, 'werkbank-leer-config.json');
+const srcPreset = path.join(presetsDir, `${sourceSlug}-config.json`);
 // Alle neu angelegten/geänderten Pfade sammeln — Grundlage für den automatischen `git add`
 // weiter unten (EINE Stelle statt an jeder Schreibstelle einzeln zu staged).
 const touchedPaths = [destDir];
 if (fs.existsSync(srcPreset)) {
     let preset = fs.readFileSync(srcPreset, 'utf8');
-    preset = preset.split('werkbank-leer_').join(`${slug}_`);
+    preset = preset.split(`${sourceSlug}_`).join(`${slug}_`);
     const destPreset = path.join(presetsDir, `${slug}-config.json`);
     fs.writeFileSync(destPreset, preset);
     touchedPaths.push(destPreset);
 } else {
-    console.warn('new-entry: presets/werkbank-leer-config.json fehlt — keine Demo-Datei für die Kopie angelegt (Seite startet mit leeren Defaults, kein Fehler).');
+    console.warn(`new-entry: presets/${sourceSlug}-config.json fehlt — keine Demo-Datei für die Kopie angelegt (Seite startet mit leeren Defaults, kein Fehler).`);
 }
 
-console.log(`new-entry: "${slug}/" angelegt aus werkbank-leer/ (data-app="${slug}").`);
+console.log(`new-entry: "${slug}/" angelegt aus ${sourceSlug}/ (data-app="${slug}").`);
 
 /**
  * Landing-Page-Karte (index.html, Muster: bestehende Overcord-/Leer-Karten) + Tabellenzeile
@@ -152,12 +187,14 @@ function publishEntry(slugName, displayName) {
     // Ohne eigenen Screenshot (den gibt es für eine frische Kopie noch nicht) bleibt die
     // <img class="lp-shot"> bewusst weg statt auf eine nicht existierende Datei zu zeigen —
     // einzige Abweichung vom 1:1-Muster der bestehenden Karten, sonst identischer Aufbau.
+    // Beschreibung nennt die TATSÄCHLICHE Quelle (sourceSlug, aus dem äußeren Scope) statt
+    // hart "Leer" — im Auslagern-Fall ist die Quelle ein anderer, gewachsener Klon.
     const idxPath = path.join(ROOT, 'index.html');
     let idx = fs.readFileSync(idxPath, 'utf8');
     const card = `    <a class="lp-card" href="${slugName}/">\n`
         + `      <div class="lp-body">\n`
         + `        <h2 class="wb-instr-name">${displayName}</h2>\n`
-        + `        <p>Kopie von "Leer" (Takt/Metronom, Rec, Meter, Signal-Scopes) — neuer Pool-Einstieg.</p>\n`
+        + `        <p>Kopie von "${sourceSlug}/" — neuer Pool-Einstieg.</p>\n`
         + `        <span class="lp-go">→ öffnen</span>\n`
         + `      </div>\n`
         + `    </a>\n`;
@@ -175,7 +212,7 @@ function publishEntry(slugName, displayName) {
     // (Pool)"-Tabelle einfügen (gleiches Tabellenformat).
     const archPath = path.join(ROOT, 'ARCHITEKTUR.md');
     let arch = fs.readFileSync(archPath, 'utf8');
-    const row = `| \`/${slugName}\` | \`${slugName}/index.html\` + \`${slugName}/${slugName}.js\` | \`${slugName}\` | \`${slugName}_*\` · \`presets/${slugName}-config.json\` | Kopie von werkbank-leer/ (${displayName}). |\n`;
+    const row = `| \`/${slugName}\` | \`${slugName}/index.html\` + \`${slugName}/${slugName}.js\` | \`${slugName}\` | \`${slugName}_*\` · \`presets/${slugName}-config.json\` | Kopie von ${sourceSlug}/ (${displayName}). |\n`;
     const anchorLine = /\| `\/werkbank-leer` \|[^\n]*\n/;
     if (anchorLine.test(arch)) {
         arch = arch.replace(anchorLine, (m) => m + row);
