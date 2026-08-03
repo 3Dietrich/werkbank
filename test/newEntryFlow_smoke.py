@@ -26,6 +26,15 @@ Und die drei Nachbesserungen (20260803_122138):
      erzeugten (und danach wieder entfernten) Klon zeigt derselbe Ablauf "Auslagern" statt
      "+ Neu", KEINE zentrale Karte, und der generierte Befehl trägt `--source <Klon>`.
 
+Und der Nachbesserungs-Rebuild aus ddw.md 20260803_135251 (der ERSTE Fix oben vermied nur
+Überlappung, landete dabei aber unsichtbar am Ende des Dokumentflusses, s. ddw/image-13.png):
+  Punkt 1 NEU "wirklich im sichtbaren Viewport": #newEntryCard liegt nach der Platzierung
+     komplett INNERHALB von `window.innerHeight`/`innerWidth` (nicht nur überlappungsfrei
+     irgendwo im Dokument) — Bounding-Box gegen `page.viewport_size` geprüft.
+  Punkt 3 "Popup weg → Karte weg": solange das "Neues Projekt starten"-Fenster offen ist,
+     ist #newEntryCard unsichtbar (`hidden`); nach dem Schließen wieder sichtbar UND erneut
+     korrekt (innerhalb des Viewports, kein Overlap) positioniert.
+
 Lauf: python3 test/newEntryFlow_smoke.py
 Hart begrenzt (Watchdog killt nach 40s), kein Pollen.
 """
@@ -153,6 +162,39 @@ try:
             if card_box and bench_box:
                 check(not intersects(card_box, bench_box),
                       f"#newEntryCard überlappt {sel}: card={card_box} bench={bench_box}")
+
+        # ── 6b. Punkt 1 NEU (ddw.md 20260803_135251, "wirklich im sichtbaren Viewport"): die
+        # Karte muss KOMPLETT innerhalb von window.innerHeight/innerWidth liegen — der erste
+        # Fix (oben, 20260803_122138) prüfte nur Überlappungsfreiheit und landete dabei am
+        # Ende des Dokumentflusses, weit unterhalb des sichtbaren Bereichs (ddw/image-13.png,
+        # @dpa: "jetzt ist es ganz unten, versteckt"). Toleranz 1px für Sub-Pixel-Rundung. ──
+        vp = pg.viewport_size
+        if card_box and vp:
+            check(card_box["y"] >= -1, f"#newEntryCard ragt oben aus dem Viewport: {card_box}")
+            check(card_box["y"] + card_box["height"] <= vp["height"] + 1,
+                  f"#newEntryCard ragt unten aus dem Viewport (Scrollen nötig): card={card_box} viewport={vp}")
+            check(card_box["x"] >= -1, f"#newEntryCard ragt links aus dem Viewport: {card_box}")
+            check(card_box["x"] + card_box["width"] <= vp["width"] + 1,
+                  f"#newEntryCard ragt rechts aus dem Viewport: card={card_box} viewport={vp}")
+
+        # ── 6c. Punkt 3 (ddw.md 20260803_135251, "Popup weg → Karte weg"): solange das
+        # "Neues Projekt starten"-Fenster offen ist, ist die Karte unsichtbar; nach dem
+        # Schließen wieder sichtbar UND erneut korrekt (Viewport, kein Overlap) platziert. ──
+        pg.locator("#newEntryCard").click()
+        pg.wait_for_selector(".ne-window:visible", timeout=3000)
+        check(pg.locator("#newEntryCard").is_hidden(),
+              "#newEntryCard sollte unsichtbar sein, solange das 'Neues Projekt starten'-Fenster offen ist")
+        pg.locator(".ne-window:visible .sw-close").click()
+        pg.wait_for_function(
+            "() => document.querySelector('#newEntryCard') && !document.querySelector('#newEntryCard').hidden",
+            timeout=3000)
+        check(pg.locator("#newEntryCard").is_visible(),
+              "#newEntryCard sollte nach dem Schließen des Fensters wieder sichtbar sein")
+        card_box2 = pg.locator("#newEntryCard").bounding_box()
+        check(card_box2 is not None, "#newEntryCard hat nach Popup-Schließen keine Bounding-Box")
+        if card_box2 and vp:
+            check(card_box2["y"] >= -1 and card_box2["y"] + card_box2["height"] <= vp["height"] + 1,
+                  f"#newEntryCard nach Popup-Schließen nicht mehr im Viewport: card={card_box2} viewport={vp}")
 
         # ── 7. Punkt 2 ("Öffnen"-Knopf): erscheint erst, NACHDEM der Ordner existiert —
         # per page.route() gemockt (derselbe HEAD-Trick wie der Kollisions-Check in Schritt 1,
