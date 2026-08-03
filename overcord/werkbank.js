@@ -1205,7 +1205,10 @@ function exportConfig() {
     const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);   // YYYYMMDDHHMMSS, ohne den Millisekunden-Punkt
     // Dateiname trägt den Ensemble-Namen (@dpa dd.md 20260802: "sollten ihren Namen vom
     // Ensemblenamen übernehmen") — sonst heißen Exports aus verschiedenen Einstiegen gleich.
-    a.href = url; a.download = APP + '-config-' + ts + '.json'; a.click();
+    // NICHT `APP` selbst (der bleibt bewusst 'werkbank', s. ARCHITEKTUR.md "keine Migration"
+    // der Keys) — @dpa 20260803: nur der sichtbare Dateiname soll "overcord" heißen, damit
+    // Exports im Download-Ordner erkennbar sind, ohne die internen Keys/localStorage anzufassen.
+    a.href = url; a.download = 'overcord-config-' + ts + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 // Gestaffelte Auto-Backups (@dpa ddw.md 20260802 Punkt 4, lib/Backup.js-Kopf für die
