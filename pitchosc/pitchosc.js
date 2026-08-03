@@ -53,7 +53,7 @@ import { createRecEngine } from '../lib/recInstrument/engine.js';
 import { debugPanelDefs } from '../lib/debugPanel/defs.js';
 import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
 import { mountDebugGroup } from '../lib/debugPanel/mount.js';
-import { adsrOscDefs } from '../lib/adsrOsc/defs.js';
+import { adsrOscDefs, ADSR_SETTINGS_TOGGLES, ADSR_SETTINGS_SELECTS, ADSR_SETTINGS_SKEWS, ADSR_SETTINGS_NUMS, ADSR_DEFAULTS } from '../lib/adsrOsc/defs.js';
 import { createAdsrOscEngine } from '../lib/adsrOsc/engine.js';
 import { wireAdsrKnobVisibility } from '../lib/polysynth/multiEnv.js';
 import {
@@ -403,8 +403,97 @@ const adsrOscEngine = createAdsrOscEngine(adsrOscState, {
     getBpm: () => taktState.get('bpm'),
 });
 const adsrOscDefsConfig = adsrOscDefs({ onAction: (id, phase) => adsrOscEngine.onAction(id, phase) });
+
+// ADSR-Settings-Hook für Gruppen-Rechtsklick-Panel
+const _adsrOscGroupKindSettings = {
+    ADSR: (name, pop, st, row, sfx) => {
+        const get = (k) => adsrOscState.get(k + sfx);
+        const set = (k, v) => adsrOscState.set(k + sfx, v);
+
+        const sep = document.createElement('div'); sep.className = 'gs-sep'; pop.appendChild(sep);
+
+        // Grid: 2 Spalten (Toggles links, Selects rechts)
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
+
+        const toggleCol = document.createElement('div');
+        for (const [key, cfg] of Object.entries(ADSR_SETTINGS_TOGGLES)) {
+            const r = document.createElement('label');
+            r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
+            const cb = document.createElement('input'); cb.type = 'checkbox';
+            cb.checked = get(key) ?? ADSR_DEFAULTS[key];
+            cb.addEventListener('change', () => set(key, cb.checked));
+            r.appendChild(cb);
+            r.appendChild(document.createTextNode(cfg.label));
+            toggleCol.appendChild(r);
+        }
+        grid.appendChild(toggleCol);
+
+        const selectCol = document.createElement('div');
+        for (const [key, cfg] of Object.entries(ADSR_SETTINGS_SELECTS)) {
+            const r = document.createElement('label');
+            r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
+            const sel = document.createElement('select');
+            sel.style.cssText = 'font-size:11px; padding:1px 4px;';
+            for (const o of cfg.options) {
+                const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
+                sel.appendChild(opt);
+            }
+            sel.value = get(key) ?? ADSR_DEFAULTS[key];
+            sel.addEventListener('change', () => set(key, sel.value));
+            r.appendChild(sel);
+            r.appendChild(document.createTextNode(cfg.label));
+            selectCol.appendChild(r);
+        }
+        grid.appendChild(selectCol);
+        pop.appendChild(grid);
+
+        // Skew-Zeile
+        const skewRow = document.createElement('div');
+        skewRow.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
+        const skewLabel = document.createElement('span'); skewLabel.textContent = 'Skew:'; skewRow.appendChild(skewLabel);
+        for (const [key, cfg] of Object.entries(ADSR_SETTINGS_SKEWS)) {
+            const l = document.createElement('label');
+            l.style.cssText = 'display:flex; align-items:center; gap:2px;';
+            const num = document.createElement('input'); num.type = 'number';
+            num.min = cfg.min; num.max = cfg.max; num.step = 0.1;
+            num.value = get(key) ?? cfg.default;
+            num.style.cssText = 'width:40px; font-size:11px; padding:1px 2px;';
+            num.addEventListener('input', () => {
+                const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
+                set(key, v);
+            });
+            l.appendChild(num);
+            l.appendChild(document.createTextNode(cfg.label.replace('-Skew', '')));
+            skewRow.appendChild(l);
+        }
+        pop.appendChild(skewRow);
+
+        // Nullpunktversatz
+        const numRow = document.createElement('div');
+        numRow.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
+        for (const [key, cfg] of Object.entries(ADSR_SETTINGS_NUMS)) {
+            const l = document.createElement('label');
+            l.style.cssText = 'display:flex; align-items:center; gap:4px;';
+            const num = document.createElement('input'); num.type = 'number';
+            num.min = cfg.min; num.max = cfg.max; num.step = 0.01;
+            num.value = get(key) ?? cfg.default;
+            num.style.cssText = 'width:56px; font-size:11px; padding:1px 2px;';
+            num.addEventListener('input', () => {
+                const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
+                set(key, v);
+            });
+            l.appendChild(document.createTextNode(cfg.label));
+            l.appendChild(num);
+            numRow.appendChild(l);
+        }
+        pop.appendChild(numRow);
+    },
+};
+
 const adsrOsc = mountGroups(adsrOscRoot, adsrOscState, adsrOscDefsConfig, {
     instrumentScaled: () => adsrOscInstr.scaled(),
+    groupKindSettings: (kind) => _adsrOscGroupKindSettings[kind],
 });
 const adsrOscInstr = mountInstrumentSettings(document.querySelector('#bench-adsrosc'), adsrOscState, { bodySelector: '#adsrosc', host: adsrOsc });
 window.__adsrOsc = { state: adsrOscState, host: adsrOsc, engine: adsrOscEngine };
