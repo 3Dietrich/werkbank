@@ -11,6 +11,26 @@
 <title>Werkbank – leer</title>
 <link rel="stylesheet" href="../css/main.css" />
 <link rel="stylesheet" href="../css/werkbank.css" />
+<style>
+  /* "+ Neu"-Karte (@dpa ddw.md 20260803-Rebuild) — NUR hier in werkbank-leer, nicht in
+     overcord/ (s. Karten-Kommentar unten): Optik bewusst scoped/inline wie die lp-card-Regeln
+     der Landing-Page (../index.html), statt einer geteilten Klasse in css/werkbank.css, weil
+     dieses Muster ausdrücklich NUR an dieser einen Stelle gebraucht wird. Strukturmuster aus
+     ddw/image-10.png übernommen (Karte, fette Überschrift, kurzer Text darunter) — NICHT
+     dessen Farben/Schrift/Text, ins bestehende dunkle Theme übersetzt (var(--panel2)/
+     var(--sel-line), wie ../index.html .lp-card). Überschrift bewusst GRÖSSER als im Vorbild
+     (@dpa: "Überschrift (größer als Bsp)"). */
+  .ne-card {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    width: 100%; text-align: left; cursor: pointer; font: inherit;
+    background: var(--panel2); border: 1px solid var(--sel-line); border-radius: 8px;
+    padding: 14px 16px 16px; transition: border-color .15s, transform .15s;
+  }
+  .ne-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .ne-card h2 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text); }
+  .ne-card p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.55; }
+  .ne-card .ne-go { color: var(--accent); font-size: 11px; }
+</style>
 </head>
 <body>
 <!-- werkbank-leer/ – ZWEITER, schlankerer Pool-Einstieg neben index.html, erreichbar
@@ -75,6 +95,23 @@
     <section class="wb-bench wb-bare" id="bench-levelmeter">
         <div id="levelmeter"></div>
     </section>
+
+    <!-- "+ Neu" (@dpa ddw.md 20260803-Rebuild, s. lib/newEntryFlow.js-Kopf): zentrale
+         Auslöser-Karte NUR hier in werkbank-leer — die einzige Werkbank, aus der neue
+         Pool-Einstiege entstehen (s. Datei-Kopf oben). Bewusst KEIN <section class="wb-bench">/
+         ISM/Control (s. ARCHITEKTUR.md "Welche Modul-Sorte …") — sie hat keinen State, keine
+         defs.js/engine.js, nichts Hörbares; ein einfacher <button>, der denselben Ablauf
+         öffnet wie der kleine "+ Neu"-Knopf in den Einstellungen (lib/mainSettings.js). Steht
+         trotzdem als eigene Kachel im selben #app-Grid wie die ISMs — rein visuell an
+         zentraler Stelle, wie @dpa es wollte ("vielleicht in der Mitte … nur wegen der Lage
+         so beschrieben"). -->
+    <button type="button" class="ne-card" id="newEntryCard">
+        <h2>+ Neu</h2>
+        <p>Diese Werkbank bleibt immer leer — die Vorlage für neue Projekte. Ein eigenes
+           Ensemble entsteht als Kopie davon, in ein paar Schritten im Terminal (kein
+           einzelner Klick).</p>
+        <span class="ne-go">→ Ablauf starten</span>
+    </button>
 
     <!-- Signal-Scopes (@dpa 20260726): schmale Steuersignal-Oszilloskope zum
          "Reinklinken" (Debug-Helfer + Anzeige-Control). Vervielfältigbar wie ADSR. -->

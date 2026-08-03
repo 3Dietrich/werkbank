@@ -79,6 +79,11 @@ setLang(state.get('lang') || 'de');
 wireGlobalLook(state);
 installSelectOnFocus();
 
+// ── "+ Neu"-Karte (@dpa ddw.md 20260803-Rebuild, s. lib/newEntryFlow.js-Kopf + index.html-
+// Kommentar an der Karte): ruft denselben Ablauf wie der kleine Knopf in den Einstellungen
+// auf — EINE Logik, zwei Auslöser. Kein eigener State/keine defs — bewusst kein ISM/Control.
+document.querySelector('#newEntryCard')?.addEventListener('click', (e) => openNewEntryFlow(e.currentTarget));
+
 // ── Header-Button-Settings (1:1 aus werkbank.js — instrumentunabhängig, generisch) ─────
 const hdrElemSettings = new ElementSettings(state);
 hdrElemSettings.onApply = (id, style) => {
