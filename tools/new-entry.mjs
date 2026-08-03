@@ -158,6 +158,71 @@ fs.writeFileSync(path.join(destDir, `${slug}.js`), js);
 // werkbank-leer/ bringt die mitgelieferte Demo mit) — der gewachsene Stand des Klons steckt
 // ohnehin im Browser-localStorage, nicht in einer presets-Datei; das ist hier bewusst nicht
 // Teil des Kopiervorgangs (s. Datei-Kopf "--source": es geht nur um die CODE-Quelle).
+/**
+ * Doppelklick-Start-Skript für diesen Einstieg (@dpa ddw.md 20260803_135251 Punkt 5: "im
+ * Ordner vielleicht ein Script welches cd .. && python3 -m http.server .. && open http.. easy
+ * ausführen kann?"). macOS-`.command`-Datei (Terminal.app führt sie per Doppelklick aus, s.
+ * `chmod +x` unten) — liegt IM neuen Ordner selbst, `"$(dirname "$0")/.."` ist darum unabhängig
+ * vom tatsächlichen Projekt-Pfad immer das Repo-Root (derselbe gemeinsame Server für ALLE
+ * Einstiege, s. CLAUDE.md "Starten/Testen" — kein eigener Port pro Einstieg).
+ *
+ * Port-Kollision (@dpa: "Port hochzählen ... nicht überengineeren"): startet `python3 -m
+ * http.server` auf einem Port, prüft kurz danach per `kill -0`, ob der Prozess noch lebt (ein
+ * Fehlschlag wegen "Address already in use" beendet ihn sofort wieder) — falls nicht, nächster
+ * Port, bis zu 20 Versuche. Kein Vorab-Lock-Check (TOCTOU), das reicht für diesen Zweck.
+ * @param {string} slugName
+ * @returns {string} Skriptinhalt
+ */
+function buildStartScript(slugName) {
+    return `#!/bin/bash
+# start.command — Doppelklick-Start für den Werkbank-Einstieg "${slugName}" (von
+# tools/new-entry.mjs erzeugt, @dpa ddw.md 20260803_135251 Punkt 5). Liegt IM
+# Einstiegs-Ordner — "$(dirname "$0")/.." ist darum das Projekt-Root, unabhängig davon,
+# wohin der Ordner verschoben/kopiert wird.
+cd "$(dirname "$0")/.." || { echo "Projekt-Root nicht gefunden."; read -p "Enter zum Schließen..."; exit 1; }
+
+SLUG="${slugName}"
+PORT=8002
+for i in $(seq 0 20); do
+  TRY=$((PORT + i))
+  python3 -m http.server "$TRY" >/tmp/werkbank-start-$$.log 2>&1 &
+  SERVER_PID=$!
+  sleep 0.5
+  if kill -0 "$SERVER_PID" 2>/dev/null; then
+    PORT=$TRY
+    break
+  fi
+  wait "$SERVER_PID" 2>/dev/null
+  if [ "$i" -eq 20 ]; then
+    echo "Konnte auf keinem Port zwischen 8002 und $TRY starten (Log: /tmp/werkbank-start-$$.log)."
+    read -p "Enter zum Schließen..."
+    exit 1
+  fi
+done
+
+sleep 1
+open "http://localhost:$PORT/$SLUG/"
+echo "Server läuft auf Port $PORT (PID $SERVER_PID) — dieses Fenster kann geschlossen werden,"
+echo "der Server läuft im Hintergrund weiter (beenden: kill $SERVER_PID)."
+read -p "Enter zum Schließen dieses Fensters..."
+`;
+}
+
+/** Start-Skript in den Zielordner schreiben + ausführbar machen. Gibt den Pfad zurück (für
+ *  touchedPaths) oder null, falls das Schreiben fehlschlägt (nicht kritisch — @dpa kann den
+ *  Server weiterhin von Hand starten, s. CLAUDE.md "Starten/Testen"). */
+function writeStartScript(dir, slugName) {
+    const p = path.join(dir, 'start.command');
+    try {
+        fs.writeFileSync(p, buildStartScript(slugName));
+        fs.chmodSync(p, 0o755);
+        return p;
+    } catch (e) {
+        console.warn(`new-entry: Start-Skript konnte nicht angelegt werden (${e.message}) — nicht kritisch, Server lässt sich weiterhin von Hand starten.`);
+        return null;
+    }
+}
+
 const presetsDir = path.join(ROOT, 'presets');
 const srcPreset = path.join(presetsDir, `${sourceSlug}-config.json`);
 // Alle neu angelegten/geänderten Pfade sammeln — Grundlage für den automatischen `git add`
@@ -173,7 +238,13 @@ if (fs.existsSync(srcPreset)) {
     console.warn(`new-entry: presets/${sourceSlug}-config.json fehlt — keine Demo-Datei für die Kopie angelegt (Seite startet mit leeren Defaults, kein Fehler).`);
 }
 
+// Start-Skript IN den neuen Ordner (@dpa ddw.md 20260803_135251 Punkt 5) — nach der
+// Demo-Datei, damit es in der Konsolen-Ausgabe zuletzt und damit gut sichtbar erscheint.
+const startScriptPath = writeStartScript(destDir, slug);
+if (startScriptPath) touchedPaths.push(startScriptPath);
+
 console.log(`new-entry: "${slug}/" angelegt aus ${sourceSlug}/ (data-app="${slug}").`);
+if (startScriptPath) console.log(`new-entry: Start-Skript "${slug}/start.command" angelegt (Doppelklick startet Server + öffnet die Seite).`);
 
 /**
  * Landing-Page-Karte (index.html, Muster: bestehende Overcord-/Leer-Karten) + Tabellenzeile
