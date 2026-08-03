@@ -82,13 +82,27 @@ einfach importieren):
 | Oszillator (fertige Voice, Square/Saw/Sine/Tri, Poly-Limit + Voice-Stealing eingebaut) | [lib/polysynth/audio/SquareOsc.js](../lib/polysynth/audio/SquareOsc.js) | `class SquareOsc` |
 | Oszillator (rohe Wellenform-Koeffizienten für `createPeriodicWave`, wenn SquareOsc.js zu viel mitbringt) | [lib/polysynth/audio/pulseWave.js](../lib/polysynth/audio/pulseWave.js) | `oscCoefficients(duty, phase, N)`, `harmonicsForFreq(...)` |
 | ADSR (reine Hüllkurven-Mathematik, liefert Float32Array für `setValueCurveAtTime`) | [lib/polysynth/envCore.js](../lib/polysynth/envCore.js) | `msToSamples(ms, sampleRate)` + Kurvenbau |
-| ADSR (vervielfältigbar, mit echtem AudioNode-Output fürs Scope) | [lib/polysynth/multiEnv.js](../lib/polysynth/multiEnv.js) | `EnvEngine`, `createEnvManager()` |
+| ADSR (GroupHost-Panel + Rechtsklick-Settings, 1..N Instanzen über EINEN Hook) | [lib/adsrPanel.js](../lib/adsrPanel.js) | `adsrKnobs()`, `adsrButtons(onAction)`, `adsrGroupDef(name, sfx)`, `adsrDefaultsFor(sfx)`, `createAdsrSettingsHook(state, {onCopy?, onDelete?})` |
+| ADSR (vervielfältigbar mit +/‑, Routing-Registrierung + Output-PickMenu, echter AudioNode für Scope) | [lib/polysynth/multiEnv.js](../lib/polysynth/multiEnv.js) | `EnvEngine`, `createEnvManager()` — bezieht seine Panel-/Settings-Bausteine seinerseits aus `lib/adsrPanel.js` |
 | Tonhöhe (MIDI↔Hz, Kammerton, Snap) | [lib/polysynth/pitch/Scaler.js](../lib/polysynth/pitch/Scaler.js) | `freqToMidi`, `midiToFreq`, `foldToBand`, `harmonicSnap`, `setConcertPitch/getConcertPitch` |
 | Pitch-Slide-Mathematik | [lib/polysynth/dsp/holdSlide.js](../lib/polysynth/dsp/holdSlide.js) | `slidePlan(...)`, `slideFreqAt(...)` |
 | Latenz-Vertrag fürs Routing | [lib/routing/latency.js](../lib/routing/latency.js) | `busLatencyMs()` |
 
-`lib/adsrOsc/` existiert bereits als **vorbereiteter leerer Ordner** – der natürliche Zielort
-für genau so ein Modul, statt einen neuen Namen zu erfinden.
+`lib/adsrOsc/` ist inzwischen ein gebautes Beispiel für genau dieses Rezept (Amp-ADSR +
+Pitch-ADSR + eigener Oszillator, alle ADSR-Bausteine aus `lib/adsrPanel.js` importiert, s.
+`GROUPS` dort) – als Vorlage lesen, bevor ein neuer ähnlicher Ordner entsteht.
+
+**Wichtig bei EIGENER ADSR-Gruppe (kein Copy-Paste!):** `lib/adsrPanel.js` ist die EINE
+Quelle für Knobs/Buttons/Settings/Defaults einer ADSR-Gruppe – Werte-Knobs (A/D/S/R/Peak/
+Len) UND die Rechtsklick-Settings (aktiv/Kurven/Skew/Nullpunkt) kommen von dort, nie
+händisch nachgebaut. Jede Gruppe bekommt `groupKind:'ADSR'` (egal ob es EINE feste, ZWEI
+feste wie bei `adsrOsc` Amp+Pitch, oder N vervielfältigbare Instanzen sind) + ein eigenes
+`instanceSuffix` (z. B. `''`, `'_p'`, `'_0'`) – GroupHost reicht das Suffix bei jedem
+Rechtsklick automatisch an EINEN gemeinsamen `groupKindSettings`-Hook durch
+([GroupHost.js](../lib/group/GroupHost.js), Zeile ~2010), sodass ein einziger
+`createAdsrSettingsHook(state)`-Aufruf beliebig viele ADSR-Gruppen bedient. **Zwei
+verschiedene `groupKind`-Namen für zwei ADSRs desselben ISM sind ein Warnsignal**, dass der
+Settings-Hook fehlt oder falsch verdrahtet ist, nicht die richtige Lösung.
 
 **Bauregel:** Ein neues schlankes Klang-ISM bekommt eine **eigene** `engine.js`
 (`createXEngine(state,...)`, s. Neues-ISM-Checkliste oben), die die Bausteine aus der Tabelle
@@ -104,6 +118,12 @@ den niemand in der UI sieht und niemand eingebaut hat.
    Typ-Tabelle in [lib/routing/types.js](../lib/routing/types.js)) mit anderen Modulen
    verbunden werden – z. B. ADSR-Ausgang moduliert einen vorhandenen Oszillator woanders,
    oder OSZ-Ausgang geht an ein Scope? Wenn Routing: welche `outputs`/`inputs` genau?
+   **Default bei „bau mir X und Y" ohne genannte Verbindung (@dpa 20260803, „modular synth
+   Sprache"):** Module UNVERBUNDEN hinstellen, jedes mit echten `ports` (Output-PickMenu wie
+   `multiEnv.js`s `adsrOutput`), statt sie im Engine-Code fest zu verdrahten. So bleibt das
+   Verbinden ein bewusster zweiter Schritt (durch @dpa selbst oder auf expliziten Zuruf) statt
+   einer geratenen Verschaltung. Nur bei explizit genannter Verbindung („X moduliert Y") direkt
+   fest verdrahten.
 2. **Welcher Oszillator/welche Wellenform** aus dem Pool (Square/Saw/Sine/Tri via
    `SquareOsc.js`, oder eigene Wellenform über `pulseWave.js`-Koeffizienten)?
 3. **Mono oder poly?**
