@@ -107,7 +107,8 @@ Das mit dem preDelay (am Beispiel master Lim) haben wir noch garnicht zuendagebr
 Rec-Format:
     - kann eigentlich mit in die Settings
     - Sollte sich debug an Rec-Format halten? Oder ist das kontraproduktiv für die KI? 
-    
+
+20260803_11
 ![neu.. danach](image-8.png)
 das ist zu durcheinander! man hat im Config einen Button der nach nichts aussieht (+Neu) aber sehr viel Informationen braucht. Gedrückt und ernannt kommt ein zweites Fenster mit wieder unklaren Informationen und ein terminal Befehl (image-8.png), bei dem doch cd .. fehlt oder kann man diesen Befehl `node tools/new-entry.mjs "pitch-osz"` einfach in irgendeinem Ordner ausführen? Nein! Das ist weder erklärt noch automatisch. Das ist alles sehr sehr unklar!
 
@@ -133,3 +134,14 @@ Was kann noch automatisch geschehen:
   - Überschrift (größer als Bsp) "+ Neu"
   - darunter die Erklärung warum 'neu' überhaupt und dass das etwas aufwandiger ist.
   - beim click auf diesen großen Button öffnet sich dann das besagte Extrafenster..
+
+20260803_122138
+viel besser! 
+
+    - ![mittiger!](image-11.png) mittiger!
+    - nach diesem ![Fenster](image-12.png): vielleicht gleich ein (halbautomatisches) "öffne [neuer ordnername html]" im gleichen Fenster?
+    - die zentrale mittige NEU auf dem Panel NUR in WB-leer. im neu erzeugten dann nur noch als "Copy to new html" o.ä. in der Config (ähnlicher Vorgang, aber nich als "neu" sondern als Teilung/Auslagerung..
+
+20260803_123707
+weiter im Sonsitgen (WB-leer UND overcord):
+    

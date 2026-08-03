@@ -1,0 +1,1405 @@
+{
+  "_werkbank": 1,
+  "saved": "2026-08-02T00:46:57.311Z",
+  "ls": {
+    "pitch-osz_state": {
+      "knobColorPresets": [],
+      "ctrlStyles": {
+        "s:filterType": {
+          "label": "Filter-Typ",
+          "labelOn": true,
+          "boxSize": 60
+        },
+        "hdr:keyedit": {
+          "label": "⌨ Tasten",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "textOn": "⌨ Tasten",
+          "textOff": "⌨ Tasten",
+          "bg": "#444444"
+        },
+        "hdr:midiedit": {
+          "label": "🎹 MIDI",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "textOn": "🎹 MIDI",
+          "textOff": "🎹 MIDI",
+          "bg": "#444444"
+        },
+        "hdr:hintsedit": {
+          "label": "💬 Hints",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "textOn": "💬 Hints",
+          "textOff": "💬 Hints"
+        },
+        "hdr:cfgmenu": {
+          "label": "Config",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#444444",
+          "textOn": "Config",
+          "textOff": "Config"
+        },
+        "hdr:headerreset": {
+          "label": "🔇 Reset",
+          "labelPos": "off",
+          "btnMode": "trigger",
+          "bg": "#ff0101",
+          "bgOn": "#ffd8ec",
+          "textOn": "🔇 Reset",
+          "textOff": "🔇 Reset"
+        },
+        "hdr:structurebtn": {
+          "label": "⧉ Struktur",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#1e6919",
+          "textOn": "⧉ Struktur",
+          "textOff": "⧉ Struktur"
+        },
+        "hdr:recfmtmenu": {
+          "label": "⚙ Rec-Format",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#6f6d53",
+          "textOn": "⚙ Rec-Format",
+          "textOff": "⚙ Rec-Format"
+        },
+        "hdr:ensemble": {
+          "label": "Snapshots",
+          "labelPos": "left",
+          "fg": "#ffffff",
+          "bg0": "#5e260c",
+          "bg1": "#003353",
+          "size": 20,
+          "boxSize": 50,
+          "pad": 3
+        }
+      },
+      "knobMeta": {},
+      "designPresets": {
+        "button": [
+          {
+            "name": "grau",
+            "style": {
+              "labelPos": "off",
+              "btnMode": "toggle",
+              "bg": "#444444"
+            }
+          }
+        ]
+      },
+      "cutoff": 800,
+      "reso": 2,
+      "ftype": "LP",
+      "active": true,
+      "note": "",
+      "bpm": 152.3,
+      "gain": 0.7,
+      "run": true,
+      "ampSeqLen": 8,
+      "ampSeqSteps": [
+        0,
+        1,
+        0.6,
+        0,
+        1,
+        0.3,
+        0,
+        0.8
+      ],
+      "seqStyles": {
+        "amp": {
+          "w": 270,
+          "h": 64,
+          "bg": "#0e1116",
+          "col": "rgba(255,159,90,1)"
+        }
+      },
+      "val_mix": 0.33499999999999996,
+      "groupPos": {
+        "Filter": {
+          "x": 0,
+          "y": 0
+        },
+        "Transport": {
+          "x": 162,
+          "y": 0
+        }
+      },
+      "hintText": {
+        "hdr:hintsedit": "Mouse Over Help Hints On/Off"
+      },
+      "labelColor": "#a8b9bd",
+      "labelSize": 12,
+      "valueBg": "",
+      "grpHeadSize": 8,
+      "grpHeadH": 1,
+      "lang": "de",
+      "cfgPanelPos": {
+        "x": 556.2598876953125,
+        "y": 73.49999237060547
+      }
+    },
+    "pitch-osz_taktmetro": {
+      "knobColorPresets": [
+        {
+          "name": "Cutoff",
+          "color": "#c0c341",
+          "bg": "#915503"
+        },
+        {
+          "name": "Reso",
+          "color": "#86e2ff",
+          "bg": "#915503"
+        }
+      ],
+      "ctrlStyles": {
+        "g:tapMode": {
+          "label": "Modus",
+          "labelOn": false,
+          "fg": "#d4d4d4",
+          "bg0": "#292929",
+          "bg1": "#446e11",
+          "optLabels": [
+            "konstant",
+            "folgend"
+          ]
+        },
+        "b:bang": {
+          "label": "!",
+          "labelPos": "off",
+          "btnMode": "trigger",
+          "bg": "#044200",
+          "bgOn": "#9b9b9b",
+          "textOn": "!",
+          "textOff": "!",
+          "size": 30,
+          "boxSize": 12,
+          "boxH": 34,
+          "pad": 10
+        },
+        "b:start": {
+          "label": "StartStop",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#601176",
+          "bgOn": "#705e00",
+          "fg": "#dedede",
+          "textOn": "⏸",
+          "textOff": "▶",
+          "size": 20,
+          "boxSize": 58,
+          "boxH": 34,
+          "pad": 15
+        },
+        "b:bang2": {
+          "label": "!!",
+          "labelPos": "off",
+          "btnMode": "trigger",
+          "bg": "#5c3a00",
+          "bgOn": "#ffffff",
+          "textOn": "!!",
+          "textOff": "!!",
+          "size": 24,
+          "boxSize": 23,
+          "boxH": 34
+        },
+        "b:slow": {
+          "label": "−",
+          "labelPos": "off",
+          "btnMode": "gate",
+          "textOn": "−",
+          "textOff": "−",
+          "size": 24,
+          "boxSize": 28,
+          "boxH": 28,
+          "pad": 8
+        },
+        "b:fast": {
+          "label": "+",
+          "labelPos": "off",
+          "btnMode": "gate",
+          "bg": "#232833",
+          "textOn": "+",
+          "textOff": "+",
+          "size": 24,
+          "boxSize": 28,
+          "boxH": 28,
+          "pad": 8
+        },
+        "b:tap": {
+          "label": "Tab",
+          "labelPos": "off",
+          "btnMode": "trigger",
+          "bg": "#65476f",
+          "bgOn": "#b0b907",
+          "fg": "#b0b0b0",
+          "textOn": "Tab",
+          "textOff": "Tab",
+          "size": 14,
+          "boxSize": 32,
+          "boxH": 26,
+          "pad": 6
+        },
+        "b:tapReset": {
+          "label": "↺",
+          "labelPos": "off",
+          "btnMode": "trigger",
+          "bg": "#65476f",
+          "bgOn": "#757070",
+          "fg": "#8b8b8b",
+          "textOn": "↺",
+          "textOff": "↺",
+          "size": 13,
+          "boxSize": 14,
+          "boxH": 26,
+          "pad": 0
+        },
+        "t:metroOn": {
+          "label": "aktiv",
+          "labelPos": "right"
+        },
+        "u:beatView": {
+          "bg": "#3c3c3c",
+          "gap": 2,
+          "mainColor": "#ffdc5c",
+          "subColor": "#00c73c",
+          "beatSize": 14,
+          "radius": 1,
+          "pad": 3
+        },
+        "u:tabSettings": {
+          "bg": "#65476f",
+          "textOn": "⚙️",
+          "textOff": "⚙️",
+          "size": 10,
+          "boxSize": 46,
+          "boxH": 16,
+          "pad": 0
+        },
+        "b:rec": {
+          "label": "⏺ Rec",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#727070",
+          "bgOn": "#ff782a",
+          "fg": "#000000",
+          "textOn": "▶ Rec",
+          "textOff": "⏺ Rec",
+          "size": 16,
+          "boxH": 26,
+          "pad": 12
+        },
+        "b:startCont": {
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#601176",
+          "bgOn": "#705e00",
+          "fg": "#dedede",
+          "textOn": "I",
+          "textOff": "I",
+          "size": 20,
+          "boxSize": 12,
+          "boxH": 34,
+          "pad": 12
+        },
+        "t:metroCutoffQuant": {
+          "label": "Quant",
+          "labelPos": "left"
+        }
+      },
+      "knobMeta": {
+        "beatsPerBar": {
+          "min": 1,
+          "max": 12,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "Beats",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 4,
+          "valueFontSize": 24,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "metroLevel": {
+          "min": 0,
+          "max": 1.5,
+          "step": 0.05,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 2,
+          "label": "Level",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 24,
+          "defaultValue": 0.8,
+          "valueFontSize": 0,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "bpm": {
+          "min": 20,
+          "max": 900,
+          "step": 0.5,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 1,
+          "label": " ",
+          "viewSize": "none",
+          "color": "#e0ff9e",
+          "labelPos": "off",
+          "bg": "#3f153d",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 120,
+          "valueFontSize": 36,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 44
+        },
+        "tapWait": {
+          "min": 500,
+          "max": 5000,
+          "step": 100,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " ms",
+          "decimals": 0,
+          "label": "wait",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 2000
+        },
+        "tapWin": {
+          "min": 2,
+          "max": 12,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "Fenster (mode2)",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 4
+        },
+        "nudgeAmount": {
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "curve": "linear",
+          "skew": 2,
+          "unit": " BPM",
+          "decimals": 0,
+          "label": "+- depth",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 2,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "metroReso": {
+          "min": 0.1,
+          "max": 99,
+          "step": 0.1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " Q",
+          "decimals": 1,
+          "label": "Reso",
+          "viewSize": "small",
+          "color": "#86e2ff",
+          "labelPos": "top",
+          "bg": "#915503",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 2,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "metroCutoff": {
+          "min": 120,
+          "max": 9999,
+          "step": 10,
+          "curve": "log",
+          "skew": 1,
+          "unit": " Hz",
+          "decimals": 0,
+          "label": "Cut-on",
+          "viewSize": "medium",
+          "color": "#c0c341",
+          "labelPos": "top",
+          "bg": "#915503",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 1000,
+          "valueFontSize": 0,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "metroCutoffOffset": {
+          "min": -8000,
+          "max": 8000,
+          "step": 50,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " Hz",
+          "decimals": 0,
+          "label": "Cut-off",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0,
+          "valueFontSize": 0,
+          "pad": null
+        },
+        "metroMorph": {
+          "min": 0,
+          "max": 1,
+          "step": 0.01,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 2,
+          "label": "LP ↔ HP",
+          "viewSize": "medium",
+          "color": "#d3d3d3",
+          "labelPos": "top",
+          "bg": "#4b5261",
+          "shape": "faderHoriz",
+          "faderLen": 64,
+          "defaultValue": 0.5,
+          "valueFontSize": 0,
+          "pad": 0,
+          "hideValue": true,
+          "dragRange": 0
+        },
+        "latencyOffset": {
+          "min": -100,
+          "max": 100,
+          "step": 10,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " ms",
+          "decimals": 0,
+          "label": "gehörte Latenz",
+          "viewSize": "medium",
+          "color": "",
+          "labelPos": "top",
+          "bg": "#bd8700",
+          "shape": "faderHoriz",
+          "faderLen": 60,
+          "defaultValue": 0,
+          "valueFontSize": 7,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "metroCutoffRatio": {
+          "min": 0.2,
+          "max": 1,
+          "step": 0.01,
+          "curve": "linear",
+          "skew": 0.8,
+          "unit": " ×",
+          "decimals": 2,
+          "label": "Cut-off",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.66,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "maxBpm": {
+          "min": 100,
+          "max": 900,
+          "step": 10,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " BPM",
+          "decimals": 0,
+          "label": "max. BPM",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "#000000",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 400,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "metroCutBand": {
+          "min": 20,
+          "max": 900,
+          "step": 1,
+          "curve": "log",
+          "skew": 1,
+          "unit": " Hz",
+          "decimals": 0,
+          "label": "Band",
+          "viewSize": "medium",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 35,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        }
+      },
+      "designPresets": {
+        "button": [
+          {
+            "name": "ply",
+            "style": {
+              "labelPos": "off",
+              "btnMode": "toggle",
+              "bg": "#601176",
+              "bgOn": "#705e00",
+              "fg": "#dedede",
+              "size": 20,
+              "boxSize": 58,
+              "boxH": 34,
+              "pad": 15
+            }
+          }
+        ]
+      },
+      "bpm": 99,
+      "maxBpm": 340,
+      "nudgeAmount": 100,
+      "nudgeRampMs": 1000,
+      "tapMode": 2,
+      "tapWait": 2000,
+      "tapTol": 15,
+      "tapWin": 5,
+      "beatsPerBar": 5,
+      "metroOn": true,
+      "metroL": 1,
+      "metroM": 1,
+      "metroLevel": 0.8,
+      "metroMorph": 0.16,
+      "metroCutoff": 1971.9999999999998,
+      "metroReso": 9.4,
+      "keyStart": "space",
+      "keyBang": "1",
+      "keyBang2": "2",
+      "keySlow": "[",
+      "keyFast": "]",
+      "keyTap": "t",
+      "keyTapReset": "r",
+      "keyBeats": "b",
+      "groupColors": {},
+      "groupBgs": {},
+      "groupScales": {},
+      "hiddenControls": [],
+      "closedGroups": [],
+      "midiBindings": {
+        "b:start": {
+          "type": "note",
+          "data1": 49,
+          "ch": 2
+        },
+        "b:bang": {
+          "type": "note",
+          "data1": 51,
+          "ch": 2
+        },
+        "b:bang2": {
+          "type": "note",
+          "data1": 54,
+          "ch": 2
+        },
+        "b:tap": {
+          "type": "note",
+          "data1": 58,
+          "ch": 2
+        },
+        "b:tapReset": {
+          "type": "note",
+          "data1": 61,
+          "ch": 2
+        },
+        "b:slow": {
+          "type": "cc",
+          "data1": 1,
+          "ch": 1
+        },
+        "t:metroOn": {
+          "type": "note",
+          "data1": 68,
+          "ch": 2
+        }
+      },
+      "metroCutoffRatio": 0.6599999999999999,
+      "metroCutoffQuant": false,
+      "keyBindings": {
+        "b:bang": "1",
+        "b:bang2": "2",
+        "b:slow": "[",
+        "b:tap": "t",
+        "hdr:keyedit": "§",
+        "b:fast": "]",
+        "hdr:midiedit": "±",
+        "b:start": "x",
+        "b:startCont": "space"
+      },
+      "metroCutBand": 245.99999999999991,
+      "recName": "Recname",
+      "recFormat": "wav",
+      "recMp3Bitrate": 192,
+      "recMp3Stereo": false,
+      "recWavSampleRate": 44100,
+      "recWavBitDepth": 16,
+      "groupPos": {
+        "Transport / Tempo": {
+          "x": 0,
+          "y": 0
+        },
+        "Takt / Metronom": {
+          "x": 0,
+          "y": 130
+        },
+        "Aufnahme": {
+          "x": 1001,
+          "y": 0
+        }
+      },
+      "groupStyles": {
+        "Transport / Tempo": {
+          "collapsed": false,
+          "bg": "rgba(255,255,255,0.1)",
+          "headColor": "rgba(255,255,255,0.66)",
+          "name": "Tempo"
+        },
+        "Takt / Metronom": {
+          "collapsed": false,
+          "bg": "rgba(125,188,255,0.1)",
+          "headColor": "rgba(180,159,0,1)",
+          "name": "Metronom"
+        },
+        "Aufnahme": {
+          "headColor": "rgba(255,255,255,1)",
+          "bg": "rgba(132,0,0,1)",
+          "scale": 120
+        }
+      },
+      "ctrlPos": {
+        "Transport / Tempo": {
+          "b:bang": {
+            "x": 0,
+            "y": 50
+          },
+          "b:bang2": {
+            "x": 110,
+            "y": 60
+          },
+          "g:tapMode": {
+            "x": 60,
+            "y": 100
+          },
+          "b:start": {
+            "x": 50,
+            "y": 50
+          },
+          "b:slow": {
+            "x": 140,
+            "y": 28
+          },
+          "b:fast": {
+            "x": 140,
+            "y": 0
+          },
+          "k:tapWin": {
+            "x": 180,
+            "y": 170
+          },
+          "k:tapTol": {
+            "x": 180,
+            "y": 130
+          },
+          "k:tapWait": {
+            "x": 120,
+            "y": 130
+          },
+          "k:nudgeRampMs": {
+            "x": 60,
+            "y": 170
+          },
+          "k:nudgeAmount": {
+            "x": 120,
+            "y": 170
+          },
+          "k:bpm": {
+            "x": 26,
+            "y": 0
+          },
+          "k:maxBpm": {
+            "x": 60,
+            "y": 130
+          },
+          "b:tap": {
+            "x": 138,
+            "y": 56
+          },
+          "b:tapReset": {
+            "x": 169,
+            "y": 56
+          },
+          "u:tabSettings": {
+            "x": 137,
+            "y": 79
+          },
+          "b:startCont": {
+            "x": 25,
+            "y": 50
+          }
+        },
+        "Takt / Metronom": {
+          "k:metroLevel": {
+            "x": 58,
+            "y": 22
+          },
+          "k:metroL": {
+            "x": 136,
+            "y": 26
+          },
+          "k:metroCutoff": {
+            "x": 0,
+            "y": 97
+          },
+          "k:beatsPerBar": {
+            "x": 1,
+            "y": 46
+          },
+          "t:metroOn": {
+            "x": 0,
+            "y": 20
+          },
+          "k:metroMorph": {
+            "x": 0,
+            "y": 55
+          },
+          "k:metroCutoffOffset": {
+            "x": 5,
+            "y": 180
+          },
+          "k:metroReso": {
+            "x": 61,
+            "y": 98
+          },
+          "u:beatView": {
+            "x": 0,
+            "y": 0
+          },
+          "k:metroCutoffRatio": {
+            "x": 59,
+            "y": 160
+          },
+          "t:metroCutoffQuant": {
+            "x": 10,
+            "y": 177
+          }
+        }
+      },
+      "metroCutoffOffset": -150,
+      "hintText": {
+        "k:latencyOffset": "negative Latenz heißt, dass bei sync trigger diese ms im folgenden abgezogen werden, also füher laufen.",
+        "u:tabSettings": "Einstellungen für Tab, Latenz",
+        "b:tapReset": "reset des \"Tab-Mitdenkens\".",
+        "u:beatView": "aktuelle Beat Anzeige",
+        "b:tap": "Tempo spontan tabben. Siehe ⚙️ für Details",
+        "x:recName": "Dieser Name_Kurzdate.webm in Downloads\n",
+        "b:startCont": "Play (alles von Anfang)"
+      },
+      "benchCollapsed": false,
+      "latencyOffset": 0,
+      "knobColorSel": "",
+      "benchBg": "rgba(0,64,102,0.11)",
+      "hintsOn": true,
+      "instrPos": {
+        "x": 7,
+        "y": 6
+      },
+      "instrHelpMd": "gibt das Tempo und den Takt vor. Mit aufwändigem **Tab** System, um live an gegebene externe Musik anzudocken :)",
+      "instrBg": "rgba(255,255,255,0.12)",
+      "ismSnaps": [
+        {
+          "name": "schmale breite",
+          "ts": 1784886318682,
+          "values": {
+            "bpm": 124,
+            "metroOn": false,
+            "beatsPerBar": 7,
+            "metroLevel": 0.6000000000000001,
+            "metroMorph": 0.31,
+            "metroCutoff": 129.99999999999997,
+            "metroCutoffRatio": 0.66,
+            "metroReso": 0.1
+          }
+        },
+        {
+          "name": "124bpm",
+          "ts": 1784886235829,
+          "values": {
+            "bpm": 129.5,
+            "metroOn": false,
+            "beatsPerBar": 4,
+            "metroLevel": 0.6000000000000001,
+            "metroMorph": 0.31,
+            "metroCutoff": 720.0000000000001,
+            "metroCutoffRatio": 0.66,
+            "metroReso": 6.800000000000001
+          }
+        }
+      ],
+      "ismSnapSel": "124bpm",
+      "instrName": "Tempo, MM",
+      "instrScale": 100,
+      "groupSettingsPos": {
+        "x": 278.9801025390625,
+        "y": 50.984371185302734
+      },
+      "knobSettingsPos": {
+        "x": 196.203125,
+        "y": 37.015625
+      },
+      "elementSettingsPos": {
+        "x": 200.61929321289062,
+        "y": 137.28976440429688
+      },
+      "ctrlOffPanel": {
+        "b:tap": true,
+        "b:tapReset": true,
+        "u:tabSettings": true,
+        "b:bang2": true,
+        "k:metroMorph": true,
+        "t:metroCutoffQuant": true,
+        "k:metroCutoff": true,
+        "k:metroReso": true,
+        "k:metroCutoffRatio": true,
+        "b:fast": true,
+        "b:slow": true
+      },
+      "groupCombos": {
+        "Takt / Metronom": [
+          {
+            "name": "Motronom klein",
+            "ts": 1785611627606,
+            "ctrlStyles": {
+              "u:beatView": {
+                "bg": "#3c3c3c",
+                "gap": 2,
+                "mainColor": "#ffdc5c",
+                "subColor": "#00c73c",
+                "beatSize": 14,
+                "radius": 1,
+                "pad": 3
+              },
+              "t:metroOn": {
+                "label": "aktiv",
+                "labelPos": "right"
+              },
+              "t:metroCutoffQuant": {
+                "label": "Quant",
+                "labelPos": "left"
+              }
+            },
+            "knobMeta": {
+              "beatsPerBar": {
+                "min": 1,
+                "max": 12,
+                "step": 1,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 0,
+                "label": "Beats",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 4,
+                "valueFontSize": 24,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "metroLevel": {
+                "min": 0,
+                "max": 1.5,
+                "step": 0.05,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "Level",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 24,
+                "defaultValue": 0.8,
+                "valueFontSize": 0,
+                "pad": 0,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "metroMorph": {
+                "min": 0,
+                "max": 1,
+                "step": 0.01,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "LP ↔ HP",
+                "viewSize": "medium",
+                "color": "#d3d3d3",
+                "labelPos": "top",
+                "bg": "#4b5261",
+                "shape": "faderHoriz",
+                "faderLen": 64,
+                "defaultValue": 0.5,
+                "valueFontSize": 0,
+                "pad": 0,
+                "hideValue": true,
+                "dragRange": 0
+              },
+              "metroCutoff": {
+                "min": 120,
+                "max": 9999,
+                "step": 10,
+                "curve": "log",
+                "skew": 1,
+                "unit": " Hz",
+                "decimals": 0,
+                "label": "Cut-on",
+                "viewSize": "medium",
+                "color": "#c0c341",
+                "labelPos": "top",
+                "bg": "#915503",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 1000,
+                "valueFontSize": 0,
+                "pad": 0,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "metroCutoffRatio": {
+                "min": 0.2,
+                "max": 1,
+                "step": 0.01,
+                "curve": "linear",
+                "skew": 0.8,
+                "unit": " ×",
+                "decimals": 2,
+                "label": "Cut-off",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.66,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "metroReso": {
+                "min": 0.1,
+                "max": 99,
+                "step": 0.1,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " Q",
+                "decimals": 1,
+                "label": "Reso",
+                "viewSize": "small",
+                "color": "#86e2ff",
+                "labelPos": "top",
+                "bg": "#915503",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 2,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              }
+            },
+            "ctrlPos": {
+              "k:metroLevel": {
+                "x": 58,
+                "y": 22
+              },
+              "k:metroL": {
+                "x": 136,
+                "y": 26
+              },
+              "k:metroCutoff": {
+                "x": 0,
+                "y": 97
+              },
+              "k:beatsPerBar": {
+                "x": 1,
+                "y": 46
+              },
+              "t:metroOn": {
+                "x": 0,
+                "y": 20
+              },
+              "k:metroMorph": {
+                "x": 0,
+                "y": 55
+              },
+              "k:metroCutoffOffset": {
+                "x": 5,
+                "y": 180
+              },
+              "k:metroReso": {
+                "x": 61,
+                "y": 98
+              },
+              "u:beatView": {
+                "x": 0,
+                "y": 0
+              },
+              "k:metroCutoffRatio": {
+                "x": 59,
+                "y": 160
+              },
+              "t:metroCutoffQuant": {
+                "x": 10,
+                "y": 177
+              }
+            },
+            "controlOrder": {},
+            "groupStyle": {
+              "bg": "rgba(125,188,255,0.1)",
+              "headColor": "rgba(180,159,0,1)"
+            }
+          }
+        ]
+      },
+      "groupComboSel": {
+        "Takt / Metronom": "Motronom klein"
+      },
+      "groupSnaps": {
+        "Takt / Metronom": [
+          {
+            "name": "default 4/4",
+            "ts": 1785611688809,
+            "values": {
+              "metroOn": true,
+              "metroCutoffQuant": false,
+              "beatsPerBar": 4,
+              "metroLevel": 0.8,
+              "metroMorph": 0.16,
+              "metroCutoff": 1971.9999999999998,
+              "metroCutoffRatio": 0.6599999999999999,
+              "metroReso": 9.4
+            }
+          }
+        ]
+      },
+      "groupSnapSel": {
+        "Takt / Metronom": "default 4/4"
+      },
+      "instrSettingsPos": {
+        "x": 135,
+        "y": 81
+      }
+    },
+    "pitch-osz_rec": {
+      "knobColorPresets": [],
+      "ctrlStyles": {
+        "x:recName": {
+          "label": "Dateiname",
+          "labelOn": true,
+          "boxSize": 100
+        },
+        "b:rec": {
+          "label": "⏺ Rec",
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#4c0000",
+          "bgOn": "#a70000",
+          "textOn": "▶ Rec",
+          "textOff": "⏺ Rec",
+          "pad": 10
+        }
+      },
+      "knobMeta": {},
+      "designPresets": {},
+      "recName": "werkbanke-rec",
+      "recFormat": "mp3",
+      "recMp3Bitrate": 192,
+      "recMp3Stereo": true,
+      "recWavSampleRate": 48000,
+      "recWavBitDepth": 16,
+      "groupPos": {
+        "Aufnahme": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "instrPos": {
+        "x": 765,
+        "y": 3.797
+      },
+      "ctrlPos": {
+        "Aufnahme": {
+          "b:rec": {
+            "x": 11,
+            "y": 50
+          },
+          "x:recName": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      },
+      "keyBindings": {
+        "b:rec": "R"
+      },
+      "instrHelpMd": "nimmt den gemeinsamen\nMaster-Bus auf",
+      "groupStyles": {
+        "Aufnahme": {
+          "collapsed": false,
+          "bg": "rgba(28,32,39,0.55)"
+        }
+      },
+      "instrBg": "rgba(231,41,41,0.46)"
+    },
+    "pitch-osz_levelmeter": {
+      "knobColorPresets": [],
+      "ctrlStyles": {
+        "u:meter": {
+          "bg": "#311313",
+          "boxSize": 20,
+          "boxH": 330
+        }
+      },
+      "knobMeta": {},
+      "designPresets": {},
+      "groupPos": {
+        "Meter": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "ctrlPos": {
+        "Meter": {
+          "u:meter": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      },
+      "groupStyles": {
+        "Meter": {
+          "bg": "rgba(224,87,181,0.11)",
+          "headColor": "rgba(138,147,163,0.11)"
+        }
+      }
+    },
+    "pitch-osz_master": {
+      "knobColorPresets": [],
+      "ctrlStyles": {},
+      "knobMeta": {
+        "vol": {
+          "min": -24,
+          "max": 0,
+          "step": 0.1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " dB",
+          "decimals": 1,
+          "label": "Vol",
+          "viewSize": "medium",
+          "color": "#ffffff",
+          "labelPos": "top",
+          "bg": "#4b5970",
+          "shape": "faderHoriz",
+          "faderLen": 120,
+          "defaultValue": -3,
+          "valueFontSize": 14,
+          "pad": 0,
+          "hideValue": true,
+          "dragRange": 0
+        }
+      },
+      "designPresets": {},
+      "masterDb": -3,
+      "limiterOn": true,
+      "limiterAttackMs": 0.5,
+      "limiterReleaseMs": 250,
+      "hintText": {
+        "k:masterVol": "Ausgangslautstärke. Doppelklick = (default) dB (Unity) – der Bezugspunkt beim Pegeln, nicht der Auslieferungswert."
+      }
+    },
+    "pitch-osz_ensemble": {
+      "knobColorPresets": [],
+      "ctrlStyles": {},
+      "knobMeta": {},
+      "designPresets": {},
+      "ensembleSnaps": [],
+      "ensembleSnapSel": "Space > Start"
+    },
+    "pitch-osz_scope": {
+      "knobColorPresets": [],
+      "ctrlStyles": {
+        "s:scopeOut_0": {
+          "labelPos": "off",
+          "boxSize": 100
+        },
+        "u:scope_0": {
+          "width": 200,
+          "autoRange": false,
+          "showCurve": true,
+          "showMeter": true,
+          "minVal": 0,
+          "maxVal": 3,
+          "height": 60,
+          "bufferMs": 2000
+        },
+        "u:scope_1": {
+          "maxVal": 1.1,
+          "autoRange": false,
+          "showCurve": true,
+          "showMeter": true,
+          "width": 200,
+          "minVal": -0.1,
+          "height": 60,
+          "bufferMs": 555
+        },
+        "s:scopeSrc_0": {
+          "labelPos": "off",
+          "boxSize": 200
+        },
+        "s:scopeSrc_1": {
+          "labelPos": "off",
+          "boxSize": 200
+        }
+      },
+      "knobMeta": {},
+      "designPresets": {},
+      "scopeCount": 1,
+      "scopeOut_0": "polysynth.polyMax",
+      "groupPos": {
+        "Scope": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "instrPos": {
+        "x": 663,
+        "y": 182
+      },
+      "instrBg": "rgba(54,61,79,1)",
+      "groupStyles": {
+        "Scope": {
+          "headColor": "rgba(255,255,255,1)"
+        }
+      },
+      "scopeSrc_0": "polysynth.baseFreq",
+      "groupCombos": {
+        "Scope": [
+          {
+            "name": "compact1",
+            "ts": 1785073219161,
+            "ctrlStyles": {
+              "s:scopeSrc": {
+                "labelPos": "off",
+                "boxSize": 200
+              },
+              "u:scope": {
+                "width": 200,
+                "autoRange": true,
+                "showCurve": true,
+                "showMeter": true,
+                "minVal": -0.1,
+                "maxVal": 1.8,
+                "height": 60
+              }
+            },
+            "knobMeta": {},
+            "ctrlPos": {},
+            "controlOrder": {},
+            "groupStyle": {
+              "headColor": "rgba(255,255,255,1)"
+            }
+          }
+        ]
+      },
+      "groupComboSel": {
+        "Scope": "compact1"
+      },
+      "groupSettingsPos": {
+        "x": 696.9971313476562,
+        "y": 161.99998474121094
+      }
+    },
+    "pitch-osz_debug": {
+      "instrPos": {
+        "x": 14,
+        "y": 450
+      }
+    }
+  }
+}
