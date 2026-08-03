@@ -16,7 +16,7 @@ import { mountInstrumentSettings } from '../lib/InstrumentSettings.js';
 import { HintBubble } from '../lib/HintBubble.js';
 import { createMasterVolume, masterVolumeDefaults } from '../lib/MasterVolume.js';
 import { factoryHint } from '../lib/hints.js';
-import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
+import { hint, text as i18nText, setLang, lang as curLang } from '../lib/i18n.js';
 import { SettingsWindow } from '../lib/SettingsWindow.js';
 import { buildMainSettings } from '../lib/mainSettings.js';
 import { openNewEntryFlow } from '../lib/newEntryFlow.js';
@@ -53,7 +53,7 @@ import { createStructureView } from '../lib/routing/StructureView.js';
 import { LevelMeter } from '../lib/LevelMeter.js';
 import { createScopeManager, createScopeSettingsHook } from '../lib/scope/multiScope.js';
 import { icon } from '../lib/icons.js';
-import { mdToHtml, htmlToMdApprox } from '../lib/miniMarkdown.js';
+import { mountBenchHelp } from '../lib/benchHelp.js';
 
 // Erstbesuch-Demo-Stand (presets/default-config.json) abwarten, BEVOR der erste
 // MiniState den localStorage liest (@dpa 20260725: „man muss die config hinzu
@@ -1339,132 +1339,14 @@ const BENCH_HELP_EN = {
         'master bus (lib/audioBus.js) — all instruments together, not just one. ' +
         'Start/stop still syncs to the next downbeat of the beat/metronome instrument.',
 };
-function mountBenchHelp(sectionId, state) {
-    const section = document.querySelector('#' + sectionId);
-    if (!section) return;
-    const note = section.querySelector(':scope > .wb-note');
-    const h2 = section.querySelector('h2');
-    if (!h2) return;
-    let defaultBodyHtmlDe = '';
-    if (note) {
-        const clone = note.cloneNode(true);
-        const s = clone.querySelector('summary'); if (s) s.remove();
-        defaultBodyHtmlDe = clone.innerHTML.trim();
-        note.remove();
-    }
-    const defaultBodyHtmlEn = BENCH_HELP_EN[sectionId] || defaultBodyHtmlDe;
-    const defaultBodyHtml = () => (curLang() === 'en' ? defaultBodyHtmlEn : defaultBodyHtmlDe);
-    // Titel im Popover = der Instrumenten-Name selbst, direkt editierbar (@dpa 20260722_130710:
-    // „auch den Titel editierbar machen … beides, es braucht keine extra Überschrift") — die
-    // alte separate <summary>-Überschrift ist raus, statt zwei Titeln (Popover-Caption +
-    // Instrumenten-Name) gibt es jetzt nur noch EINEN. Teilt sich den `instrName`-State-Key mit
-    // lib/InstrumentSettings.js (Rechtsklick-Kopfzeile → „Name"), also dieselbe Naht, kein
-    // zweiter Persistenz-Pfad — hier zusätzlich noch das `.wb-instr-name`-Span direkt
-    // nachgezogen, weil InstrumentSettings' eigenes applyName() an dieser Stelle noch nicht
-    // gemountet ist (Aufruf-Reihenfolge in werkbank.js: mountBenchHelp vor mountInstrumentSettings).
-    const instrNameEl = h2.querySelector('.wb-instr-name');
-    const defaultInstrName = instrNameEl ? instrNameEl.textContent.trim() : '';
-
-    // @dpa 20260722_130710 (ddw.md, image-16/17): das Icon soll wie ein „i"-Info-Kreis
-    // aussehen statt ein reines "?"-Zeichen (lib/icons.js: 'info'), UND bei Hover die
-    // ECHTE Beschreibung zeigen — nicht den generischen title="Beschreibung anzeigen"
-    // ("sinnloser Hint"). updateBtnHint() (unten in render()) hält den Hover-Text mit dem
-    // jeweils aktuellen Beschreibungstext synchron (auch nach dem Markdown-Editieren).
-    const btn = document.createElement('button');
-    btn.className = 'wb-help-btn'; btn.type = 'button';
-    btn.appendChild(icon('info', 14));
-    h2.appendChild(btn);
-    /** Hover-Hint des [?]-Buttons auf den AKTUELLEN Beschreibungstext ziehen (Klartext, kein
-     *  Markdown/HTML — die Blase zeigt textContent, s. HintBubble.js). */
-    function updateBtnHint() {
-        const md = state.get('instrHelpMd');
-        const html = md ? mdToHtml(md) : defaultBodyHtml();
-        const tmp = document.createElement('div'); tmp.innerHTML = html;
-        const plain = tmp.textContent.trim().replace(/\s+/g, ' ');
-        hint(btn, plain || 'Beschreibung');
-    }
-    updateBtnHint();
-
-    let pop = null, editing = false;
-    const close = () => {
-        if (!pop) return;
-        pop.remove(); pop = null; editing = false; btn.classList.remove('active');
-        document.removeEventListener('mousedown', onOut, true);
-        document.removeEventListener('keydown', onKey, true);
-    };
-    const onOut = (e) => { if (pop && !pop.contains(e.target) && e.target !== btn) close(); };
-    const onKey = (e) => {
-        if (e.key !== 'Escape' || !pop) return;
-        e.stopPropagation();
-        if (editing) { editing = false; render(); } else close();
-    };
-
-    function render() {
-        pop.innerHTML = '';
-        const head = document.createElement('div'); head.className = 'wb-help-headrow';
-        const titleIn = document.createElement('input');
-        titleIn.type = 'text'; titleIn.className = 'wb-help-title-input';
-        titleIn.value = state.get('instrName') || defaultInstrName;
-        titleIn.placeholder = defaultInstrName;
-        titleIn.title = 'Instrumenten-Name (überall im Header sichtbar)';
-        // Klick in Werteingaben selektiert immer den gesamten Inhalt (Music-weit, s. Memory).
-        titleIn.addEventListener('focus', () => titleIn.select());
-        titleIn.addEventListener('mousedown', (e) => e.stopPropagation());
-        titleIn.addEventListener('input', () => {
-            state.set('instrName', titleIn.value);
-            if (instrNameEl) instrNameEl.textContent = titleIn.value || defaultInstrName;
-        });
-        titleIn.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') titleIn.blur(); });
-        head.appendChild(titleIn);
-        const editBtn = document.createElement('button');
-        editBtn.className = 'wb-help-edit'; editBtn.type = 'button';
-        editBtn.title = 'Hilfe als Markdown bearbeiten';
-        editBtn.appendChild(icon('edit', 13));
-        editBtn.addEventListener('click', (e) => { e.stopPropagation(); editing = true; render(); });
-        head.appendChild(editBtn);
-        pop.appendChild(head);
-
-        if (editing) {
-            const ta = document.createElement('textarea'); ta.className = 'wb-help-edit-area';
-            ta.value = state.get('instrHelpMd') || htmlToMdApprox(defaultBodyHtml());
-            pop.appendChild(ta);
-            const foot = document.createElement('div'); foot.className = 'wb-help-foot';
-            const save = document.createElement('button'); save.type = 'button'; save.textContent = 'Speichern';
-            save.addEventListener('click', (e) => { e.stopPropagation(); state.set('instrHelpMd', ta.value.trim()); editing = false; render(); updateBtnHint(); });
-            const cancel = document.createElement('button'); cancel.type = 'button'; cancel.textContent = 'Abbrechen';
-            cancel.addEventListener('click', (e) => { e.stopPropagation(); editing = false; render(); });
-            foot.append(save, cancel); pop.appendChild(foot);
-            ta.focus();
-        } else {
-            const body = document.createElement('div'); body.className = 'wb-help-body';
-            const md = state.get('instrHelpMd');
-            body.innerHTML = md ? mdToHtml(md) : defaultBodyHtml();
-            pop.appendChild(body);
-        }
-    }
-
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (pop) { close(); return; }
-        pop = document.createElement('div'); pop.className = 'wb-help-pop';
-        document.body.appendChild(pop);
-        render();
-        btn.classList.add('active');
-        const r = btn.getBoundingClientRect();
-        pop.style.left = Math.max(8, Math.min(r.right - pop.offsetWidth, window.innerWidth - pop.offsetWidth - 8)) + 'px';
-        pop.style.top = (r.bottom + 6) + 'px';
-        setTimeout(() => { document.addEventListener('mousedown', onOut, true); document.addEventListener('keydown', onKey, true); }, 0);
-    });
-
-    // Sprachwechsel (@dpa ddw.md 20260724_183901): Hover-Hint sofort neu ziehen, ein OFFENES
-    // Popover (nur wenn nicht gerade editiert wird — sonst risse es den Editor-Text weg) neu
-    // rendern, statt erst beim nächsten Öffnen die neue Sprache zu zeigen.
-    onLangChange(() => { updateBtnHint(); if (pop && !editing) render(); });
-}
-mountBenchHelp('bench-taktgeber', taktState);
-mountBenchHelp('bench-polysynth', polySynthState);
-mountBenchHelp('bench-stepseq', stepSeqState);
-mountBenchHelp('bench-rec', recState);
+// mountBenchHelp() selbst kommt seit @dpa 20260804 aus lib/benchHelp.js (war byte-identisch
+// dreifach dupliziert in overcord/werkbank-leer/pitchosc — dasselbe Duplikat-Risiko wie bei
+// ADSR/Scope, s. lib/adsrPanel.js-Kommentar) — hier nur noch die EN-Übersetzungstabelle
+// (pro Datei unterschiedlich, s. mountBenchHelp-Kommentar dort) + die Aufrufe.
+mountBenchHelp('bench-taktgeber', taktState, BENCH_HELP_EN);
+mountBenchHelp('bench-polysynth', polySynthState, BENCH_HELP_EN);
+mountBenchHelp('bench-stepseq', stepSeqState, BENCH_HELP_EN);
+mountBenchHelp('bench-rec', recState, BENCH_HELP_EN);
 
 // ── Instrument-Settings, generalisiert (@dpa 20260721: „Instrument allgemein: mit eigen
 // Einstellungen, erstmal gleich wie Gruppen") + Verschieben via Header ──────────────────
