@@ -101,4 +101,35 @@ Scope:
         - fehlt noch der "ins neue Projekt starten" worüber wir schon geredet haben: die leere Werkbank in einen neuen Ordner- und Projektnamen mit allem nötigen script und file Umbenennungen für das neue eigene Projekt (wie overcord)..
     Outs (für scope):
         viel zu wenig, bitte diverse Outputs hinzufügen (controls nicht, aber Ausgänge aller art (envelopes, OSZ, ..) 
+        
+Das mit dem preDelay (am Beispiel master Lim) haben wir noch garnicht zuendagebracht. Der Ringbuffer steht ja, bitte füge ein PreDelay knob in Lim hinzu
+
+Rec-Format:
+    - kann eigentlich mit in die Settings
+    - Sollte sich debug an Rec-Format halten? Oder ist das kontraproduktiv für die KI? 
     
+![neu.. danach](image-8.png)
+das ist zu durcheinander! man hat im Config einen Button der nach nichts aussieht (+Neu) aber sehr viel Informationen braucht. Gedrückt und ernannt kommt ein zweites Fenster mit wieder unklaren Informationen und ein terminal Befehl (image-8.png), bei dem doch cd .. fehlt oder kann man diesen Befehl `node tools/new-entry.mjs "pitch-osz"` einfach in irgendeinem Ordner ausführen? Nein! Das ist weder erklärt noch automatisch. Das ist alles sehr sehr unklar!
+
+"Legt den Ordner NICHT selbst an — danach im Terminal ausführen, "
+Hä? Was ist das für eine Info: etwas tut nicht - danach soll man..??
+"dann git add/commit nicht vergessen"
+wtf! das kann man keinem User anbieten!
+"(sonst deployt tools/build_pages.sh das nicht mit)."
+sonst ..was?? Müssen die User erst Computertechnik studieren um diese Worte zu verstehen..
+
+Nee.. das ist ein Chaos, bei dem jeder Fehler macht. 
+Das müssen wir von vorne durchdennken..:
+Was kann noch automatisch geschehen: 
+- den html-Pfad selbst kennen und darin arbeiten
+- cd ..html-Pfad mit in den Terminal befehl
+- Vorgang im Vordergrund 
+    - (extra Fenster nach +Neu drücken) separat.
+    - klare Hilfstexte mit anschließendem Copy (oder besser:
+    - so viel wie möglich automatisch!:
+- in werkbank-leer: der Vorgang "+Neu" vielleicht in der Mitte als zentrales "ism" (ohne dass es ein ISM ist, nur wegen der Lage so beschrieben), mit eine klare Info/Aufforderung: das ist das leere, was immer leer bleiben muss, von hier aus startet man neu.. indem man.. [Infos]
+- ich denke an einen Zentralen Button so ähnlich wie ![diese](image-10.png): 
+  - (nicht die Farben, nicht der Text, sondern)
+  - Überschrift (größer als Bsp) "+ Neu"
+  - darunter die Erklärung warum 'neu' überhaupt und dass das etwas aufwandiger ist.
+  - beim click auf diesen großen Button öffnet sich dann das besagte Extrafenster..
