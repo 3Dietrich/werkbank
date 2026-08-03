@@ -925,7 +925,11 @@ levelMeterHost.mountInGroup('Meter', levelMeter.element, 'u:meter');
 hint(levelMeter.element, 'Ausgangspegel des gesamten Ensembles (dBFS, Peak-Hold).');
 levelMeterHost.registerCtrlStyle('u:meter', 'levelmeter', levelMeter.element, (s) => levelMeter.applyStyle(s), 'Level');
 levelMeterHost.refresh();
-window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter };
+// ISM-Settings + Sichtbarkeits-Toggle (ddw.md 20260803_135251) — LevelMeter hat KEINEN h2
+// (bewusst „kein Header", s. Kommentar oben), darum defaultName explizit mitgeben (sonst
+// bliebe der Name in der Haupt-Settings-Liste leer, s. lib/InstrumentSettings.js-Kopf).
+const levelMeterInstr = mountInstrumentSettings(document.querySelector('#bench-levelmeter'), levelMeterState, { defaultName: 'Meter' });
+window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter, instr: levelMeterInstr };
 
 // ── Signal-Scopes – eigenes ISM (@dpa 20260726) ────────────────────────────────────
 // Schmale Steuersignal-Oszilloskope zum „Reinklinken": Quelle → scope_i.in zeigt an,
@@ -942,7 +946,7 @@ const scopeHost = mountGroups(scopeRoot, scopeState, scopeDefs, {
 });
 const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing });
 scopeManager.init();
-mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
+const scopeInstr = mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
 
 // Gruppen-Rechtsklick-Panel der Scope-Gruppe (@dpa ddw.md 20260802 Punkt 3): NUR noch die
 // Instanz-AKTIONEN (Kopie anlegen/Löschen/Puffer zurücksetzen) — das sind keine „Einstellungen"
@@ -1035,7 +1039,7 @@ const dbg = new DebugPanel(debugState, { appPrefix: APP, getFullState: () => bui
 const debugDefs = debugPanelDefs({ onAction: (id) => dbg.onAction(id) });
 const debugHost = mountGroups(debugRoot, debugState, debugDefs, {});
 mountDebugGroup(debugHost, debugState, dbg);
-mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
+const debugInstr = mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
 window.__debug = { state: debugState, host: debugHost, panel: dbg };
 
 // Render-Loop: Base-Frq-Anzeigen (baseKeyboard/Tone-/Freq-Readout) UND LevelMeter zeichnen
@@ -1272,6 +1276,15 @@ const openCfg = () => {
         onNewEntry: (btn) => openNewEntryFlow(btn),
         reopen: () => { cfgWin.close(); openCfg(); },
         backups,
+        // ISM-Sichtbarkeit (ddw.md 20260803_135251): die fünf „Standard"-ISMs dieses
+        // Einstiegs — mainSettings.js zeigt daraus die Unterrubrik der ausgeblendeten.
+        isms: [
+            { name: 'Tempo & MM', instr: taktInstr },
+            { name: 'Scope', instr: scopeInstr },
+            { name: 'Debug', instr: debugInstr },
+            { name: 'Rec', instr: recInstr },
+            { name: 'Meter', instr: levelMeterInstr },
+        ],
     }), () => cfgBtn.classList.remove('active'));
 };
 cfgBtn.addEventListener('click', () => { cfgWin.isOpen ? cfgWin.close() : openCfg(); });

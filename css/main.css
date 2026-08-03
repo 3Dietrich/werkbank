@@ -540,6 +540,11 @@ body {
    _comboPayloadOf); ein herausgenommenes Element fiele still aus beidem heraus.
    `!important`, weil einzelne Fabriken ihr display selbst setzen. */
 .ctrl-offpanel { display: none !important; }
+/* ISM (ganzes Instrument) versteckt (ddw.md 20260803_135251, State-Key `ismHidden`,
+   lib/InstrumentSettings.js) — dieselbe Idee eine Ebene höher als .ctrl-offpanel: die
+   `.wb-bench`-Sektion bleibt im DOM (Snapshots/Routing/State laufen weiter unbeeinflusst),
+   nur unsichtbar. Wieder einblendbar über die Haupt-Settings (lib/mainSettings.js). */
+.ism-hidden { display: none !important; }
 /* align-items:flex-start → jedes Control ist nur so hoch wie sein Inhalt (kein Strecken
    auf die Reihenhöhe; „ohne Knob" endet direkt unter dem Label, @dpa 20260713). */
 .knob-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: flex-start; }
