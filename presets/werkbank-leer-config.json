@@ -1,6 +1,6 @@
 {
   "_werkbank": 1,
-  "saved": "2026-08-02T00:46:57.311Z",
+  "saved": "2026-08-03T16:39:18.306Z",
   "ls": {
     "werkbank-leer_state": {
       "knobColorPresets": [],
@@ -11,52 +11,76 @@
           "boxSize": 60
         },
         "hdr:keyedit": {
-          "label": "⌨ Tasten",
-          "labelPos": "off",
-          "btnMode": "toggle",
-          "textOn": "⌨ Tasten",
-          "textOff": "⌨ Tasten",
-          "bg": "#444444"
-        },
-        "hdr:midiedit": {
-          "label": "🎹 MIDI",
-          "labelPos": "off",
-          "btnMode": "toggle",
-          "textOn": "🎹 MIDI",
-          "textOff": "🎹 MIDI",
-          "bg": "#444444"
-        },
-        "hdr:hintsedit": {
-          "label": "💬 Hints",
-          "labelPos": "off",
-          "btnMode": "toggle",
-          "textOn": "💬 Hints",
-          "textOff": "💬 Hints"
-        },
-        "hdr:cfgmenu": {
-          "label": "Config",
-          "labelPos": "off",
+          "label": "Tasten",
+          "labelPos": "top",
           "btnMode": "toggle",
           "bg": "#444444",
-          "textOn": "Config",
-          "textOff": "Config"
+          "textOn": "⌨️",
+          "textOff": "⌨️",
+          "size": 24,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
+        },
+        "hdr:midiedit": {
+          "label": "MIDI",
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "bg": "#444444",
+          "textOn": "🎹",
+          "textOff": "🎹",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
+        },
+        "hdr:hintsedit": {
+          "label": "Hints",
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "textOn": "💬",
+          "textOff": "💬",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 3
+        },
+        "hdr:cfgmenu": {
+          "label": "Settings",
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "bg": "#444444",
+          "textOn": "🛠️",
+          "textOff": "🛠️",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 14
         },
         "hdr:headerreset": {
-          "label": "🔇 Reset",
-          "labelPos": "off",
+          "label": "Reset",
+          "labelPos": "top",
           "btnMode": "trigger",
           "bg": "#ff0101",
           "bgOn": "#ffd8ec",
-          "textOn": "🔇 Reset",
-          "textOff": "🔇 Reset"
+          "textOn": "🔇",
+          "textOff": "🔇",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
         },
         "hdr:structurebtn": {
-          "label": "⧉ Struktur",
-          "labelPos": "off",
+          "label": "Struktur",
+          "labelPos": "top",
           "btnMode": "toggle",
           "bg": "#1e6919",
-          "textOn": "⧉ Struktur",
-          "textOff": "⧉ Struktur"
+          "textOn": "⧉",
+          "textOff": "⧉",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
         },
         "hdr:recfmtmenu": {
           "label": "⚙ Rec-Format",
@@ -73,8 +97,19 @@
           "bg0": "#5e260c",
           "bg1": "#003353",
           "size": 20,
-          "boxSize": 50,
+          "boxSize": 140,
           "pad": 3
+        },
+        "hdr:arrangemode": {
+          "label": "Anordnen",
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "textOn": "⇄",
+          "textOff": "⇄",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
         }
       },
       "knobMeta": {},
@@ -133,13 +168,17 @@
       },
       "labelColor": "#a8b9bd",
       "labelSize": 12,
-      "valueBg": "",
-      "grpHeadSize": 8,
-      "grpHeadH": 1,
+      "valueBg": "rgba(0,0,0,0.15)",
+      "grpHeadSize": 9,
+      "grpHeadH": 18,
       "lang": "de",
       "cfgPanelPos": {
         "x": 556.2598876953125,
         "y": 73.49999237060547
+      },
+      "elementSettingsPos": {
+        "x": 42.5546875,
+        "y": 152.5
       }
     },
     "werkbank-leer_taktmetro": {
@@ -334,7 +373,7 @@
         },
         "metroLevel": {
           "min": 0,
-          "max": 1.5,
+          "max": 1,
           "step": 0.05,
           "curve": "linear",
           "skew": 1,
@@ -432,7 +471,7 @@
         "metroReso": {
           "min": 0.1,
           "max": 99,
-          "step": 0.1,
+          "step": 1,
           "curve": "linear",
           "skew": 1,
           "unit": " Q",
@@ -458,8 +497,8 @@
           "skew": 1,
           "unit": " Hz",
           "decimals": 0,
-          "label": "Cut-on",
-          "viewSize": "medium",
+          "label": "Freq",
+          "viewSize": "small",
           "color": "#c0c341",
           "labelPos": "top",
           "bg": "#915503",
@@ -622,14 +661,14 @@
       "tapWait": 2000,
       "tapTol": 15,
       "tapWin": 5,
-      "beatsPerBar": 5,
+      "beatsPerBar": 2,
       "metroOn": true,
       "metroL": 1,
       "metroM": 1,
-      "metroLevel": 0.8,
-      "metroMorph": 0.16,
-      "metroCutoff": 1971.9999999999998,
-      "metroReso": 9.4,
+      "metroLevel": 0.2,
+      "metroMorph": 0,
+      "metroCutoff": 2080.0000000000005,
+      "metroReso": 22,
       "keyStart": "space",
       "keyBang": "1",
       "keyBang2": "2",
@@ -680,7 +719,7 @@
           "ch": 2
         }
       },
-      "metroCutoffRatio": 0.6599999999999999,
+      "metroCutoffRatio": 1,
       "metroCutoffQuant": false,
       "keyBindings": {
         "b:bang": "1",
@@ -815,7 +854,7 @@
           },
           "k:metroCutoff": {
             "x": 0,
-            "y": 97
+            "y": 87
           },
           "k:beatsPerBar": {
             "x": 1,
@@ -867,11 +906,11 @@
       "benchBg": "rgba(0,64,102,0.11)",
       "hintsOn": true,
       "instrPos": {
-        "x": 7,
+        "x": 12,
         "y": 6
       },
       "instrHelpMd": "gibt das Tempo und den Takt vor. Mit aufwändigem **Tab** System, um live an gegebene externe Musik anzudocken :)",
-      "instrBg": "rgba(255,255,255,0.12)",
+      "instrBg": "rgba(0,0,0,0.28)",
       "ismSnaps": [
         {
           "name": "schmale breite",
@@ -924,7 +963,6 @@
         "b:bang2": true,
         "k:metroMorph": true,
         "t:metroCutoffQuant": true,
-        "k:metroCutoff": true,
         "k:metroReso": true,
         "k:metroCutoffRatio": true,
         "b:fast": true,
@@ -1161,7 +1199,7 @@
         "Takt / Metronom": "default 4/4"
       },
       "instrSettingsPos": {
-        "x": 135,
+        "x": 174,
         "y": 81
       }
     },
@@ -1199,8 +1237,8 @@
         }
       },
       "instrPos": {
-        "x": 765,
-        "y": 3.797
+        "x": 637,
+        "y": 509.797
       },
       "ctrlPos": {
         "Aufnahme": {
@@ -1220,7 +1258,7 @@
       "instrHelpMd": "nimmt den gemeinsamen\nMaster-Bus auf",
       "groupStyles": {
         "Aufnahme": {
-          "collapsed": false,
+          "collapsed": true,
           "bg": "rgba(28,32,39,0.55)"
         }
       },
@@ -1232,7 +1270,16 @@
         "u:meter": {
           "bg": "#311313",
           "boxSize": 20,
-          "boxH": 330
+          "boxH": 330,
+          "showScale": true,
+          "showRms": true,
+          "peakWidth": 1,
+          "peakHoldMs": 800,
+          "hektikMs": 60,
+          "stepGrad": false,
+          "showLimiter": true,
+          "rmsFg": "#2929ff",
+          "scaleFg": "#b6bfae"
         }
       },
       "knobMeta": {},
@@ -1256,6 +1303,10 @@
           "bg": "rgba(224,87,181,0.11)",
           "headColor": "rgba(138,147,163,0.11)"
         }
+      },
+      "elementSettingsPos": {
+        "x": 901,
+        "y": 119
       }
     },
     "werkbank-leer_master": {
@@ -1287,10 +1338,21 @@
       "designPresets": {},
       "masterDb": -3,
       "limiterOn": true,
-      "limiterAttackMs": 0.5,
-      "limiterReleaseMs": 250,
+      "limiterAttackMs": 7.2,
+      "limiterReleaseMs": 150,
+      "waveshaperOn": true,
+      "limStyle": {
+        "bgOn": "#f07400",
+        "bg": "#7d7d7d",
+        "size": 13,
+        "fg": "#00041f"
+      },
       "hintText": {
         "k:masterVol": "Ausgangslautstärke. Doppelklick = (default) dB (Unity) – der Bezugspunkt beim Pegeln, nicht der Auslieferungswert."
+      },
+      "knobSettingsPos": {
+        "x": 828.4921875,
+        "y": 62
       }
     },
     "werkbank-leer_ensemble": {
@@ -1309,14 +1371,15 @@
           "boxSize": 100
         },
         "u:scope_0": {
-          "width": 200,
+          "boxSize": 200,
+          "boxH": 100,
+          "accuracy": "sample",
+          "bufferMs": 62,
+          "minVal": -2,
+          "maxVal": 1,
           "autoRange": false,
-          "showCurve": true,
-          "showMeter": true,
-          "minVal": 0,
-          "maxVal": 3,
-          "height": 60,
-          "bufferMs": 2000
+          "showMeter": false,
+          "showCurve": true
         },
         "u:scope_1": {
           "maxVal": 1.1,
@@ -1348,8 +1411,8 @@
         }
       },
       "instrPos": {
-        "x": 663,
-        "y": 182
+        "x": 12,
+        "y": 365
       },
       "instrBg": "rgba(54,61,79,1)",
       "groupStyles": {
@@ -1357,7 +1420,7 @@
           "headColor": "rgba(255,255,255,1)"
         }
       },
-      "scopeSrc_0": "polysynth.baseFreq",
+      "scopeSrc_0": "master.out",
       "groupCombos": {
         "Scope": [
           {
@@ -1391,15 +1454,156 @@
         "Scope": "compact1"
       },
       "groupSettingsPos": {
-        "x": 696.9971313476562,
-        "y": 161.99998474121094
+        "x": 928.9921875,
+        "y": 162.9921875
+      },
+      "elementSettingsPos": {
+        "x": 480,
+        "y": 398.5078125
       }
     },
     "werkbank-leer_debug": {
+      "knobColorPresets": [],
+      "ctrlStyles": {
+        "b:debugRec": {
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#4b0100",
+          "bgOn": "#ca2800",
+          "fg": "#ffffff",
+          "textOn": "◉ Rec!",
+          "textOff": "Rec",
+          "boxSize": 44,
+          "pad": 6
+        },
+        "b:debugRec2": {
+          "labelPos": "off",
+          "btnMode": "toggle",
+          "bg": "#4b0100",
+          "bgOn": "#ca2800",
+          "fg": "#ffffff",
+          "textOn": "◉ Rec!",
+          "textOff": "Rec2",
+          "boxSize": 44,
+          "pad": 6
+        },
+        "b:debugRecReset": {
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "bg": "#2f2f2f",
+          "bgOn": "#a8a8a8",
+          "textOff": "del",
+          "size": 14,
+          "boxSize": 28,
+          "boxH": 28,
+          "pad": 4
+        },
+        "x:debugName": {
+          "labelOn": false,
+          "boxSize": 200
+        },
+        "x:debugPrompt": {
+          "label": "Prompt / Beschreibung",
+          "labelOn": true,
+          "boxSize": 200
+        },
+        "b:debugSave": {
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "bg": "#8b8b8b",
+          "bgOn": "#c5c5c5",
+          "fg": "#000000",
+          "boxSize": 200,
+          "boxH": 16,
+          "pad": 0
+        }
+      },
+      "knobMeta": {},
+      "designPresets": {
+        "button": [
+          {
+            "name": "rec",
+            "style": {
+              "labelPos": "off",
+              "btnMode": "toggle",
+              "bg": "#4b0100",
+              "bgOn": "#ca2800",
+              "fg": "#ffffff",
+              "boxSize": 44,
+              "pad": 6
+            }
+          }
+        ]
+      },
+      "debugMeta": {
+        "name": "",
+        "prompt": "test"
+      },
+      "groupPos": {
+        "Debug": {
+          "x": 0,
+          "y": 0
+        }
+      },
       "instrPos": {
-        "x": 14,
-        "y": 450
-      }
+        "x": 762,
+        "y": 362
+      },
+      "ctrlPos": {
+        "Debug": {
+          "n:debugNote": {
+            "x": 90,
+            "y": 74
+          },
+          "b:debugRec": {
+            "x": 0,
+            "y": 0
+          },
+          "b:debugRec2": {
+            "x": 53,
+            "y": 0
+          },
+          "b:debugRecReset": {
+            "x": 173,
+            "y": 0
+          },
+          "x:debugName": {
+            "x": 0,
+            "y": 32
+          },
+          "x:debugPrompt": {
+            "x": 0,
+            "y": 62
+          },
+          "b:debugSave": {
+            "x": 0,
+            "y": 143
+          }
+        }
+      },
+      "elementSettingsPos": {
+        "x": 785.34375,
+        "y": 233.59375
+      },
+      "instrSettingsPos": {
+        "x": 961,
+        "y": 523
+      },
+      "groupSettingsPos": {
+        "x": 814,
+        "y": 306
+      },
+      "ctrlOffPanel": {
+        "n:debugNote": true
+      },
+      "groupStyles": {
+        "Debug": {
+          "bg": "rgba(255,255,255,0.1)",
+          "headColor": "rgba(242,243,245,0.8)",
+          "collapsed": false
+        }
+      },
+      "instrBg": "rgba(0,0,0,1)"
     }
   }
 }

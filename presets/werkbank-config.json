@@ -1,6 +1,6 @@
 {
   "_werkbank": 1,
-  "saved": "2026-07-28T15:37:06.948Z",
+  "saved": "2026-08-03T16:39:40.174Z",
   "ls": {
     "werkbank_state": {
       "knobColorPresets": [],
@@ -11,70 +11,97 @@
           "boxSize": 60
         },
         "hdr:keyedit": {
-          "label": "⌨ Tasten",
-          "labelPos": "off",
-          "btnMode": "toggle",
-          "textOn": "⌨ Tasten",
-          "textOff": "⌨ Tasten",
-          "bg": "#444444"
-        },
-        "hdr:midiedit": {
-          "label": "🎹 MIDI",
-          "labelPos": "off",
-          "btnMode": "toggle",
-          "textOn": "🎹 MIDI",
-          "textOff": "🎹 MIDI",
-          "bg": "#444444"
-        },
-        "hdr:hintsedit": {
-          "label": "💬 Hints",
-          "labelPos": "off",
-          "btnMode": "toggle",
-          "textOn": "💬 Hints",
-          "textOff": "💬 Hints"
-        },
-        "hdr:cfgmenu": {
-          "label": "Einstellungen",
-          "labelPos": "off",
+          "label": "Tasten",
+          "labelPos": "top",
           "btnMode": "toggle",
           "bg": "#444444",
-          "textOn": "Einstellungen",
-          "textOff": "Einstellungen"
+          "bgOn": "#4faa9d",
+          "textOn": "⌨️",
+          "textOff": "⌨️",
+          "size": 24,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
+        },
+        "hdr:midiedit": {
+          "label": "MIDI",
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "bg": "#444444",
+          "textOn": "🎹",
+          "textOff": "🎹",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
+        },
+        "hdr:hintsedit": {
+          "label": "Hints",
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "textOn": "💬",
+          "textOff": "💬",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 3
+        },
+        "hdr:cfgmenu": {
+          "label": "Settings",
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "bg": "#444444",
+          "textOn": "🛠️",
+          "textOff": "🛠️",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 14
         },
         "hdr:headerreset": {
-          "label": "🔇 Reset",
-          "labelPos": "off",
+          "label": "Reset",
+          "labelPos": "top",
           "btnMode": "trigger",
-          "bg": "#ff0101",
+          "bg": "#ac0000",
           "bgOn": "#ffd8ec",
-          "textOn": "🔇 Reset",
-          "textOff": "🔇 Reset"
+          "textOn": "🔇",
+          "textOff": "🔇",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
         },
         "hdr:structurebtn": {
-          "label": "⧉ Struktur",
-          "labelPos": "off",
+          "label": "Struktur",
+          "labelPos": "top",
           "btnMode": "toggle",
           "bg": "#1e6919",
-          "textOn": "⧉ Struktur",
-          "textOff": "⧉ Struktur"
-        },
-        "hdr:recfmtmenu": {
-          "label": "⚙ Rec-Format",
-          "labelPos": "off",
-          "btnMode": "toggle",
-          "bg": "#6f6d53",
-          "textOn": "⚙ Rec-Format",
-          "textOff": "⚙ Rec-Format"
+          "textOn": "⧉",
+          "textOff": "⧉",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
         },
         "hdr:ensemble": {
           "label": "Snapshots",
           "labelPos": "left",
-          "fg": "#010100",
-          "bg0": "#aa8e26",
+          "fg": "#ffffff",
+          "bg0": "#5e260c",
           "bg1": "#003353",
-          "size": 18,
-          "boxSize": 33,
-          "pad": 3
+          "size": 20,
+          "pad": 6
+        },
+        "hdr:arrangemode": {
+          "label": "Anordnen",
+          "labelPos": "top",
+          "btnMode": "toggle",
+          "textOn": "⇄",
+          "textOff": "⇄",
+          "size": 20,
+          "boxSize": 60,
+          "boxH": 30,
+          "pad": 0
         }
       },
       "knobMeta": {},
@@ -133,10 +160,18 @@
       },
       "labelColor": "#a8b9bd",
       "labelSize": 12,
-      "valueBg": "",
+      "valueBg": "rgba(0,0,0,0.12)",
       "grpHeadSize": 8,
-      "grpHeadH": 1,
-      "lang": "de"
+      "grpHeadH": 0,
+      "lang": "de",
+      "cfgPanelPos": {
+        "x": 556.2598876953125,
+        "y": 73.49999237060547
+      },
+      "elementSettingsPos": {
+        "x": 273.5546875,
+        "y": 58.25
+      }
     },
     "werkbank_taktmetro": {
       "knobColorPresets": [
@@ -318,32 +353,36 @@
           "label": "Beats",
           "viewSize": "none",
           "color": "",
-          "labelPos": "right",
+          "labelPos": "top",
           "bg": "",
           "shape": "knob",
           "faderLen": 80,
           "defaultValue": 4,
           "valueFontSize": 24,
-          "pad": null
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
         },
         "metroLevel": {
           "min": 0,
-          "max": 1,
+          "max": 16.5,
           "step": 0.05,
           "curve": "linear",
           "skew": 1,
           "unit": "",
           "decimals": 2,
           "label": "Level",
-          "viewSize": "medium",
+          "viewSize": "small",
           "color": "",
-          "labelPos": "bottom",
+          "labelPos": "top",
           "bg": "",
-          "shape": "faderVert",
-          "faderLen": 40,
+          "shape": "knob",
+          "faderLen": 24,
           "defaultValue": 0.8,
           "valueFontSize": 0,
-          "pad": 0
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
         },
         "bpm": {
           "min": 20,
@@ -353,15 +392,15 @@
           "skew": 1,
           "unit": "",
           "decimals": 1,
-          "label": ".",
+          "label": " ",
           "viewSize": "none",
           "color": "#e0ff9e",
-          "labelPos": "right",
+          "labelPos": "off",
           "bg": "#3f153d",
           "shape": "knob",
           "faderLen": 80,
           "defaultValue": 120,
-          "valueFontSize": 48,
+          "valueFontSize": 36,
           "pad": 0,
           "hideValue": false,
           "dragRange": 44
@@ -402,10 +441,10 @@
         },
         "nudgeAmount": {
           "min": 1,
-          "max": 20,
+          "max": 100,
           "step": 1,
           "curve": "linear",
-          "skew": 1,
+          "skew": 2,
           "unit": " BPM",
           "decimals": 0,
           "label": "+- depth",
@@ -415,7 +454,11 @@
           "bg": "",
           "shape": "knob",
           "faderLen": 80,
-          "defaultValue": 2
+          "defaultValue": 2,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
         },
         "metroReso": {
           "min": 0.1,
@@ -604,8 +647,8 @@
       },
       "bpm": 129.45000000000002,
       "maxBpm": 340,
-      "nudgeAmount": 5,
-      "nudgeRampMs": 0,
+      "nudgeAmount": 100,
+      "nudgeRampMs": 1000,
       "tapMode": 2,
       "tapWait": 2000,
       "tapTol": 15,
@@ -679,7 +722,8 @@
         "b:fast": "]",
         "hdr:midiedit": "±",
         "b:start": "x",
-        "b:startCont": "space"
+        "b:startCont": "space",
+        "t:metroOn": "m"
       },
       "metroCutBand": 245.99999999999991,
       "recName": "Recname",
@@ -695,7 +739,7 @@
         },
         "Takt / Metronom": {
           "x": 0,
-          "y": 180
+          "y": 120
         },
         "Aufnahme": {
           "x": 1001,
@@ -713,7 +757,7 @@
           "collapsed": false,
           "bg": "rgba(125,188,255,0.1)",
           "headColor": "rgba(180,159,0,1)",
-          "name": "Metronom"
+          "name": "Click"
         },
         "Aufnahme": {
           "headColor": "rgba(255,255,255,1)",
@@ -725,7 +769,7 @@
         "Transport / Tempo": {
           "b:bang": {
             "x": 0,
-            "y": 60
+            "y": 50
           },
           "b:bang2": {
             "x": 110,
@@ -737,7 +781,7 @@
           },
           "b:start": {
             "x": 50,
-            "y": 60
+            "y": 50
           },
           "b:slow": {
             "x": 140,
@@ -768,7 +812,7 @@
             "y": 170
           },
           "k:bpm": {
-            "x": 0,
+            "x": 27,
             "y": 0
           },
           "k:maxBpm": {
@@ -789,13 +833,13 @@
           },
           "b:startCont": {
             "x": 25,
-            "y": 60
+            "y": 50
           }
         },
         "Takt / Metronom": {
           "k:metroLevel": {
-            "x": 68,
-            "y": 20
+            "x": 58,
+            "y": 22
           },
           "k:metroL": {
             "x": 136,
@@ -806,12 +850,12 @@
             "y": 97
           },
           "k:beatsPerBar": {
-            "x": 6,
-            "y": 26
+            "x": 1,
+            "y": 46
           },
           "t:metroOn": {
             "x": 0,
-            "y": 0
+            "y": 20
           },
           "k:metroMorph": {
             "x": 0,
@@ -826,7 +870,7 @@
             "y": 98
           },
           "u:beatView": {
-            "x": 50,
+            "x": 0,
             "y": 0
           },
           "k:metroCutoffRatio": {
@@ -850,13 +894,13 @@
         "b:startCont": "Play (alles von Anfang)"
       },
       "benchCollapsed": false,
-      "latencyOffset": -30,
+      "latencyOffset": 0,
       "knobColorSel": "",
       "benchBg": "rgba(0,64,102,0.11)",
       "hintsOn": true,
       "instrPos": {
-        "x": -2,
-        "y": 10
+        "x": 9,
+        "y": 13
       },
       "instrHelpMd": "gibt das Tempo und den Takt vor. Mit aufwändigem **Tab** System, um live an gegebene externe Musik anzudocken :)",
       "instrBg": "rgba(255,255,255,0.12)",
@@ -891,8 +935,265 @@
         }
       ],
       "ismSnapSel": "124bpm",
-      "instrName": "Tempo & Metronom",
-      "instrScale": 100
+      "instrName": "Tempo, MM",
+      "instrScale": 100,
+      "groupSettingsPos": {
+        "x": 158.9765625,
+        "y": 87.9765625
+      },
+      "knobSettingsPos": {
+        "x": 397.203125,
+        "y": 71.015625
+      },
+      "elementSettingsPos": {
+        "x": 200.61929321289062,
+        "y": 137.28976440429688
+      },
+      "ctrlOffPanel": {
+        "b:tap": true,
+        "b:tapReset": true,
+        "u:tabSettings": true,
+        "b:bang2": true,
+        "k:metroMorph": true,
+        "t:metroCutoffQuant": true,
+        "k:metroReso": true,
+        "b:fast": true,
+        "b:slow": true
+      },
+      "groupCombos": {
+        "Takt / Metronom": [
+          {
+            "name": "Motronom klein",
+            "ts": 1785611627606,
+            "ctrlStyles": {
+              "u:beatView": {
+                "bg": "#3c3c3c",
+                "gap": 2,
+                "mainColor": "#ffdc5c",
+                "subColor": "#00c73c",
+                "beatSize": 14,
+                "radius": 1,
+                "pad": 3
+              },
+              "t:metroOn": {
+                "label": "aktiv",
+                "labelPos": "right"
+              },
+              "t:metroCutoffQuant": {
+                "label": "Quant",
+                "labelPos": "left"
+              }
+            },
+            "knobMeta": {
+              "beatsPerBar": {
+                "min": 1,
+                "max": 12,
+                "step": 1,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 0,
+                "label": "Beats",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 4,
+                "valueFontSize": 24,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "metroLevel": {
+                "min": 0,
+                "max": 1.5,
+                "step": 0.05,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "Level",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 24,
+                "defaultValue": 0.8,
+                "valueFontSize": 0,
+                "pad": 0,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "metroMorph": {
+                "min": 0,
+                "max": 1,
+                "step": 0.01,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "LP ↔ HP",
+                "viewSize": "medium",
+                "color": "#d3d3d3",
+                "labelPos": "top",
+                "bg": "#4b5261",
+                "shape": "faderHoriz",
+                "faderLen": 64,
+                "defaultValue": 0.5,
+                "valueFontSize": 0,
+                "pad": 0,
+                "hideValue": true,
+                "dragRange": 0
+              },
+              "metroCutoff": {
+                "min": 120,
+                "max": 9999,
+                "step": 10,
+                "curve": "log",
+                "skew": 1,
+                "unit": " Hz",
+                "decimals": 0,
+                "label": "Cut-on",
+                "viewSize": "medium",
+                "color": "#c0c341",
+                "labelPos": "top",
+                "bg": "#915503",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 1000,
+                "valueFontSize": 0,
+                "pad": 0,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "metroCutoffRatio": {
+                "min": 0.2,
+                "max": 1,
+                "step": 0.01,
+                "curve": "linear",
+                "skew": 0.8,
+                "unit": " ×",
+                "decimals": 2,
+                "label": "Cut-off",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.66,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "metroReso": {
+                "min": 0.1,
+                "max": 99,
+                "step": 0.1,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " Q",
+                "decimals": 1,
+                "label": "Reso",
+                "viewSize": "small",
+                "color": "#86e2ff",
+                "labelPos": "top",
+                "bg": "#915503",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 2,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              }
+            },
+            "ctrlPos": {
+              "k:metroLevel": {
+                "x": 58,
+                "y": 22
+              },
+              "k:metroL": {
+                "x": 136,
+                "y": 26
+              },
+              "k:metroCutoff": {
+                "x": 0,
+                "y": 97
+              },
+              "k:beatsPerBar": {
+                "x": 1,
+                "y": 46
+              },
+              "t:metroOn": {
+                "x": 0,
+                "y": 20
+              },
+              "k:metroMorph": {
+                "x": 0,
+                "y": 55
+              },
+              "k:metroCutoffOffset": {
+                "x": 5,
+                "y": 180
+              },
+              "k:metroReso": {
+                "x": 61,
+                "y": 98
+              },
+              "u:beatView": {
+                "x": 0,
+                "y": 0
+              },
+              "k:metroCutoffRatio": {
+                "x": 59,
+                "y": 160
+              },
+              "t:metroCutoffQuant": {
+                "x": 10,
+                "y": 177
+              }
+            },
+            "controlOrder": {},
+            "groupStyle": {
+              "bg": "rgba(125,188,255,0.1)",
+              "headColor": "rgba(180,159,0,1)"
+            }
+          }
+        ]
+      },
+      "groupComboSel": {
+        "Takt / Metronom": "Motronom klein"
+      },
+      "groupSnaps": {
+        "Takt / Metronom": [
+          {
+            "name": "default 4/4",
+            "ts": 1785611688809,
+            "values": {
+              "metroOn": true,
+              "metroCutoffQuant": false,
+              "beatsPerBar": 4,
+              "metroLevel": 0.8,
+              "metroMorph": 0.16,
+              "metroCutoff": 1971.9999999999998,
+              "metroCutoffRatio": 0.6599999999999999,
+              "metroReso": 9.4
+            }
+          }
+        ]
+      },
+      "groupSnapSel": {
+        "Takt / Metronom": "default 4/4"
+      },
+      "specialPopPos_tabSettings": {
+        "x": 122,
+        "y": 32
+      }
     },
     "werkbank_polysynth": {
       "knobColorPresets": [
@@ -910,6 +1211,11 @@
           "name": "Amp",
           "color": "#bfc2ff",
           "bg": "#3a43b8"
+        },
+        {
+          "name": "default klein knb",
+          "color": "#5ad1ff",
+          "bg": ""
         }
       ],
       "ctrlStyles": {
@@ -1060,6 +1366,93 @@
           "labelPos": "top",
           "btnMode": "trigger",
           "bgOn": "#bfcdd0"
+        },
+        "s:adsrOutput_0": {
+          "label": "out",
+          "labelPos": "off",
+          "boxSize": 99,
+          "pad": 2
+        },
+        "b:adsrGate_0": {
+          "labelPos": "top",
+          "btnMode": "nix",
+          "bg": "#253433",
+          "bgOn": "#35717e",
+          "size": 15,
+          "boxSize": 20,
+          "boxH": 20,
+          "pad": 0
+        },
+        "b:adsrGate_1": {
+          "labelPos": "top",
+          "btnMode": "gate",
+          "bg": "#253433",
+          "bgOn": "#35717e",
+          "size": 28,
+          "boxSize": 28,
+          "boxH": 64,
+          "pad": 1
+        },
+        "s:adsrOutput_1": {
+          "label": "out",
+          "labelPos": "off",
+          "boxSize": 99,
+          "pad": 2
+        },
+        "b:adsrLenFest_0": {
+          "labelPos": "left",
+          "btnMode": "toggle",
+          "bg": "#3d3d3d",
+          "bgOn": "#717067",
+          "fg": "#ffffff",
+          "textOn": "Len",
+          "textOff": "Gate",
+          "size": 6,
+          "boxSize": 26,
+          "boxH": 16,
+          "pad": 0
+        },
+        "b:adsrLenFest_1": {
+          "labelPos": "left",
+          "btnMode": "toggle",
+          "bg": "#3d3d3d",
+          "bgOn": "#717067",
+          "fg": "#ffffff",
+          "textOn": "Len",
+          "textOff": "Gate",
+          "size": 6,
+          "boxSize": 26,
+          "boxH": 16,
+          "pad": 0
+        },
+        "b:adsrGate": {
+          "labelPos": "top",
+          "btnMode": "gate",
+          "bg": "#253433",
+          "bgOn": "#35717e",
+          "size": 27,
+          "boxSize": 28,
+          "boxH": 28,
+          "pad": 1
+        },
+        "b:adsrLenFest": {
+          "labelPos": "left",
+          "btnMode": "toggle",
+          "bg": "#3d3d3d",
+          "bgOn": "#717067",
+          "fg": "#ffffff",
+          "textOn": "Len",
+          "textOff": "Gate",
+          "size": 6,
+          "boxSize": 26,
+          "boxH": 16,
+          "pad": 0
+        },
+        "s:adsrOutput": {
+          "label": "out",
+          "labelPos": "off",
+          "boxSize": 99,
+          "pad": 2
         }
       },
       "knobMeta": {
@@ -1085,7 +1478,7 @@
           "dragRange": 0
         },
         "kbStart": {
-          "min": 0,
+          "min": -1,
           "max": 7,
           "step": 1,
           "curve": "linear",
@@ -1241,9 +1634,9 @@
           "decimals": 2,
           "label": "Harmonize",
           "viewSize": "medium",
-          "color": "#ffc412",
+          "color": "#ffed73",
           "labelPos": "bottom",
-          "bg": "#8b5625",
+          "bg": "#f55f00",
           "shape": "knob",
           "faderLen": 80,
           "defaultValue": 0.95,
@@ -1299,7 +1692,7 @@
           "max": 9,
           "step": 0,
           "curve": "linear",
-          "skew": 2,
+          "skew": 1,
           "unit": " s",
           "decimals": 1,
           "label": "R",
@@ -1359,7 +1752,7 @@
         },
         "ampDecay": {
           "min": 0,
-          "max": 9,
+          "max": 5,
           "step": 0,
           "curve": "linear",
           "skew": 1,
@@ -1402,7 +1795,7 @@
         "oscTilt": {
           "min": 0,
           "max": 150,
-          "step": 1,
+          "step": 0,
           "curve": "linear",
           "skew": 1,
           "unit": "",
@@ -1414,7 +1807,574 @@
           "bg": "#3a43b8",
           "shape": "knob",
           "faderLen": 80,
-          "defaultValue": 30,
+          "defaultValue": 15,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrA_0": {
+          "min": 0,
+          "max": 5,
+          "step": 0,
+          "curve": "log",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "A",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.001,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrD_0": {
+          "min": 0.001,
+          "max": 4,
+          "step": 0,
+          "curve": "log",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "D",
+          "viewSize": "small",
+          "color": "#5ad1ff",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.15,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrS_0": {
+          "min": 0,
+          "max": 1,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 2,
+          "label": "S",
+          "viewSize": "medium",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "faderVert",
+          "faderLen": 32,
+          "defaultValue": 0.7,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrR_0": {
+          "min": 0.1,
+          "max": 5,
+          "step": 0,
+          "curve": "log",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 2,
+          "label": "R",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.3,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrGateLen_0": {
+          "min": 0,
+          "max": 5,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "GateLen",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "top",
+          "bg": "#2e3743",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.1,
+          "valueFontSize": 7,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrPeak_0": {
+          "min": 0,
+          "max": 10,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 1,
+          "label": "Peak",
+          "viewSize": "medium",
+          "color": "",
+          "labelPos": "off",
+          "bg": "",
+          "shape": "faderVert",
+          "faderLen": 72,
+          "defaultValue": 1,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLen_0": {
+          "min": 0,
+          "max": 5000,
+          "step": 0,
+          "curve": "linear",
+          "skew": 2,
+          "unit": "",
+          "decimals": 0,
+          "label": "Len",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "top",
+          "bg": "#2e3743",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0,
+          "valueFontSize": 7,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrA_1": {
+          "min": 0,
+          "max": 5,
+          "step": 0,
+          "curve": "log",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "A",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.001,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrD_1": {
+          "min": 0.001,
+          "max": 4,
+          "step": 0,
+          "curve": "log",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "D",
+          "viewSize": "small",
+          "color": "#5ad1ff",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.15,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrS_1": {
+          "min": 0,
+          "max": 1,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 2,
+          "label": "S",
+          "viewSize": "medium",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "faderVert",
+          "faderLen": 32,
+          "defaultValue": 0.7,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrR_1": {
+          "min": 0.1,
+          "max": 5,
+          "step": 0,
+          "curve": "log",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 2,
+          "label": "R",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.3,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrPeak_1": {
+          "min": 0,
+          "max": 1,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 1,
+          "label": "Peak",
+          "viewSize": "medium",
+          "color": "",
+          "labelPos": "off",
+          "bg": "",
+          "shape": "faderVert",
+          "faderLen": 72,
+          "defaultValue": 1,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrGateLen_1": {
+          "min": 0,
+          "max": 5,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "GateLen",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "top",
+          "bg": "#2e3743",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.1,
+          "valueFontSize": 7,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLen_1": {
+          "min": 0,
+          "max": 5000,
+          "step": 0,
+          "curve": "linear",
+          "skew": 2,
+          "unit": "",
+          "decimals": 0,
+          "label": "Len",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "top",
+          "bg": "#2e3743",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0,
+          "valueFontSize": 7,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLenMs_0": {
+          "min": 0,
+          "max": 5000,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " ms",
+          "decimals": 0,
+          "label": "Len",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "top",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 100,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLenBeat_0": {
+          "min": 0,
+          "max": 8,
+          "step": 0.1,
+          "curve": "linear",
+          "skew": 1.5,
+          "unit": "",
+          "decimals": 2,
+          "label": "beats",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLenMs_1": {
+          "min": 0,
+          "max": 5000,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " ms",
+          "decimals": 0,
+          "label": "Len",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 100,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLenBeat_1": {
+          "min": 0,
+          "max": 8,
+          "step": 0.1,
+          "curve": "linear",
+          "skew": 1.5,
+          "unit": "",
+          "decimals": 2,
+          "label": "beats",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrA": {
+          "min": 0,
+          "max": 5,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "A",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.01,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrD": {
+          "min": 0,
+          "max": 5,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "D",
+          "viewSize": "small",
+          "color": "#5ad1ff",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.15,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrS": {
+          "min": 0,
+          "max": 1,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 2,
+          "label": "S",
+          "viewSize": "medium",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "faderVert",
+          "faderLen": 32,
+          "defaultValue": 0.7,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrR": {
+          "min": 0,
+          "max": 5,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 2,
+          "label": "R",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.3,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrPeak": {
+          "min": 0.01,
+          "max": 1,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 2,
+          "label": "Peak",
+          "viewSize": "medium",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "faderVert",
+          "faderLen": 36,
+          "defaultValue": 1,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLenMs": {
+          "min": 0,
+          "max": 5000,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " ms",
+          "decimals": 0,
+          "label": "Len",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 100,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLenBeat": {
+          "min": 0,
+          "max": 8,
+          "step": 0.1,
+          "curve": "linear",
+          "skew": 1.5,
+          "unit": "",
+          "decimals": 2,
+          "label": "beats",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrGateLen": {
+          "min": 0,
+          "max": 5,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": " s",
+          "decimals": 3,
+          "label": "GateLen",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0.1,
+          "valueFontSize": 0,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "adsrLen": {
+          "min": 0,
+          "max": 5000,
+          "step": 0,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "Len",
+          "viewSize": "small",
+          "color": "",
+          "labelPos": "bottom",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 0,
           "valueFontSize": 0,
           "pad": null,
           "hideValue": false,
@@ -1478,23 +2438,43 @@
       },
       "baseSrc": "Ton",
       "baseHz": 33.39999999999999,
-      "baseNote": "C",
-      "baseBand": 94.6494140625,
+      "baseNote": "A",
+      "baseBand": 42.0556640625,
       "kammerton": 440,
-      "harmonizeMix": 0.93,
-      "pitchSmooth": 0.5,
+      "harmonizeMix": 0.44508056640625,
+      "pitchSmooth": 0.11000000000000001,
       "oscEngine": "Sine-FM",
       "duty": 0.19130000000000003,
       "fmFeedback": 0,
       "polyMax": 32,
       "voiceSteal": false,
       "osc2On": true,
-      "detune": 0,
+      "detune": 16,
       "oscTilt": 46,
-      "ampAttack": 0,
-      "ampDecay": 4.185,
-      "ampSustain": 0.51,
-      "ampRelease": 4.169999999999999,
+      "adsrA": 0.0010000000000000002,
+      "adsrD": 0.003742609907383795,
+      "adsrS": 1,
+      "adsrR": 3.3748746743448454,
+      "adsrPeak": 1,
+      "adsrAOn": true,
+      "adsrDOn": true,
+      "adsrSOn": true,
+      "adsrROn": true,
+      "adsrInv": false,
+      "adsrVerlauf": false,
+      "adsrACurve": "lin",
+      "adsrDCurve": "log",
+      "adsrRCurve": "log",
+      "adsrASkew": 1,
+      "adsrDSkew": 1,
+      "adsrRSkew": 1,
+      "adsrTrigMode": "gate",
+      "adsrLenMs": 49.99999999999997,
+      "adsrLenBeat": 0,
+      "adsrLenUnit": "ms",
+      "adsrLenFest": true,
+      "adsrNullpunkt": 0,
+      "adsrOutput": "",
       "kbStart": 2,
       "kbOctaves": 6,
       "kbHold": false,
@@ -2168,6 +3148,22 @@
       "akMemLabels": {
         "2": "3"
       },
+      "ampAttack": 0,
+      "ampDecay": 4.185,
+      "ampSustain": 0.51,
+      "ampRelease": 4.169999999999999,
+      "ampAOn": true,
+      "ampDOn": true,
+      "ampSOn": true,
+      "ampROn": true,
+      "ampInv": false,
+      "ampVerlauf": false,
+      "ampACurve": "lin",
+      "ampDCurve": "log",
+      "ampRCurve": "log",
+      "ampASkew": 1,
+      "ampDSkew": 1,
+      "ampRSkew": 1,
       "akio": false,
       "akMemCols": 4,
       "akMemRows": 3,
@@ -2183,32 +3179,32 @@
           "y": 440
         },
         "Amp-Env": {
-          "x": 250,
-          "y": 440
+          "x": 305,
+          "y": 340
         },
         "Keyboard": {
           "x": 0,
           "y": 0
         },
         "Multi-ADSR": {
-          "x": 0,
-          "y": 585
+          "x": 440,
+          "y": 425
         },
         "ADSR": {
-          "x": 120,
-          "y": 587
+          "x": 280,
+          "y": 500
         }
       },
       "groupStyles": {
         "Audio-Osz": {
           "bg": "rgba(0,95,0,0.35)",
           "headColor": "rgba(245,245,245,1)",
-          "name": "Oscillator",
+          "name": "OSZ",
           "collapsed": false
         },
         "Base-Frq": {
-          "bg": "rgba(245,216,207,0.2)",
-          "headColor": "rgba(0,0,0,1)",
+          "bg": "rgba(233,214,147,0.1)",
+          "headColor": "rgba(255,255,255,1)",
           "scale": 120,
           "collapsed": false
         },
@@ -2219,17 +3215,23 @@
           "headColor": "rgba(216,221,225,1)"
         },
         "Amp-Env": {
-          "bg": "rgba(18,20,87,0.4)",
+          "bg": "rgba(64,61,125,0.4)",
           "collapsed": false,
-          "headColor": "rgba(255,255,255,1)"
+          "headColor": "rgba(255,255,255,0.7)"
+        },
+        "Multi-ADSR": {
+          "collapsed": true
         },
         "ADSR": {
-          "collapsed": true
+          "collapsed": false,
+          "name": "DSR",
+          "bg": "rgba(14,40,44,1)",
+          "headColor": "rgba(188,196,202,1)"
         }
       },
       "instrPos": {
-        "x": 579,
-        "y": 9
+        "x": 520,
+        "y": 13
       },
       "ctrlPos": {
         "Keyboard": {
@@ -2398,6 +3400,104 @@
           "k:ampAttack": {
             "x": 0,
             "y": 2
+          },
+          "k:adsrPeak": {
+            "x": 176,
+            "y": 0
+          },
+          "k:adsrGateLen": {
+            "x": 4,
+            "y": 70
+          },
+          "k:adsrLen": {
+            "x": 84,
+            "y": 70
+          },
+          "k:adsrA": {
+            "x": 0,
+            "y": 3
+          },
+          "k:adsrD": {
+            "x": 50,
+            "y": 3
+          },
+          "k:adsrS": {
+            "x": 100,
+            "y": 3
+          },
+          "k:adsrR": {
+            "x": 126,
+            "y": 3
+          },
+          "s:adsrOutput": {
+            "x": 10,
+            "y": 140
+          },
+          "b:adsrGate": {
+            "x": 0,
+            "y": 70
+          },
+          "b:adsrLenFest": {
+            "x": 51,
+            "y": 74
+          },
+          "k:adsrLenMs": {
+            "x": 90,
+            "y": 75
+          },
+          "k:adsrLenBeat": {
+            "x": 90,
+            "y": 130
+          }
+        },
+        "ADSR": {
+          "k:adsrPeak_0": {
+            "x": 114,
+            "y": 0
+          },
+          "k:adsrGateLen_0": {
+            "x": 84,
+            "y": 117
+          },
+          "k:adsrLen_0": {
+            "x": 84,
+            "y": 94
+          },
+          "k:adsrA_0": {
+            "x": 0,
+            "y": 25
+          },
+          "k:adsrD_0": {
+            "x": 50,
+            "y": 25
+          },
+          "k:adsrS_0": {
+            "x": 10,
+            "y": 95
+          },
+          "k:adsrR_0": {
+            "x": 46,
+            "y": 95
+          },
+          "s:adsrOutput_0": {
+            "x": 26,
+            "y": 0
+          },
+          "b:adsrGate_0": {
+            "x": 0,
+            "y": 0
+          },
+          "b:adsrLenFest_0": {
+            "x": 91,
+            "y": 94
+          },
+          "k:adsrLenMs_0": {
+            "x": 80,
+            "y": 105
+          },
+          "k:adsrLenBeat_0": {
+            "x": 90,
+            "y": 104
           }
         }
       },
@@ -2422,9 +3522,10 @@
         "u:speicher:7": ".",
         "u:speicher:8": "/",
         "b:akReset": "x",
-        "b:kbHold": "h"
+        "b:kbHold": "h",
+        "b:adsrGate_0": "b"
       },
-      "knobColorSel": "Amp",
+      "knobColorSel": "default klein knb",
       "midiBindings": {},
       "instrBg": "rgba(138,126,165,0.18)",
       "groupSnaps": {
@@ -3964,10 +5065,970 @@
               "scale": 110
             }
           }
+        ],
+        "ADSR": [
+          {
+            "name": "adsr small hor",
+            "ts": 1785680810548,
+            "ctrlStyles": {
+              "b:adsrLenFest": {
+                "labelPos": "left",
+                "btnMode": "toggle",
+                "bg": "#3d3d3d",
+                "bgOn": "#717067",
+                "fg": "#ffffff",
+                "textOn": "Len",
+                "textOff": "Gate",
+                "size": 6,
+                "boxSize": 26,
+                "boxH": 16,
+                "pad": 0
+              }
+            },
+            "knobMeta": {
+              "adsrA": {
+                "min": 0,
+                "max": 5,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "A",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.01,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrD": {
+                "min": 0,
+                "max": 5,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "D",
+                "viewSize": "small",
+                "color": "#5ad1ff",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.15,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrS": {
+                "min": 0,
+                "max": 1,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "S",
+                "viewSize": "medium",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "faderVert",
+                "faderLen": 32,
+                "defaultValue": 0.7,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrR": {
+                "min": 0,
+                "max": 5,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "R",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.3,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrPeak": {
+                "min": 0.01,
+                "max": 1,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "Peak",
+                "viewSize": "medium",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "faderVert",
+                "faderLen": 36,
+                "defaultValue": 1,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrLenMs": {
+                "min": 0,
+                "max": 5000,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " ms",
+                "decimals": 0,
+                "label": "Len",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 100,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrLenBeat": {
+                "min": 0,
+                "max": 8,
+                "step": 0.1,
+                "curve": "linear",
+                "skew": 1.5,
+                "unit": "",
+                "decimals": 2,
+                "label": "beats",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              }
+            },
+            "ctrlPos": {
+              "k:ampDecay": {
+                "x": 48,
+                "y": 2
+              },
+              "k:ampSustain": {
+                "x": 95,
+                "y": 1
+              },
+              "k:ampRelease": {
+                "x": 119,
+                "y": 2
+              },
+              "k:ampAttack": {
+                "x": 0,
+                "y": 2
+              },
+              "k:adsrPeak": {
+                "x": 176,
+                "y": 0
+              },
+              "k:adsrGateLen": {
+                "x": 4,
+                "y": 70
+              },
+              "k:adsrLen": {
+                "x": 84,
+                "y": 70
+              },
+              "k:adsrA": {
+                "x": 0,
+                "y": 3
+              },
+              "k:adsrD": {
+                "x": 50,
+                "y": 3
+              },
+              "k:adsrS": {
+                "x": 100,
+                "y": 3
+              },
+              "k:adsrR": {
+                "x": 126,
+                "y": 3
+              },
+              "s:adsrOutput": {
+                "x": 10,
+                "y": 140
+              },
+              "b:adsrGate": {
+                "x": 84,
+                "y": 0
+              },
+              "b:adsrLenFest": {
+                "x": 51,
+                "y": 74
+              },
+              "k:adsrLenMs": {
+                "x": 90,
+                "y": 75
+              },
+              "k:adsrLenBeat": {
+                "x": 90,
+                "y": 130
+              }
+            },
+            "controlOrder": {},
+            "groupStyle": {
+              "bg": "rgba(14,40,44,1)",
+              "headColor": "rgba(188,196,202,1)"
+            }
+          },
+          {
+            "name": "adsr cmpct",
+            "ts": 1785141833753,
+            "ctrlStyles": {
+              "b:adsrGate": {
+                "labelPos": "top",
+                "btnMode": "gate",
+                "bg": "#253433",
+                "bgOn": "#35717e",
+                "size": 28,
+                "boxSize": 28,
+                "boxH": 64,
+                "pad": 1
+              },
+              "b:adsrLenFest": {
+                "labelPos": "left",
+                "btnMode": "toggle",
+                "bg": "#3d3d3d",
+                "bgOn": "#717067",
+                "fg": "#ffffff",
+                "textOn": "Len",
+                "textOff": "Gate",
+                "size": 6,
+                "boxSize": 26,
+                "boxH": 16,
+                "pad": 0
+              },
+              "s:adsrOutput": {
+                "label": "out",
+                "labelPos": "off",
+                "boxSize": 99,
+                "pad": 2
+              }
+            },
+            "knobMeta": {
+              "adsrA": {
+                "min": 0,
+                "max": 5,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "A",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.001,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrD": {
+                "min": 0.001,
+                "max": 4,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "D",
+                "viewSize": "small",
+                "color": "#5ad1ff",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.15,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrS": {
+                "min": 0,
+                "max": 1,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "S",
+                "viewSize": "medium",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "faderVert",
+                "faderLen": 32,
+                "defaultValue": 0.7,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrR": {
+                "min": 0.1,
+                "max": 5,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 2,
+                "label": "R",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.3,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrPeak": {
+                "min": 0,
+                "max": 1,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 1,
+                "label": "Peak",
+                "viewSize": "medium",
+                "color": "",
+                "labelPos": "off",
+                "bg": "",
+                "shape": "faderVert",
+                "faderLen": 72,
+                "defaultValue": 1,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrLenMs": {
+                "min": 0,
+                "max": 5000,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " ms",
+                "decimals": 0,
+                "label": "Len",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 100,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrLenBeat": {
+                "min": 0,
+                "max": 8,
+                "step": 0.1,
+                "curve": "linear",
+                "skew": 1.5,
+                "unit": "",
+                "decimals": 2,
+                "label": "beats",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              }
+            },
+            "ctrlPos": {
+              "k:adsrPeak": {
+                "x": 114,
+                "y": 0
+              },
+              "k:adsrGateLen": {
+                "x": 84,
+                "y": 117
+              },
+              "k:adsrLen": {
+                "x": 84,
+                "y": 94
+              },
+              "k:adsrA": {
+                "x": 0,
+                "y": 27
+              },
+              "k:adsrD": {
+                "x": 40,
+                "y": 27
+              },
+              "k:adsrS": {
+                "x": 10,
+                "y": 97
+              },
+              "k:adsrR": {
+                "x": 36,
+                "y": 97
+              },
+              "s:adsrOutput": {
+                "x": 0,
+                "y": 0
+              },
+              "b:adsrGate": {
+                "x": 84,
+                "y": 25
+              },
+              "b:adsrLenFest": {
+                "x": 91,
+                "y": 94
+              },
+              "k:adsrLenMs": {
+                "x": 90,
+                "y": 130
+              },
+              "k:adsrLenBeat": {
+                "x": 90,
+                "y": 130
+              }
+            },
+            "controlOrder": {},
+            "groupStyle": {
+              "bg": "rgba(14,40,44,1)",
+              "headColor": "rgba(188,196,202,1)"
+            }
+          },
+          {
+            "name": "Combo 3",
+            "ts": 1785679638261,
+            "ctrlStyles": {
+              "b:adsrGate": {
+                "labelPos": "top",
+                "btnMode": "gate",
+                "bg": "#253433",
+                "bgOn": "#35717e",
+                "size": 28,
+                "boxSize": 28,
+                "boxH": 64,
+                "pad": 1
+              },
+              "b:adsrLenFest": {
+                "labelPos": "left",
+                "btnMode": "toggle",
+                "bg": "#3d3d3d",
+                "bgOn": "#717067",
+                "fg": "#ffffff",
+                "textOn": "Len",
+                "textOff": "Gate",
+                "size": 6,
+                "boxSize": 26,
+                "boxH": 16,
+                "pad": 0
+              },
+              "s:adsrOutput": {
+                "label": "out",
+                "labelPos": "off",
+                "boxSize": 99,
+                "pad": 2
+              }
+            },
+            "knobMeta": {
+              "adsrA": {
+                "min": 0,
+                "max": 5,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "A",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.001,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrD": {
+                "min": 0.001,
+                "max": 4,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "D",
+                "viewSize": "small",
+                "color": "#5ad1ff",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.15,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrS": {
+                "min": 0,
+                "max": 1,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "S",
+                "viewSize": "medium",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "faderVert",
+                "faderLen": 32,
+                "defaultValue": 0.7,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrR": {
+                "min": 0.1,
+                "max": 5,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 2,
+                "label": "R",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.3,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrPeak": {
+                "min": 0,
+                "max": 10,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 1,
+                "label": "Peak",
+                "viewSize": "medium",
+                "color": "",
+                "labelPos": "off",
+                "bg": "",
+                "shape": "faderVert",
+                "faderLen": 72,
+                "defaultValue": 1,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrLenMs": {
+                "min": 0,
+                "max": 5000,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " ms",
+                "decimals": 0,
+                "label": "Len",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 100,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrLenBeat": {
+                "min": 0,
+                "max": 8,
+                "step": 0.1,
+                "curve": "linear",
+                "skew": 1.5,
+                "unit": "",
+                "decimals": 2,
+                "label": "beats",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              }
+            },
+            "ctrlPos": {
+              "k:adsrPeak": {
+                "x": 114,
+                "y": 0
+              },
+              "k:adsrGateLen": {
+                "x": 84,
+                "y": 117
+              },
+              "k:adsrLen": {
+                "x": 84,
+                "y": 94
+              },
+              "k:adsrA": {
+                "x": 0,
+                "y": 1
+              },
+              "k:adsrD": {
+                "x": 40,
+                "y": 1
+              },
+              "k:adsrS": {
+                "x": 10,
+                "y": 71
+              },
+              "k:adsrR": {
+                "x": 36,
+                "y": 71
+              },
+              "s:adsrOutput": {
+                "x": 10,
+                "y": 140
+              },
+              "b:adsrGate": {
+                "x": 84,
+                "y": 0
+              },
+              "b:adsrLenFest": {
+                "x": 91,
+                "y": 94
+              },
+              "k:adsrLenMs": {
+                "x": 90,
+                "y": 105
+              },
+              "k:adsrLenBeat": {
+                "x": 90,
+                "y": 130
+              }
+            },
+            "controlOrder": {},
+            "groupStyle": {
+              "bg": "rgba(14,40,44,1)",
+              "headColor": "rgba(188,196,202,1)"
+            }
+          },
+          {
+            "name": "Combo 4",
+            "ts": 1785680752721,
+            "ctrlStyles": {
+              "b:adsrGate": {
+                "labelPos": "top",
+                "btnMode": "gate",
+                "bg": "#253433",
+                "bgOn": "#35717e",
+                "size": 28,
+                "boxSize": 28,
+                "boxH": 64,
+                "pad": 1
+              },
+              "b:adsrLenFest": {
+                "labelPos": "left",
+                "btnMode": "toggle",
+                "bg": "#3d3d3d",
+                "bgOn": "#717067",
+                "fg": "#ffffff",
+                "textOn": "Len",
+                "textOff": "Gate",
+                "size": 6,
+                "boxSize": 26,
+                "boxH": 16,
+                "pad": 0
+              },
+              "s:adsrOutput": {
+                "label": "out",
+                "labelPos": "off",
+                "boxSize": 99,
+                "pad": 2
+              }
+            },
+            "knobMeta": {
+              "adsrA": {
+                "min": 0,
+                "max": 5,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "A",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.001,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrD": {
+                "min": 0.001,
+                "max": 4,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 3,
+                "label": "D",
+                "viewSize": "small",
+                "color": "#5ad1ff",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.15,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrS": {
+                "min": 0,
+                "max": 1,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 2,
+                "label": "S",
+                "viewSize": "medium",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "faderVert",
+                "faderLen": 32,
+                "defaultValue": 0.7,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrR": {
+                "min": 0.1,
+                "max": 5,
+                "step": 0,
+                "curve": "log",
+                "skew": 1,
+                "unit": " s",
+                "decimals": 2,
+                "label": "R",
+                "viewSize": "small",
+                "color": "",
+                "labelPos": "top",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0.3,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrPeak": {
+                "min": 0,
+                "max": 10,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": "",
+                "decimals": 1,
+                "label": "Peak",
+                "viewSize": "medium",
+                "color": "",
+                "labelPos": "off",
+                "bg": "",
+                "shape": "faderVert",
+                "faderLen": 72,
+                "defaultValue": 1,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrLenMs": {
+                "min": 0,
+                "max": 5000,
+                "step": 0,
+                "curve": "linear",
+                "skew": 1,
+                "unit": " ms",
+                "decimals": 0,
+                "label": "Len",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 100,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              },
+              "adsrLenBeat": {
+                "min": 0,
+                "max": 8,
+                "step": 0.1,
+                "curve": "linear",
+                "skew": 1.5,
+                "unit": "",
+                "decimals": 2,
+                "label": "beats",
+                "viewSize": "none",
+                "color": "",
+                "labelPos": "bottom",
+                "bg": "",
+                "shape": "knob",
+                "faderLen": 80,
+                "defaultValue": 0,
+                "valueFontSize": 0,
+                "pad": null,
+                "hideValue": false,
+                "dragRange": 0
+              }
+            },
+            "ctrlPos": {
+              "k:adsrPeak": {
+                "x": 114,
+                "y": 0
+              },
+              "k:adsrGateLen": {
+                "x": 84,
+                "y": 117
+              },
+              "k:adsrLen": {
+                "x": 84,
+                "y": 94
+              },
+              "k:adsrA": {
+                "x": 0,
+                "y": 1
+              },
+              "k:adsrD": {
+                "x": 40,
+                "y": 1
+              },
+              "k:adsrS": {
+                "x": 10,
+                "y": 71
+              },
+              "k:adsrR": {
+                "x": 36,
+                "y": 71
+              },
+              "s:adsrOutput": {
+                "x": 10,
+                "y": 140
+              },
+              "b:adsrGate": {
+                "x": 84,
+                "y": 0
+              },
+              "b:adsrLenFest": {
+                "x": 91,
+                "y": 94
+              },
+              "k:adsrLenMs": {
+                "x": 90,
+                "y": 105
+              },
+              "k:adsrLenBeat": {
+                "x": 90,
+                "y": 130
+              }
+            },
+            "controlOrder": {},
+            "groupStyle": {
+              "bg": "rgba(14,40,44,1)",
+              "headColor": "rgba(188,196,202,1)"
+            }
+          }
         ]
       },
       "groupComboSel": {
-        "Keyboard": "Combo 1"
+        "Keyboard": "Combo 1",
+        "ADSR": "Combo 4",
+        "Amp-Env": "adsr small hor"
       },
       "ismSnaps": [
         {
@@ -4856,7 +6917,56 @@
       "adsrTrigMode_0": "trig",
       "adsrLen_0": 0,
       "adsrLenUnit_0": "ms",
-      "adsrOutput_0": ""
+      "adsrOutput_0": "",
+      "adsrASkew_0": 1,
+      "adsrDSkew_0": 1,
+      "adsrRSkew_0": 1,
+      "adsrLen_1": 276.125,
+      "adsrLenMs_0": 0,
+      "adsrLenBeat_0": 2.93,
+      "adsrLenFest_0": true,
+      "groupSettingsPos": {
+        "x": 239,
+        "y": 106
+      },
+      "knobSettingsPos": {
+        "x": 371,
+        "y": 216.9609375
+      },
+      "adsrGateLen_1": 0.35,
+      "adsrNullpunkt_0": 0.5,
+      "adsrLenFest_1": true,
+      "adsrA_1": 0.0018941865579451996,
+      "adsrD_1": 0.012549554164818505,
+      "adsrS_1": 1,
+      "adsrR_1": 0.24113944164586193,
+      "adsrPeak_1": 0.12,
+      "adsrLenMs_1": 0,
+      "adsrLenBeat_1": 0.6000000000000001,
+      "adsrOutput_1": "polysynth.postQuantMod",
+      "adsrAOn_1": true,
+      "adsrDOn_1": true,
+      "adsrSOn_1": true,
+      "adsrROn_1": true,
+      "adsrInv_1": false,
+      "adsrVerlauf_1": true,
+      "adsrACurve_1": "lin",
+      "adsrDCurve_1": "log",
+      "adsrRCurve_1": "log",
+      "adsrASkew_1": 1,
+      "adsrDSkew_1": 1,
+      "adsrRSkew_1": 1,
+      "adsrTrigMode_1": "gate",
+      "adsrLenUnit_1": "beats",
+      "adsrNullpunkt_1": 1,
+      "ctrlOffPanel": {
+        "k:adsrPeak": true,
+        "k:adsrPeak_0": true
+      },
+      "elementSettingsPos": {
+        "x": 638,
+        "y": 258.3046875
+      }
     },
     "werkbank_stepseq": {
       "knobColorPresets": [
@@ -5030,6 +7140,92 @@
           "pad": 0
         },
         "s:seqOutput_3": {
+          "label": "Out",
+          "labelPos": "off",
+          "fg": "#ff9696",
+          "bg0": "#000000",
+          "bg1": "#5ad1ff",
+          "size": 12,
+          "boxSize": 92,
+          "pad": 2
+        },
+        "s:seqOutput_4": {
+          "label": "Out",
+          "labelPos": "off",
+          "fg": "#ff9696",
+          "bg0": "#000000",
+          "bg1": "#5ad1ff",
+          "size": 12,
+          "boxSize": 92,
+          "pad": 2
+        },
+        "t:seqEnabled_4": {
+          "label": "An",
+          "labelPos": "off"
+        },
+        "u:seqGrid_4": {
+          "bg": "#1d1b25",
+          "fg": "#82ba90",
+          "boxSize": 315,
+          "boxH": 30,
+          "seqOff": false,
+          "seqMin": 0,
+          "seqMax": 0.95,
+          "seqStep": 0
+        },
+        "u:seqFill_4": {
+          "labelPos": "off",
+          "btnMode": "trigger",
+          "bg": "#525252",
+          "bgOn": "#ffffff",
+          "size": 12,
+          "pad": 4
+        },
+        "u:seqSet0_4": {
+          "label": "Reset",
+          "labelPos": "off",
+          "btnMode": "gate",
+          "bg": "#474747",
+          "bgOn": "#ffffff",
+          "textOn": "⇤",
+          "textOff": "⇤",
+          "size": 18,
+          "pad": 0
+        },
+        "u:seqGrid_5": {
+          "bg": "#1d1b25",
+          "fg": "#82ba90",
+          "boxSize": 315,
+          "boxH": 30,
+          "seqOff": false,
+          "seqMin": 0,
+          "seqMax": 1,
+          "seqStep": 0
+        },
+        "t:seqEnabled_5": {
+          "label": "An",
+          "labelPos": "off"
+        },
+        "u:seqFill_5": {
+          "labelPos": "off",
+          "btnMode": "trigger",
+          "bg": "#525252",
+          "bgOn": "#ffffff",
+          "size": 12,
+          "pad": 4
+        },
+        "u:seqSet0_5": {
+          "label": "Reset",
+          "labelPos": "off",
+          "btnMode": "gate",
+          "bg": "#474747",
+          "bgOn": "#ffffff",
+          "textOn": "⇤",
+          "textOff": "⇤",
+          "size": 18,
+          "pad": 0
+        },
+        "s:seqOutput_5": {
           "label": "Out",
           "labelPos": "off",
           "fg": "#ff9696",
@@ -5292,6 +7488,132 @@
           "pad": null,
           "hideValue": false,
           "dragRange": 0
+        },
+        "seqMult_4": {
+          "min": 1,
+          "max": 32,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "/ ",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 1,
+          "valueFontSize": 20,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "seqDiv_4": {
+          "min": 1,
+          "max": 24,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "speed",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 16,
+          "valueFontSize": 20,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "seqLen_4": {
+          "min": 1,
+          "max": 64,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "Steps:",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 8,
+          "valueFontSize": 20,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "seqMult_5": {
+          "min": 1,
+          "max": 32,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "/ ",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 1,
+          "valueFontSize": 20,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "seqDiv_5": {
+          "min": 1,
+          "max": 24,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "speed",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 16,
+          "valueFontSize": 20,
+          "pad": 0,
+          "hideValue": false,
+          "dragRange": 0
+        },
+        "seqLen_5": {
+          "min": 1,
+          "max": 64,
+          "step": 1,
+          "curve": "linear",
+          "skew": 1,
+          "unit": "",
+          "decimals": 0,
+          "label": "Steps:",
+          "viewSize": "none",
+          "color": "",
+          "labelPos": "left",
+          "bg": "",
+          "shape": "knob",
+          "faderLen": 80,
+          "defaultValue": 8,
+          "valueFontSize": 20,
+          "pad": null,
+          "hideValue": false,
+          "dragRange": 0
         }
       },
       "designPresets": {
@@ -5309,6 +7631,22 @@
               "seqStep": 1
             }
           }
+        ],
+        "knob": [
+          {
+            "name": "16stp",
+            "style": {
+              "viewSize": "none",
+              "color": "",
+              "labelPos": "left",
+              "bg": "",
+              "shape": "knob",
+              "faderLen": 80,
+              "valueFontSize": 20,
+              "pad": null,
+              "hideValue": false
+            }
+          }
         ]
       },
       "groupPos": {
@@ -5318,15 +7656,23 @@
         },
         "Sequenzer 2": {
           "x": 0,
-          "y": 130
+          "y": 110
         },
         "Sequenzer 3": {
           "x": 0,
-          "y": 242
+          "y": 202
         },
         "Sequenzer 4": {
           "x": 0,
-          "y": 354
+          "y": 294
+        },
+        "Sequenzer 5": {
+          "x": 0,
+          "y": 388
+        },
+        "Sequenzer 6": {
+          "x": 0,
+          "y": 483
         }
       },
       "ctrlPos": {
@@ -5481,11 +7827,87 @@
             "x": 135,
             "y": 2
           }
+        },
+        "Sequenzer 5": {
+          "s:seqOutput_4": {
+            "x": 225,
+            "y": 2
+          },
+          "t:seqEnabled_4": {
+            "x": 0,
+            "y": 3
+          },
+          "k:seqMult_4": {
+            "x": 103,
+            "y": 2
+          },
+          "k:seqDiv_4": {
+            "x": 50,
+            "y": 2
+          },
+          "u:seqGrid_4": {
+            "x": 0,
+            "y": 26
+          },
+          "u:seqSteps_4": {
+            "x": 130,
+            "y": 8
+          },
+          "u:seqFill_4": {
+            "x": 194,
+            "y": 2
+          },
+          "u:seqSet0_4": {
+            "x": 20,
+            "y": 3
+          },
+          "k:seqLen_4": {
+            "x": 135,
+            "y": 2
+          }
+        },
+        "Sequenzer 6": {
+          "s:seqOutput_5": {
+            "x": 225,
+            "y": 2
+          },
+          "t:seqEnabled_5": {
+            "x": 0,
+            "y": 3
+          },
+          "k:seqMult_5": {
+            "x": 103,
+            "y": 2
+          },
+          "k:seqDiv_5": {
+            "x": 50,
+            "y": 2
+          },
+          "u:seqGrid_5": {
+            "x": 0,
+            "y": 26
+          },
+          "u:seqSteps_5": {
+            "x": 130,
+            "y": 8
+          },
+          "u:seqFill_5": {
+            "x": 194,
+            "y": 2
+          },
+          "u:seqSet0_5": {
+            "x": 20,
+            "y": 3
+          },
+          "k:seqLen_5": {
+            "x": 135,
+            "y": 2
+          }
         }
       },
       "instrPos": {
-        "x": 218,
-        "y": 10
+        "x": 162,
+        "y": 11
       },
       "hintText": {
         "u:seqGrid": "..\n",
@@ -5507,6 +7929,14 @@
           "headColor": "rgba(218,222,226,1)"
         },
         "Sequenzer 4": {
+          "bg": "rgba(28,32,39,0.3)",
+          "headColor": "rgba(218,222,226,1)"
+        },
+        "Sequenzer 5": {
+          "bg": "rgba(28,32,39,0.3)",
+          "headColor": "rgba(218,222,226,1)"
+        },
+        "Sequenzer 6": {
           "bg": "rgba(28,32,39,0.3)",
           "headColor": "rgba(218,222,226,1)"
         }
@@ -5639,7 +8069,7 @@
         5,
         10
       ],
-      "sqCount": 4,
+      "sqCount": 6,
       "seqTargetMigrated": true,
       "ismSnaps": [
         {
@@ -7853,22 +10283,23 @@
       },
       "groupComboSel": {
         "Stepsequenzer": "Seq0",
-        "Sequenzer 4": "Seq0"
+        "Sequenzer 4": "Seq0",
+        "Sequenzer 6": "Seq0"
       },
       "knobColorSel": "Value",
       "instrScale": 100,
       "seqEnabled_1": true,
       "seqMult_1": 1,
-      "seqDiv_1": 8,
+      "seqDiv_1": 4,
       "seqLen_1": 13,
       "seqOutput_1": "polysynth.baseBand",
       "seqSteps_1": [
-        57.5244140625,
+        99,
         29.6806640625,
         48.2431640625,
-        94.6494140625,
-        35.8681640625,
-        79.1806640625,
+        68.038330078125,
+        37.100830078125,
+        55.663330078125,
         26.5869140625,
         48.2431640625,
         20.3994140625,
@@ -8237,7 +10668,276 @@
         null,
         null,
         null
-      ]
+      ],
+      "groupSettingsPos": {
+        "x": 393,
+        "y": 317.9985656738281
+      },
+      "knobSettingsPos": {
+        "x": 506.5312194824219,
+        "y": 61.649147033691406
+      },
+      "ctrlOffPanel": {
+        "u:seqSet0_0": true
+      },
+      "seqOutput_4": "polysynth.harmonizeMix",
+      "seqEnabled_4": true,
+      "seqMult_4": 4,
+      "seqDiv_4": 1,
+      "seqLen_4": 16,
+      "seqSteps_4": [
+        0.95,
+        0.44508056640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.86070556640625,
+        0.7419555664062499,
+        0.65289306640625,
+        0.38570556640625,
+        0.29664306640625,
+        0,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.95,
+        0.7419555664062499,
+        0.11851806640625,
+        0.50445556640625
+      ],
+      "seqEnabled_5": true,
+      "seqOutput_5": "polysynth.fmFeedback",
+      "seqMult_5": 5,
+      "seqDiv_5": 1,
+      "seqLen_5": 10,
+      "seqSteps_5": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.0810546875,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elementSettingsPos": {
+        "x": 509,
+        "y": 518.8046875
+      }
     },
     "werkbank_rec": {
       "knobColorPresets": [],
@@ -8261,7 +10961,7 @@
       "knobMeta": {},
       "designPresets": {},
       "recName": "werkbanke-rec",
-      "recFormat": "wav",
+      "recFormat": "mp3",
       "recMp3Bitrate": 192,
       "recMp3Stereo": true,
       "recWavSampleRate": 48000,
@@ -8273,8 +10973,8 @@
         }
       },
       "instrPos": {
-        "x": 1249,
-        "y": 10.797
+        "x": 1061,
+        "y": 15.797
       },
       "ctrlPos": {
         "Aufnahme": {
@@ -8338,7 +11038,7 @@
       "knobMeta": {
         "vol": {
           "min": -24,
-          "max": 6,
+          "max": 0,
           "step": 0.1,
           "curve": "linear",
           "skew": 1,
@@ -8359,10 +11059,16 @@
         }
       },
       "designPresets": {},
-      "masterDb": -4.100000000000001,
-      "limiterOn": false,
-      "limiterAttackMs": 0.5,
-      "limiterReleaseMs": 250,
+      "masterDb": -3,
+      "limiterOn": true,
+      "limiterAttackMs": 1,
+      "limiterReleaseMs": 500,
+      "waveshaperOn": true,
+      "limStyle": {
+        "bgOn": "#dbc900",
+        "fg": "#000000",
+        "bg": "#88863f"
+      },
       "hintText": {
         "k:masterVol": "Ausgangslautstärke. Doppelklick = (default) dB (Unity) – der Bezugspunkt beim Pegeln, nicht der Auslieferungswert."
       }
@@ -8375,7 +11081,7 @@
       "ensembleSnaps": [
         {
           "name": "Space > Play",
-          "ts": 1785252993480,
+          "ts": 1785652187838,
           "ls": {
             "werkbank_taktmetro": {
               "bpm": 129.45000000000002,
@@ -8390,18 +11096,18 @@
             },
             "werkbank_polysynth": {
               "baseSrc": "Ton",
-              "baseBand": 29.6806640625,
+              "baseBand": 37.100830078125,
               "baseHz": 33.39999999999999,
               "kammerton": 440,
-              "harmonizeMix": 0.93,
-              "pitchSmooth": 0.5,
+              "harmonizeMix": 0.95,
+              "pitchSmooth": 0.11000000000000001,
               "oscEngine": "Sine-FM",
               "osc2On": true,
               "voiceSteal": false,
               "duty": 0.19130000000000003,
               "fmFeedback": 0,
               "polyMax": 32,
-              "detune": 16,
+              "detune": 39,
               "oscTilt": 46,
               "ampAttack": 0,
               "ampDecay": 4.185,
@@ -9074,25 +11780,30 @@
               "akMemLabels": {
                 "2": "3"
               },
-              "adsrACurve_0": "lin",
-              "adsrDCurve_0": "log",
-              "adsrRCurve_0": "log",
-              "adsrTrigMode_0": "trig",
-              "adsrLenUnit_0": "ms",
+              "adsrLenFest_0": true,
+              "adsrA_0": 0.01,
+              "adsrD_0": 0.15,
+              "adsrS_0": 0.7,
+              "adsrR_0": 0.3,
+              "adsrPeak_0": 1,
+              "adsrLenMs_0": 0,
+              "adsrLenBeat_0": 2.93,
+              "adsrOutput_0": "",
               "adsrAOn_0": true,
               "adsrDOn_0": true,
               "adsrSOn_0": true,
               "adsrROn_0": true,
               "adsrInv_0": false,
               "adsrVerlauf_0": false,
-              "adsrA_0": 0.01,
-              "adsrD_0": 0.15,
-              "adsrS_0": 0.7,
-              "adsrR_0": 0.3,
-              "adsrPeak_0": 1,
-              "adsrGateLen_0": 0.1,
-              "adsrLen_0": 0,
-              "adsrOutput_0": ""
+              "adsrACurve_0": "lin",
+              "adsrDCurve_0": "log",
+              "adsrRCurve_0": "log",
+              "adsrASkew_0": 1,
+              "adsrDSkew_0": 1,
+              "adsrRSkew_0": 1,
+              "adsrTrigMode_0": "trig",
+              "adsrLenUnit_0": "ms",
+              "adsrNullpunkt_0": 0.5
             },
             "werkbank_stepseq": {
               "seqEnabled_0": true,
@@ -9224,16 +11935,16 @@
               ],
               "seqEnabled_1": true,
               "seqMult_1": 1,
-              "seqDiv_1": 8,
+              "seqDiv_1": 4,
               "seqLen_1": 13,
               "seqOutput_1": "polysynth.baseBand",
               "seqSteps_1": [
-                57.5244140625,
+                99,
                 29.6806640625,
                 48.2431640625,
-                94.6494140625,
-                35.8681640625,
-                79.1806640625,
+                68.038330078125,
+                37.100830078125,
+                55.663330078125,
                 26.5869140625,
                 48.2431640625,
                 20.3994140625,
@@ -9602,6 +12313,133 @@
                 null,
                 null,
                 null
+              ],
+              "seqOutput_4": "polysynth.harmonizeMix",
+              "seqEnabled_4": true,
+              "seqMult_4": 4,
+              "seqDiv_4": 1,
+              "seqLen_4": 16,
+              "seqSteps_4": [
+                0.95,
+                0.44508056640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.86070556640625,
+                0.7419555664062499,
+                0.65289306640625,
+                0.38570556640625,
+                0.29664306640625,
+                0,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.95,
+                0.7419555664062499,
+                0.11851806640625,
+                0.50445556640625
               ]
             },
             "werkbank_rec": {
@@ -9610,7 +12448,7 @@
           },
           "extra": {
             "werkbank_stepseq": {
-              "sqCount": 4,
+              "sqCount": 5,
               "sqViews": {
                 "ctrlStyles": {
                   "s:seqOutput_0": {
@@ -9775,6 +12613,49 @@
                     "pad": 4
                   },
                   "u:seqSet0_3": {
+                    "label": "Reset",
+                    "labelPos": "off",
+                    "btnMode": "gate",
+                    "bg": "#474747",
+                    "bgOn": "#ffffff",
+                    "textOn": "⇤",
+                    "textOff": "⇤",
+                    "size": 18,
+                    "pad": 0
+                  },
+                  "s:seqOutput_4": {
+                    "label": "Out",
+                    "labelPos": "off",
+                    "fg": "#ff9696",
+                    "bg0": "#000000",
+                    "bg1": "#5ad1ff",
+                    "size": 12,
+                    "boxSize": 92,
+                    "pad": 2
+                  },
+                  "t:seqEnabled_4": {
+                    "label": "An",
+                    "labelPos": "off"
+                  },
+                  "u:seqGrid_4": {
+                    "bg": "#1d1b25",
+                    "fg": "#82ba90",
+                    "boxSize": 315,
+                    "boxH": 30,
+                    "seqOff": false,
+                    "seqMin": 0,
+                    "seqMax": 0.95,
+                    "seqStep": 0
+                  },
+                  "u:seqFill_4": {
+                    "labelPos": "off",
+                    "btnMode": "trigger",
+                    "bg": "#525252",
+                    "bgOn": "#ffffff",
+                    "size": 12,
+                    "pad": 4
+                  },
+                  "u:seqSet0_4": {
                     "label": "Reset",
                     "labelPos": "off",
                     "btnMode": "gate",
@@ -10038,6 +12919,69 @@
                     "pad": null,
                     "hideValue": false,
                     "dragRange": 0
+                  },
+                  "seqMult_4": {
+                    "min": 1,
+                    "max": 32,
+                    "step": 1,
+                    "curve": "linear",
+                    "skew": 1,
+                    "unit": "",
+                    "decimals": 0,
+                    "label": "/ ",
+                    "viewSize": "none",
+                    "color": "",
+                    "labelPos": "left",
+                    "bg": "",
+                    "shape": "knob",
+                    "faderLen": 80,
+                    "defaultValue": 1,
+                    "valueFontSize": 20,
+                    "pad": null,
+                    "hideValue": false,
+                    "dragRange": 0
+                  },
+                  "seqDiv_4": {
+                    "min": 1,
+                    "max": 24,
+                    "step": 1,
+                    "curve": "linear",
+                    "skew": 1,
+                    "unit": "",
+                    "decimals": 0,
+                    "label": "speed",
+                    "viewSize": "none",
+                    "color": "",
+                    "labelPos": "left",
+                    "bg": "",
+                    "shape": "knob",
+                    "faderLen": 80,
+                    "defaultValue": 16,
+                    "valueFontSize": 20,
+                    "pad": 0,
+                    "hideValue": false,
+                    "dragRange": 0
+                  },
+                  "seqLen_4": {
+                    "min": 1,
+                    "max": 64,
+                    "step": 1,
+                    "curve": "linear",
+                    "skew": 1,
+                    "unit": "",
+                    "decimals": 0,
+                    "label": "Steps:",
+                    "viewSize": "none",
+                    "color": "",
+                    "labelPos": "left",
+                    "bg": "",
+                    "shape": "knob",
+                    "faderLen": 80,
+                    "defaultValue": 8,
+                    "valueFontSize": 20,
+                    "pad": null,
+                    "hideValue": false,
+                    "dragRange": 0
                   }
                 },
                 "ctrlPos": {
@@ -10192,6 +13136,44 @@
                       "x": 135,
                       "y": 2
                     }
+                  },
+                  "Sequenzer 5": {
+                    "s:seqOutput_4": {
+                      "x": 225,
+                      "y": 2
+                    },
+                    "t:seqEnabled_4": {
+                      "x": 0,
+                      "y": 3
+                    },
+                    "k:seqMult_4": {
+                      "x": 103,
+                      "y": 2
+                    },
+                    "k:seqDiv_4": {
+                      "x": 50,
+                      "y": 2
+                    },
+                    "u:seqGrid_4": {
+                      "x": 0,
+                      "y": 26
+                    },
+                    "u:seqSteps_4": {
+                      "x": 130,
+                      "y": 8
+                    },
+                    "u:seqFill_4": {
+                      "x": 194,
+                      "y": 2
+                    },
+                    "u:seqSet0_4": {
+                      "x": 20,
+                      "y": 3
+                    },
+                    "k:seqLen_4": {
+                      "x": 135,
+                      "y": 2
+                    }
                   }
                 },
                 "groupPos": {
@@ -10210,6 +13192,10 @@
                   "Sequenzer 4": {
                     "x": 0,
                     "y": 354
+                  },
+                  "Sequenzer 5": {
+                    "x": 0,
+                    "y": 458
                   }
                 },
                 "groupStyles": {
@@ -10228,6 +13214,10 @@
                     "headColor": "rgba(218,222,226,1)"
                   },
                   "Sequenzer 4": {
+                    "bg": "rgba(28,32,39,0.3)",
+                    "headColor": "rgba(218,222,226,1)"
+                  },
+                  "Sequenzer 5": {
                     "bg": "rgba(28,32,39,0.3)",
                     "headColor": "rgba(218,222,226,1)"
                   }
@@ -18395,15 +21385,121 @@
       "ensembleSnapSel": "Space > Play"
     },
     "werkbank_scope": {
+      "knobColorPresets": [],
+      "ctrlStyles": {
+        "s:scopeOut_0": {
+          "labelPos": "off",
+          "boxSize": 100
+        },
+        "u:scope_0": {
+          "accuracy": "sample",
+          "bufferMs": 20,
+          "width": 200,
+          "height": 92,
+          "minVal": -1,
+          "autoRange": false,
+          "showMeter": true
+        },
+        "u:scope_1": {
+          "maxVal": 1.1,
+          "autoRange": false,
+          "showCurve": true,
+          "showMeter": true,
+          "width": 200,
+          "minVal": -0.1,
+          "height": 60,
+          "bufferMs": 555
+        },
+        "s:scopeSrc_0": {
+          "labelPos": "off",
+          "boxSize": 200
+        },
+        "s:scopeSrc_1": {
+          "labelPos": "off",
+          "boxSize": 200
+        }
+      },
+      "knobMeta": {},
+      "designPresets": {},
+      "scopeCount": 1,
+      "scopeOut_0": "polysynth.polyMax",
+      "groupPos": {
+        "Scope": {
+          "x": 11,
+          "y": 2
+        }
+      },
       "instrPos": {
-        "x": 14,
-        "y": 753
+        "x": 1050,
+        "y": 400
+      },
+      "instrBg": "rgba(54,61,79,1)",
+      "groupStyles": {
+        "Scope": {
+          "headColor": "rgba(255,255,255,1)",
+          "height": 62
+        }
+      },
+      "scopeSrc_0": "master.out",
+      "groupCombos": {
+        "Scope": [
+          {
+            "name": "compact1",
+            "ts": 1785073219161,
+            "ctrlStyles": {
+              "s:scopeSrc": {
+                "labelPos": "off",
+                "boxSize": 200
+              },
+              "u:scope": {
+                "width": 200,
+                "autoRange": true,
+                "showCurve": true,
+                "showMeter": true,
+                "minVal": -0.1,
+                "maxVal": 1.8,
+                "height": 60
+              }
+            },
+            "knobMeta": {},
+            "ctrlPos": {},
+            "controlOrder": {},
+            "groupStyle": {
+              "headColor": "rgba(255,255,255,1)"
+            }
+          }
+        ]
+      },
+      "groupComboSel": {
+        "Scope": "compact1"
+      },
+      "groupSettingsPos": {
+        "x": 696.9971313476562,
+        "y": 161.99998474121094
+      },
+      "elementSettingsPos": {
+        "x": 700,
+        "y": 370.09375
       }
     },
     "werkbank_debug": {
+      "knobColorPresets": [],
+      "ctrlStyles": {},
+      "knobMeta": {},
+      "designPresets": {},
+      "debugMeta": {
+        "name": "",
+        "prompt": ""
+      },
       "instrPos": {
         "x": 14,
         "y": 1130
+      },
+      "groupPos": {
+        "Debug": {
+          "x": 0,
+          "y": 0
+        }
       }
     }
   }
