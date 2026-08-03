@@ -19,12 +19,39 @@
      ddw/image-10.png übernommen (Karte, fette Überschrift, kurzer Text darunter) — NICHT
      dessen Farben/Schrift/Text, ins bestehende dunkle Theme übersetzt (var(--panel2)/
      var(--sel-line), wie ../index.html .lp-card). Überschrift bewusst GRÖSSER als im Vorbild
-     (@dpa: "Überschrift (größer als Bsp)"). */
+     (@dpa: "Überschrift (größer als Bsp)").
+
+     Position wird zur LAUFZEIT berechnet, nicht hier per CSS (@dpa ddw.md 20260803_122138
+     Punkt 1, Screenshot ddw/image-11.png: die Karte saß als einzelne Grid-Zelle direkt neben
+     "Tempo, MM" und wurde von der Taktgeber-Gruppe ÜBERDECKT — abgeschnittener Kartentext war
+     hinter der davorliegenden Taktgeber-Platte sichtbar). Grund, warum eine reine CSS-Lösung
+     (Grid-Spalte/-Zeile) NICHT reicht: jedes Instrument kann per Header frei gezogen werden
+     (`instrPos`, s. lib/InstrumentSettings.js) UND wird dabei `position:absolute` — UND schon
+     die mitgelieferte Demo (presets/werkbank-leer-config.json) positioniert alle vier "immer
+     dabei"-ISMs von Anfang an absolut (kein "freier Grid-Fluss", den die Karte einfach neben
+     ihnen einnehmen könnte). Die tatsächlich freie Stelle hängt also von echten Pixel-Werten
+     ab, die sich jederzeit ändern (weiteres Ziehen) — ein fester CSS-Wert würde beim nächsten
+     Verschieben wieder stillschweigend veraltet sein. `placeNewEntryCard()`
+     (werkbank-leer.js, läuft NACH den mountInstrumentSettings()-Aufrufen, die `instrPos`
+     anwenden) misst darum bei jedem Laden + Resize die tatsächlichen Bounding-Boxen aller
+     `.wb-bench` und setzt die Karte GARANTIERT unterhalb der tiefsten — waagerecht mittig
+     zentriert ("mittiger!"). Hier nur die Optik + ein neutraler Default (`position:static` im
+     normalen Fluss), falls das Skript aus irgendeinem Grund nicht läuft — dann landet die
+     Karte wenigstens lesbar am Ende von #app statt unsichtbar/verdeckt. Mit Playwright
+     verifiziert (kein Overlap mit irgendeinem `.wb-bench`, im Default- UND im simulierten
+     gezogenen Zustand) — s. test/newEntryFlow_smoke.py. */
   .ne-card {
     display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
     width: 100%; text-align: left; cursor: pointer; font: inherit;
     background: var(--panel2); border: 1px solid var(--sel-line); border-radius: 8px;
     padding: 14px 16px 16px; transition: border-color .15s, transform .15s;
+    grid-column: 1 / -1; max-width: 640px;
+    /* Defensive Absicherung ZUSÄTZLICH zur berechneten Position (werkbank-leer.js
+       placeNewEntryCard()): falls @dpa NACH dem Platzieren noch ein Instrument live über die
+       Karte zieht (placeNewEntryCard() läuft nur bei Laden/Resize, nicht bei jeder
+       Mausbewegung), sorgt z-index dafür, dass der Kartentext trotzdem lesbar/klickbar oben
+       bleibt statt abgeschnitten zu wirken (genau @dpas Beschwerde am Screenshot). */
+    z-index: 1;
   }
   .ne-card:hover { border-color: var(--accent); transform: translateY(-1px); }
   .ne-card h2 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text); }

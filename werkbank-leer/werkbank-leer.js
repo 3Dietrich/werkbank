@@ -38,7 +38,7 @@ import { factoryHint } from '../lib/hints.js';
 import { hint, text as i18nText, setLang, lang as curLang, onLangChange } from '../lib/i18n.js';
 import { SettingsWindow } from '../lib/SettingsWindow.js';
 import { buildMainSettings } from '../lib/mainSettings.js';
-import { openNewEntryFlow } from '../lib/newEntryFlow.js';
+import { openNewEntryFlow, isOutsourceMode } from '../lib/newEntryFlow.js';
 import { readBackups, pushBackup, watchAutoBackup } from '../lib/Backup.js';
 import { wireGlobalLook } from '../lib/globalLook.js';
 import { installSelectOnFocus } from '../lib/selectOnFocus.js';
@@ -82,7 +82,28 @@ installSelectOnFocus();
 // ── "+ Neu"-Karte (@dpa ddw.md 20260803-Rebuild, s. lib/newEntryFlow.js-Kopf + index.html-
 // Kommentar an der Karte): ruft denselben Ablauf wie der kleine Knopf in den Einstellungen
 // auf — EINE Logik, zwei Auslöser. Kein eigener State/keine defs — bewusst kein ISM/Control.
-document.querySelector('#newEntryCard')?.addEventListener('click', (e) => openNewEntryFlow(e.currentTarget));
+//
+// NUR im Original werkbank-leer sichtbar (@dpa ddw.md 20260803_122138 Punkt 3: "die zentrale
+// mittige NEU auf dem Panel NUR in WB-leer"). tools/new-entry.mjs kopiert index.html
+// VERBATIM (samt Karten-Markup) in jeden neuen Klon — diese Datei hier wird dabei zu
+// <slug>.js umbenannt, LÄUFT ALSO AUCH IM KLON.
+//
+// BUGFIX (mit Playwright gefunden, s. test/newEntryFlow_smoke.py Punkt 8): ein direkter
+// String-Vergleich `APP === 'werkbank-leer'` HIER wäre falsch — new-entry.mjs schreibt beim
+// Kopieren JEDES Vorkommen von `sourceSlug` (Default exakt der String "werkbank-leer") in
+// DIESER Datei blind auf den neuen Slug um (`js.split(sourceSlug).join(slug)`, s. dortiger
+// Kopf). Ein hier stehendes `'werkbank-leer'`-Literal würde also im Klon MIT umgeschrieben
+// (z.B. zu `'debug-inspect-clone'`) und der Vergleich wäre im Klon fälschlich IMMER wahr.
+// `isOutsourceMode()` (lib/newEntryFlow.js) ist deshalb die einzig sichere Quelle: lib/ wird
+// beim Klonen NICHT angefasst, der Vergleich bleibt unverändert in jeder Kopie korrekt.
+const newEntryCard = document.querySelector('#newEntryCard');
+if (newEntryCard) {
+    if (!isOutsourceMode()) {
+        newEntryCard.addEventListener('click', (e) => openNewEntryFlow(e.currentTarget));
+    } else {
+        newEntryCard.remove();
+    }
+}
 
 // ── Header-Button-Settings (1:1 aus werkbank.js — instrumentunabhängig, generisch) ─────
 const hdrElemSettings = new ElementSettings(state);
@@ -890,3 +911,52 @@ const taktInstr = mountInstrumentSettings(benchTakt, taktState, { bodySelector: 
 const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), recState, { bodySelector: '#rec', host: rec });
 window.__takt.instr = taktInstr;
 window.__rec.instr = recInstr;
+
+// ── "+ Neu"-Karte positionieren (@dpa ddw.md 20260803_122138 Punkt 1) ─────────────────────
+// MUSS nach den mountInstrumentSettings()-Aufrufen oben laufen: die wenden `instrPos` an
+// (s. lib/InstrumentSettings.js `applyPos()`) und setzen dabei `position:absolute` +
+// `left`/`top` auf JEDES der vier Instrumente — das kann aus dem gezogenen Zustand von @dpa
+// kommen ODER schon aus der mitgelieferten Demo (presets/werkbank-leer-config.json trägt für
+// alle vier ISMs bereits eigene instrPos-Werte). In beiden Fällen ist NICHTS davon "im freien
+// Grid-Fluss", eine feste CSS-Zelle/-Zeile für die Karte könnte also jederzeit mit irgendeinem
+// der vier kollidieren (genau das zeigte ddw/image-11.png). Statt eines geratenen Pixel-Werts
+// misst diese Funktion die TATSÄCHLICHEN Bounding-Boxen aller `.wb-bench` (außer dem
+// unsichtbaren LevelMeter-Viewport-Overlay, s. css/werkbank.css #bench-levelmeter — das ist
+// `position:fixed`, deckt absichtlich den ganzen Viewport ab und zählt nicht als "belegte
+// Fläche") und setzt die Karte GARANTIERT unterhalb der tiefsten davon, waagerecht mittig
+// (@dpa: "mittiger!"). `offsetTop`/`offsetHeight` statt getBoundingClientRect(): #app ist
+// `position:relative` und damit der `offsetParent` aller absolut positionierten Kinder
+// (inkl. der Karte selbst, sobald sie hier auf `position:absolute` gestellt wird) — dieselbe
+// Koordinatenbasis wie `instrPos` selbst verwendet, kein Scroll-Offset-Gerechne nötig.
+function placeNewEntryCard() {
+    if (!newEntryCard || !newEntryCard.isConnected) return;
+    const appEl = document.querySelector('#app');
+    if (!appEl) return;
+    let maxBottom = 0;
+    appEl.querySelectorAll('.wb-bench').forEach((el) => {
+        if (el.id === 'bench-levelmeter') return;
+        maxBottom = Math.max(maxBottom, el.offsetTop + el.offsetHeight);
+    });
+    newEntryCard.style.position = 'absolute';
+    newEntryCard.style.top = (maxBottom + 12) + 'px';
+    newEntryCard.style.left = '50%';
+    newEntryCard.style.transform = 'translateX(-50%)';
+}
+// `.isConnected` statt nur der Variable: im Klon (APP !== 'werkbank-leer') wurde die Karte
+// oben schon per `.remove()` aus dem DOM genommen — die JS-Variable bleibt zwar ein gültiger
+// Elementverweis, aber ohne DOM-Anbindung gibt es nichts zu positionieren/neu zu vermessen.
+if (newEntryCard && newEntryCard.isConnected) {
+    // Doppeltes requestAnimationFrame statt eines direkten Aufrufs (BUGFIX, mit Playwright
+    // gefunden): an dieser Stelle im Skript hat GroupHost die Taktgeber/Rec-Controls zwar
+    // schon MONTIERT, aber der Browser hat das dadurch geänderte Layout (z.B. die volle Höhe
+    // der TEMPO/METRONOM-Panels) noch nicht zwingend fertig eingetaktet — ein sofortiger
+    // Aufruf maß hier nachweislich eine noch zu NIEDRIGE `offsetHeight` und platzierte die
+    // Karte zu weit oben (potenzieller Overlap). Zwei rAF-Umläufe warten zuverlässig einen
+    // vollständigen Layout-/Paint-Zyklus ab, bevor gemessen wird (Standardmuster für "nach dem
+    // nächsten fertigen Layout").
+    requestAnimationFrame(() => requestAnimationFrame(placeNewEntryCard));
+    // Fensterbreite ändert die Kartenbreite (max-width, responsive) UND ob z.B. Rec/Scope
+    // durch #app's eigenes Grid-Reflow (die NICHT gezogenen Instrumente laufen normal im
+    // Grid-Fluss) an anderer Stelle landen — bei beidem neu vermessen.
+    window.addEventListener('resize', placeNewEntryCard);
+}
