@@ -578,6 +578,7 @@ routing.connect({ module: 'polysynth', port: 'baseFreq' }, { module: 'takt', por
 // Werte-Knobs (A,D,S,R,Peak,GateLen,Len) auf dem Panel; Settings (aktiv, Kurven, Verlauf,
 // Trig/Gate, Skew) im Gruppen-Rechtsklick-Panel via groupKindSettings-Hook.
 import { createEnvManager, wireAdsrKnobVisibility } from '../lib/polysynth/multiEnv.js';
+import { createAdsrSettingsHook } from '../lib/adsrPanel.js';
 // Amp-Env (dd.md 20260802, 2. Runde: "das ist noch nicht die ADSR!! Was machst Du denn??"):
 // dieselbe Sichtbarkeits-Verdrahtung wie jede Multi-ADSR-Instanz, nur sfx='' — sonst zeigt
 // das Panel A/D/S/R und BEIDE Len-Knobs immer, unabhängig von den Settings-Toggles.
@@ -596,134 +597,28 @@ envManager.init();
 polySynth.refresh();
 
 // groupKindSettings: ADSR-Settings ins Gruppen-Rechtsklick-Panel einhängen.
-const _adsrSettingsToggles = polySynthDefsObj.ADSR_SETTINGS_TOGGLES;
-const _adsrSettingsSelects = polySynthDefsObj.ADSR_SETTINGS_SELECTS;
-const _adsrSettingsSkews = polySynthDefsObj.ADSR_SETTINGS_SKEWS;
-const _adsrSettingsNums = polySynthDefsObj.ADSR_SETTINGS_NUMS;
+//
+// Der eigentliche Hook kommt seit @dpa 20260803 aus lib/adsrPanel.js (createAdsrSettingsHook)
+// statt hier ~130 Zeilen dupliziert zu stehen — EIN Hook bedient sowohl Amp-Env (sfx='') als
+// auch jede indizierte Multi-ADSR-Instanz (sfx='_0','_1',…), GroupHost liefert das passende
+// sfx pro Aufruf selbst (s. adsrPanel.js Dateikopf). Amp-Env teilt sich seit dd.md 20260802
+// den groupKind 'ADSR' mit Multi-ADSR (gemeinsamer Combo-/Snapshot-Pool) und hat dieselben
+// STATE-KEYS wie eine Instanz — nur unsuffixed. Copy/Delete (unten) wirken auf
+// envManager.engines, das Amp-Env nicht kennt — der Hook zeigt die Buttons darum nur bei
+// wahrem `sfx` (s. adsrPanel.js Kommentar dort), Amp-Env bleibt automatisch ohne.
 const _groupKindSettings = {
-    // Amp-Env teilt sich seit dd.md 20260802 den groupKind 'ADSR' mit Multi-ADSR (gemeinsamer
-    // Combo-/Snapshot-Pool) und hat seit dd.md 20260802 (2. Runde, @dpa: "alles von ADSR
-    // einfach rein!") auch dieselben STATE-KEYS wie eine Instanz — nur unsuffixed (sfx='').
-    // get/set (k+sfx) liest darum für Amp-Env automatisch die bloßen adsr*-Keys, exakt wie für
-    // eine echte Instanz — keine Sonderbehandlung nötig. Einzige Ausnahme: Copy/Delete (unten)
-    // wirken auf envManager.engines, das Amp-Env nicht kennt — die bleiben sfx-only.
-    ADSR: (name, pop, st, row, sfx) => {
-        const get = (k) => polySynthState.get(k + sfx);
-        const set = (k, v) => polySynthState.set(k + sfx, v);
-
-        // Trennlinie
-        const sep = document.createElement('div'); sep.className = 'gs-sep'; pop.appendChild(sep);
-
-        // ── Compact-Grid: 2 Spalten (Toggles links, Selects rechts) ──────────
-        const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:8px 0;';
-
-        // Toggles: A/D/S/R aktiv, Inv, Verlauf
-        const toggleCol = document.createElement('div');
-        for (const [key, cfg] of Object.entries(_adsrSettingsToggles)) {
-            const r = document.createElement('label');
-            r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
-            const cb = document.createElement('input'); cb.type = 'checkbox';
-            cb.checked = get(key) ?? polySynthDefsObj.ADSR_DEFAULTS[key];
-            cb.addEventListener('change', () => set(key, cb.checked));
-            r.appendChild(cb);
-            r.appendChild(document.createTextNode(cfg.label));
-            toggleCol.appendChild(r);
-        }
-        grid.appendChild(toggleCol);
-
-        // Selects: Kurven, Modus, Len-Einheit
-        const selectCol = document.createElement('div');
-        for (const [key, cfg] of Object.entries(_adsrSettingsSelects)) {
-            const r = document.createElement('label');
-            r.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;';
-            const sel = document.createElement('select');
-            sel.style.cssText = 'font-size:11px; padding:1px 4px;';
-            for (const o of cfg.options) {
-                const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
-                sel.appendChild(opt);
+    ADSR: createAdsrSettingsHook(polySynthState, {
+        onCopy: (sfx) => {
+            const curVals = {};
+            for (const k of Object.keys(polySynthDefsObj.ADSR_DEFAULTS)) {
+                curVals[k] = polySynthState.get(k + sfx) ?? polySynthDefsObj.ADSR_DEFAULTS[k];
             }
-            sel.value = get(key) ?? polySynthDefsObj.ADSR_DEFAULTS[key];
-            sel.addEventListener('change', () => set(key, sel.value));
-            r.appendChild(sel);
-            r.appendChild(document.createTextNode(cfg.label));
-            selectCol.appendChild(r);
-        }
-        grid.appendChild(selectCol);
-        pop.appendChild(grid);
-
-        // ── Skew-Zeile: A/D/R-Skew als kompakte Zahlenfelder ──────────────────
-        const skewRow = document.createElement('div');
-        skewRow.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
-        const skewLabel = document.createElement('span'); skewLabel.textContent = 'Skew:'; skewRow.appendChild(skewLabel);
-        for (const [key, cfg] of Object.entries(_adsrSettingsSkews)) {
-            const l = document.createElement('label');
-            l.style.cssText = 'display:flex; align-items:center; gap:2px;';
-            const num = document.createElement('input'); num.type = 'number';
-            num.min = cfg.min; num.max = cfg.max; num.step = 0.1;
-            num.value = get(key) ?? cfg.default;
-            num.style.cssText = 'width:40px; font-size:11px; padding:1px 2px;';
-            num.addEventListener('input', () => {
-                const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
-                set(key, v);
-            });
-            l.appendChild(num);
-            l.appendChild(document.createTextNode(cfg.label.replace('-Skew', '')));
-            skewRow.appendChild(l);
-        }
-        pop.appendChild(skewRow);
-
-        // ── Nullpunktversatz-Zeile (ddw.md 20260727, „Bug2"): bewusst Setting statt
-        // Panel-Knob (@dpa: „was man später vielleicht auf das Panel schalten kann,
-        // siehe todos") — s. defs.js ADSR_SETTINGS_NUMS-Kommentar.
-        const numRow = document.createElement('div');
-        numRow.style.cssText = 'display:flex; gap:8px; align-items:center; font-size:11px; margin:4px 0;';
-        for (const [key, cfg] of Object.entries(_adsrSettingsNums)) {
-            const l = document.createElement('label');
-            l.style.cssText = 'display:flex; align-items:center; gap:4px;';
-            const num = document.createElement('input'); num.type = 'number';
-            num.min = cfg.min; num.max = cfg.max; num.step = 0.01;
-            num.value = get(key) ?? cfg.default;
-            num.style.cssText = 'width:56px; font-size:11px; padding:1px 2px;';
-            hint(l, 'Ruhepunkt der Env verschieben (0 = wie bisher; 1 = z.B. für Frequenz-Ziele, die um 1 statt 0 herum arbeiten).');
-            num.addEventListener('input', () => {
-                const v = Math.max(cfg.min, Math.min(cfg.max, parseFloat(num.value) || cfg.default));
-                set(key, v);
-            });
-            l.appendChild(document.createTextNode(cfg.label));
-            l.appendChild(num);
-            numRow.appendChild(l);
-        }
-        pop.appendChild(numRow);
-
-        // ── Buttons: +➚ (Kopie) und 🚮 (löschen) — NUR für echte Multi-ADSR-Instanzen.
-        // Amp-Env (sfx='') ist kein envManager-Engine-Eintrag — "Löschen" würde hier die
-        // LETZTE Multi-ADSR-Instanz treffen statt Amp-Env selbst (falscher Button-Ziel-Bug),
-        // darum bewusst weggelassen statt eines irreführenden Buttons.
-        if (sfx) {
-            const btnRow = document.createElement('div');
-            btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
-            const copyBtn = document.createElement('button'); copyBtn.className = 'wb-help-btn'; copyBtn.textContent = '+➚';
-            hint(copyBtn, 'Kopie dieser ADSR anlegen');
-            copyBtn.addEventListener('click', () => {
-                const curVals = {};
-                for (const k of Object.keys(polySynthDefsObj.ADSR_DEFAULTS)) {
-                    curVals[k] = polySynthState.get(k + sfx) ?? polySynthDefsObj.ADSR_DEFAULTS[k];
-                }
-                envManager.addEnv();
-                const newSfx = '_' + (envManager.engines.length - 1);
-                for (const [k, v] of Object.entries(curVals)) polySynthState.set(k + newSfx, v);
-            });
-            const delBtn = document.createElement('button'); delBtn.className = 'wb-help-btn'; delBtn.textContent = '🚮';
-            hint(delBtn, 'Diese ADSR löschen (nach Bestätigung)');
-            delBtn.addEventListener('click', () => {
-                if (!confirm('ADSR wirklich löschen?')) return;
-                envManager.removeEnv();
-            });
-            btnRow.appendChild(copyBtn); btnRow.appendChild(delBtn);
-            pop.appendChild(btnRow);
-        }
-    },
+            envManager.addEnv();
+            const newSfx = '_' + (envManager.engines.length - 1);
+            for (const [k, v] of Object.entries(curVals)) polySynthState.set(k + newSfx, v);
+        },
+        onDelete: () => { envManager.removeEnv(); },
+    }),
 };
 
 // Header-Buttons für Multi-ADSR (im Poly-Synth-Header, wie Sq)
