@@ -61,7 +61,7 @@ import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
 import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
 import { createStructureView } from '../lib/routing/StructureView.js';
 import { LevelMeter } from '../lib/LevelMeter.js';
-import { createScopeManager } from '../lib/scope/multiScope.js';
+import { createScopeManager, createScopeSettingsHook } from '../lib/scope/multiScope.js';
 import { icon } from '../lib/icons.js';
 import { mdToHtml, htmlToMdApprox } from '../lib/miniMarkdown.js';
 
@@ -303,41 +303,11 @@ const scopeInstr = mountInstrumentSettings(document.querySelector('#bench-scope'
 // — Buffer/Breite/Höhe/min/max/Auto-Range/Meter/Kurve/Genauigkeit sind umgezogen ins
 // Scope-EIGENE Rechtsklick-Settings (ElementSettings.js, `_fieldsFor('scope')`), damit
 // „Scope-Settings" und „Scope-Gruppen-Settings" sich nicht mehr überlappen.
+// Settings-Hook kommt seit @dpa 20260804 aus lib/scope/multiScope.js (createScopeSettingsHook)
+// statt hier dupliziert zu stehen — war byte-identisch in overcord/werkbank-leer/pitchosc
+// (dasselbe Duplikat-Risiko wie bei ADSR, s. lib/adsrPanel.js-Kommentar).
 const _scopeKindSettings = {
-    Scope: (name, pop, st, row, sfx) => {
-        if (!sfx) return;
-        const i = parseInt(sfx.slice(1), 10);
-        const scope = scopeManager.scopes[i];
-        if (!scope) return;
-        const styles = () => ({ ...(scopeState.get('ctrlStyles') || {}) });
-        const cur = () => (styles()['u:scope' + sfx] || {});
-
-        pop.appendChild(Object.assign(document.createElement('div'), { className: 'gs-sep' }));
-
-        const btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
-        const copyBtn = document.createElement('button'); copyBtn.className = 'wb-help-btn'; copyBtn.textContent = '+➚';
-        hint(copyBtn, 'Kopie dieses Scopes anlegen (übernimmt die Optik)');
-        copyBtn.addEventListener('click', () => {
-            const src = cur();
-            scopeManager.addScope();
-            const all = styles();
-            all['u:scope_' + (scopeManager.count() - 1)] = { ...src };
-            scopeState.set('ctrlStyles', all);
-            scopeHost.reapplyCtrlStyles(['u:scope_' + (scopeManager.count() - 1)]);
-        });
-        const delBtn = document.createElement('button'); delBtn.className = 'wb-help-btn'; delBtn.textContent = '🚮';
-        hint(delBtn, 'Diesen Scope löschen (nach Bestätigung)');
-        delBtn.addEventListener('click', () => {
-            if (!confirm('Scope wirklich löschen?')) return;
-            scopeManager.removeScope();
-        });
-        const resetBtn = document.createElement('button'); resetBtn.className = 'wb-help-btn'; resetBtn.textContent = '⟲';
-        hint(resetBtn, 'Puffer + Auto-Range zurücksetzen');
-        resetBtn.addEventListener('click', () => scope.reset());
-        btnRow.append(copyBtn, delBtn, resetBtn);
-        pop.appendChild(btnRow);
-    },
+    Scope: createScopeSettingsHook({ scopeManager, state: scopeState, host: scopeHost }),
 };
 
 // Header-Buttons (+/−) für die Scopes, wie bei Sq/ADSR im Original
