@@ -65,6 +65,54 @@ gilt:
 Architektur-weiter Einstieg für „welcher Bereich, welche Datei": [ARCHITEKTUR.md](../ARCHITEKTUR.md).
 Routing-Nähte (Ports/Registry/Latenz) im Detail: [PHASE2_SPEC.md](../PHASE2_SPEC.md).
 
+#### Rezept: Klang-Baustein bauen (z. B. „ADSR und OSZ")
+
+> Auslöser (@dpa 20260803): eine fremde KI (DeepSeek) hat für „bau mir ADSR und OSZ" 20+
+> Dateien gelesen, sich mehrfach wortgleich im Kreis gedreht und am Ende die **komplette**
+> Poly-Synth-Engine (Keyboard, Base-Frq, Chord-Memory) im Hintergrund mitlaufen lassen und nur
+> zwei UI-Gruppen sichtbar geschaltet – genau das „ad hoc dazustellen", das die Kern-Regel
+> oben verbietet. Dieses Rezept soll beides ersparen: das stundenlange Quer-Lesen UND den
+> Reuse-Hack.
+
+**Was schon da ist – DSP-Bausteine zum 1:1-Wiederverwenden** (kein UI, keine State-Kopplung,
+einfach importieren):
+
+| Baustein | Datei | Signatur |
+|---|---|---|
+| Oszillator (fertige Voice, Square/Saw/Sine/Tri, Poly-Limit + Voice-Stealing eingebaut) | [lib/polysynth/audio/SquareOsc.js](../lib/polysynth/audio/SquareOsc.js) | `class SquareOsc` |
+| Oszillator (rohe Wellenform-Koeffizienten für `createPeriodicWave`, wenn SquareOsc.js zu viel mitbringt) | [lib/polysynth/audio/pulseWave.js](../lib/polysynth/audio/pulseWave.js) | `oscCoefficients(duty, phase, N)`, `harmonicsForFreq(...)` |
+| ADSR (reine Hüllkurven-Mathematik, liefert Float32Array für `setValueCurveAtTime`) | [lib/polysynth/envCore.js](../lib/polysynth/envCore.js) | `msToSamples(ms, sampleRate)` + Kurvenbau |
+| ADSR (vervielfältigbar, mit echtem AudioNode-Output fürs Scope) | [lib/polysynth/multiEnv.js](../lib/polysynth/multiEnv.js) | `EnvEngine`, `createEnvManager()` |
+| Tonhöhe (MIDI↔Hz, Kammerton, Snap) | [lib/polysynth/pitch/Scaler.js](../lib/polysynth/pitch/Scaler.js) | `freqToMidi`, `midiToFreq`, `foldToBand`, `harmonicSnap`, `setConcertPitch/getConcertPitch` |
+| Pitch-Slide-Mathematik | [lib/polysynth/dsp/holdSlide.js](../lib/polysynth/dsp/holdSlide.js) | `slidePlan(...)`, `slideFreqAt(...)` |
+| Latenz-Vertrag fürs Routing | [lib/routing/latency.js](../lib/routing/latency.js) | `busLatencyMs()` |
+
+`lib/adsrOsc/` existiert bereits als **vorbereiteter leerer Ordner** – der natürliche Zielort
+für genau so ein Modul, statt einen neuen Namen zu erfinden.
+
+**Bauregel:** Ein neues schlankes Klang-ISM bekommt eine **eigene** `engine.js`
+(`createXEngine(state,...)`, s. Neues-ISM-Checkliste oben), die die Bausteine aus der Tabelle
+**direkt** importiert. **Nicht erlaubt:** die Engine eines bestehenden großen ISM (z. B.
+`createPolySynthEngine`) mit einem künstlich beschnittenen State füttern und nur einzelne
+`GROUPS` ausblenden – das schleppt unsichtbaren State (Keyboard, Chord-Memory, Base-Frq) mit,
+den niemand in der UI sieht und niemand eingebaut hat.
+
+**Pflicht-Rückfragen, bevor/während gebaut wird** (nicht raten, s. Kern-Regel oben):
+
+1. **Anschluss:** Soll das Modul für sich alleine hörbar sein (eigener Preview-/Gate-Button),
+   oder soll es über `ports` ([lib/routing/Registry.js](../lib/routing/Registry.js),
+   Typ-Tabelle in [lib/routing/types.js](../lib/routing/types.js)) mit anderen Modulen
+   verbunden werden – z. B. ADSR-Ausgang moduliert einen vorhandenen Oszillator woanders,
+   oder OSZ-Ausgang geht an ein Scope? Wenn Routing: welche `outputs`/`inputs` genau?
+2. **Welcher Oszillator/welche Wellenform** aus dem Pool (Square/Saw/Sine/Tri via
+   `SquareOsc.js`, oder eigene Wellenform über `pulseWave.js`-Koeffizienten)?
+3. **Mono oder poly?**
+4. **Wo soll es leben:** eigenes ISM (eigene `.wb-bench`-Sektion, eigener State,
+   Neues-ISM-Checkliste oben) oder nur eine neue Gruppe in einem bereits bestehenden
+   Instrument?
+
+Antworten unklar → fragen, nicht die naheliegendste (oft aufwändigste) Variante annehmen.
+
 ## Was alle Controls gemeinsam haben
 
 | | |

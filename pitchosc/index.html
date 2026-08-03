@@ -199,6 +199,14 @@
         <h2><span class="wb-instr-name">Debug</span></h2>
         <div id="debug"></div>
     </section>
+
+    <!-- ADSR + OSZ (@dpa 20260803): eigenes Klang-ISM — ein Oszillator, dessen Lautstärke
+         eine Amp-ADSR und dessen Frequenz eine Pitch-ADSR (multiplikativ, Sine-FM-artig)
+         moduliert. s. lib/adsrOsc/ (defs.js + engine.js). -->
+    <section class="wb-bench" id="bench-adsrosc">
+        <h2><span class="wb-instr-name">ADSR + OSZ</span></h2>
+        <div id="adsrosc"></div>
+    </section>
 </div>
 
 <!-- Klassisches Skript, VOR dem type=module-Skript: hängt globalThis.lamejs auf

@@ -53,6 +53,9 @@ import { createRecEngine } from '../lib/recInstrument/engine.js';
 import { debugPanelDefs } from '../lib/debugPanel/defs.js';
 import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
 import { mountDebugGroup } from '../lib/debugPanel/mount.js';
+import { adsrOscDefs } from '../lib/adsrOsc/defs.js';
+import { createAdsrOscEngine } from '../lib/adsrOsc/engine.js';
+import { wireAdsrKnobVisibility } from '../lib/polysynth/multiEnv.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
     getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper, setMasterDb as setBusMasterDb,
@@ -390,6 +393,28 @@ const debugInstr = mountInstrumentSettings(document.querySelector('#bench-debug'
 window.__debug = { state: debugState, host: debugHost, panel: dbg };
 window.__debug.instr = debugInstr;   // wie __takt/__rec/__levelMeter (Konsistenz + Test-Haken)
 
+// ── ADSR + OSZ – eigenes Klang-ISM (@dpa 20260803) ────────────────────────────────
+// Ein Oszillator, dessen Lautstärke eine Amp-ADSR und dessen Frequenz eine Pitch-ADSR
+// (multiplikativ, Sine-FM-artig) moduliert. s. lib/adsrOsc/ (defs.js + engine.js).
+const ADSROSC_LS = lsKey('adsrosc');
+const adsrOscState = new MiniState(adsrOscDefs().DEFAULTS, ADSROSC_LS);
+const adsrOscRoot = document.querySelector('#adsrosc');
+const adsrOscEngine = createAdsrOscEngine(adsrOscState, {
+    getBpm: () => taktState.get('bpm'),
+});
+const adsrOscDefsConfig = adsrOscDefs({ onAction: (id, phase) => adsrOscEngine.onAction(id, phase) });
+const adsrOsc = mountGroups(adsrOscRoot, adsrOscState, adsrOscDefsConfig, {
+    instrumentScaled: () => adsrOscInstr.scaled(),
+});
+const adsrOscInstr = mountInstrumentSettings(document.querySelector('#bench-adsrosc'), adsrOscState, { bodySelector: '#adsrosc', host: adsrOsc });
+window.__adsrOsc = { state: adsrOscState, host: adsrOsc, engine: adsrOscEngine };
+window.__adsrOsc.instr = adsrOscInstr;   // wie __takt/__rec/__levelMeter (Konsistenz + Test-Haken)
+
+// ADSR-Knob-Sichtbarkeit (A/D/S/R nur wenn aktiv, Len nur passend zur Einheit, Fest-Button
+// nur im Gate-Modus) — wiederverwendeter Helfer aus multiEnv.js, je einmal pro Env-Scope.
+wireAdsrKnobVisibility({ host: adsrOsc, state: adsrOscState, groupName: 'Amp-ADSR', sfx: '' });
+wireAdsrKnobVisibility({ host: adsrOsc, state: adsrOscState, groupName: 'Pitch-ADSR', sfx: '_p' });
+
 // Render-Loop, GEKÜRZT (@dpa-Auftrag): kein baseKeyboard/toneReadout/freqReadout/sqManager/
 // envManager — die gibt es hier nicht (kein Poly-Synth/Stepseq). Übrig bleibt nur, was die
 // vier vorhandenen ISMs tatsächlich pro Frame brauchen.
@@ -423,10 +448,10 @@ const mkHeaderToggle = (id, label, title, onToggle) => {
     return btn;
 };
 const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => {
-    keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); levelMeterHost.keyMidi.setKeyEdit(on); scopeHost.keyMidi.setKeyEdit(on); debugHost.keyMidi.setKeyEdit(on);
+    keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); levelMeterHost.keyMidi.setKeyEdit(on); scopeHost.keyMidi.setKeyEdit(on); debugHost.keyMidi.setKeyEdit(on); adsrOsc.keyMidi.setKeyEdit(on);
 });
 const midiBtn = mkHeaderToggle('midiedit', '🎹 MIDI', 'MIDI-Learn über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => {
-    keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); levelMeterHost.keyMidi.setMidiEdit(on); scopeHost.keyMidi.setMidiEdit(on); debugHost.keyMidi.setMidiEdit(on);
+    keyMidi.setMidiEdit(on); rec.keyMidi.setMidiEdit(on); levelMeterHost.keyMidi.setMidiEdit(on); scopeHost.keyMidi.setMidiEdit(on); debugHost.keyMidi.setMidiEdit(on); adsrOsc.keyMidi.setMidiEdit(on);
 });
 keyBtn._radioPeer = midiBtn; midiBtn._radioPeer = keyBtn;
 
@@ -440,6 +465,7 @@ const hintResolve = (el) => {
                  : c.closest('#levelmeter') ? levelMeterState
                  : c.closest('#scopes') ? scopeState
                  : c.closest('#debug') ? debugState
+                 : c.closest('#adsrosc') ? adsrOscState
                  : state;
         const own = (st.get('hintText') || {})[id];
         return own || factoryHint(id, curLang()) || c.dataset.hint || (el.dataset && el.dataset.hint) || '';
@@ -467,7 +493,7 @@ if (takt.isArranging()) arrangeBtn.classList.add('active');
 // als Bug — hier von Anfang an korrekt, kein drittes Mal denselben Fehler).
 // Die Keys tragen das Präfix DIESES Einstiegs (lsKey, s. lib/appId.js) — ein Export von
 // hier fasst also nur pitchosc-Daten an, nicht die von index.html.
-const LS_KEYS = ['state', 'taktmetro', 'rec', 'levelmeter', 'master', 'ensemble', 'scope', 'debug'].map(lsKey);
+const LS_KEYS = ['state', 'taktmetro', 'rec', 'levelmeter', 'master', 'ensemble', 'scope', 'debug', 'adsrosc'].map(lsKey);
 
 // ── Ensemble-Snapshot (1:1-Muster aus werkbank.js Z.1031-1050) — @dpa-Auftrag: ALLE VIER
 // hier vorhandenen ISMs (Takt, Rec, LevelMeter, Scope) gehören rein, nicht nur eine
@@ -491,6 +517,7 @@ const ensembleStore = createEnsembleStore(ensembleState, [
         snapExtra: () => ({ scopeCount: scopeManager.count() }),
         onRecalled: (extra) => { if (extra && extra.scopeCount) scopeState.set('scopeCount', extra.scopeCount); scopeManager.reconcile(); },
     },
+    { lsKey: ADSROSC_LS, state: adsrOscState, allSoundValues: () => adsrOsc.allSoundValues() },
 ]);
 window.__ensemble = { state: ensembleState, store: ensembleStore };
 function buildConfig() {

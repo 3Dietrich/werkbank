@@ -199,6 +199,11 @@ klassifizieren — Details + Tabelle in [docs/CONTROLS.md](docs/CONTROLS.md#die-
 
 Unklar? Fragen statt raten — das ist ausdrücklich gewünscht, nicht optional.
 
+**Neuen Klang-Baustein bauen (z. B. „ADSR und OSZ")?** Nicht bei null anfangen und nicht
+querlesen — [docs/CONTROLS.md#rezept-klang-baustein-bauen-z-b-adsr-und-osz](docs/CONTROLS.md#rezept-klang-baustein-bauen-z-b-adsr-und-osz)
+listet die vorhandenen wiederverwendbaren DSP-Bausteine (Oszillator/ADSR/Pitch) und die
+Pflicht-Rückfragen (Anschluss/Routing, Wellenform, mono/poly, eigenes ISM vs. Gruppe).
+
 ## Arbeitsregeln für die KI (Kurzfassung)
 
 1. ddw.md-Punkt lesen → hier den Bereich nachschlagen → NUR Zieldatei(en) + deren
