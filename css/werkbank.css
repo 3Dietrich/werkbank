@@ -186,6 +186,26 @@
 }
 .wb-help-foot button:hover { border-color: var(--sel-line); }
 
+/* "Neues Projekt starten"-Fenster (lib/newEntryFlow.js, @dpa ddw.md 20260803-Rebuild):
+   wiederverwendet .sw-overlay/.sw-window/.sw-head/.sw-close/.sw-note/.sw-text (main.css) —
+   dieselbe Fenster-Optik wie das Einstellungs-Fenster, nur mit eigenem Inhalt. Höherer
+   z-index als der normale .sw-overlay (3000): dieses Fenster kann AUS dem offenen
+   Einstellungs-Fenster heraus aufgehen (lib/mainSettings.js "+ Neu"-Knopf) und muss dann
+   klar darüber liegen, nicht nur zufällig durch DOM-Reihenfolge. */
+.ne-overlay { z-index: 3050; }
+.ne-window { width: min(460px, 92vw); }
+.ne-name-row { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
+.ne-name-row label { color: var(--muted); font-size: 11px; }
+.ne-slug-preview { margin-top: -4px; }
+.ne-error { color: #ff9a9a; }
+.ne-foot { display: flex; justify-content: flex-end; margin-top: 4px; }
+.ne-code-row { display: flex; gap: 6px; align-items: center; margin: 8px 0; }
+.ne-code {
+  flex: 1 1 auto; min-width: 0; overflow-x: auto; white-space: nowrap;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 3px;
+  padding: 4px 6px; font-size: 11.5px;
+}
+
 /* Der Bench, in den die zwei Takt/Metronom-Gruppen mounten, muss die absolut positionierten
    Gruppen umschließen — das GroupHost-Panel ist selbst position:relative und misst sich. */
 #taktgeber { position: relative; min-height: 40px; }
