@@ -100,6 +100,17 @@ const newEntryCard = document.querySelector('#newEntryCard');
 if (newEntryCard) {
     if (!isOutsourceMode()) {
         newEntryCard.addEventListener('click', (e) => openNewEntryFlow(e.currentTarget));
+        // Karte ausblenden, solange das "Neues Projekt starten"-Fenster offen ist (@dpa
+        // ddw.md 20260803_135251 Punkt 3: "in dem zweiten Fenster ... ist unten noch immer
+        // das +Neu Fenster ... das kann weg"). newEntryFlow.js kennt die Karte NICHT direkt
+        // (dieselbe Datei bedient auch den kleinen "+ Neu"-Knopf im Einstellungs-Fenster, der
+        // keine Karte hat) — sie meldet Öffnen/Schließen stattdessen generisch per Event.
+        // `placeNewEntryCard` ist eine gehoistete Funktionsdeklaration (steht syntaktisch
+        // weiter unten in dieser Datei) — im Modul-Scope schon hier gültig aufrufbar.
+        window.addEventListener('werkbank:new-entry-flow', (e) => {
+            newEntryCard.hidden = !!(e.detail && e.detail.open);
+            if (!newEntryCard.hidden) placeNewEntryCard();
+        });
     } else {
         newEntryCard.remove();
     }
@@ -271,7 +282,11 @@ levelMeterHost.mountInGroup('Meter', levelMeter.element, 'u:meter');
 hint(levelMeter.element, 'Ausgangspegel des gesamten Ensembles (dBFS, Peak-Hold).');
 levelMeterHost.registerCtrlStyle('u:meter', 'levelmeter', levelMeter.element, (s) => levelMeter.applyStyle(s), 'Level');
 levelMeterHost.refresh();
-window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter };
+// ISM-Settings + Sichtbarkeits-Toggle (ddw.md 20260803_135251) — LevelMeter hat KEINEN h2
+// (bewusst „kein Header", s. Kommentar oben), darum defaultName explizit mitgeben (sonst
+// bliebe der Name in der Haupt-Settings-Liste leer, s. lib/InstrumentSettings.js-Kopf).
+const levelMeterInstr = mountInstrumentSettings(document.querySelector('#bench-levelmeter'), levelMeterState, { defaultName: 'Meter' });
+window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter, instr: levelMeterInstr };
 
 // ── Signal-Scopes – eigenes ISM, 1:1 aus werkbank.js Z.814-937 ─────────────────────────
 const SCOPE_LS = lsKey('scope');
@@ -283,7 +298,7 @@ const scopeHost = mountGroups(scopeRoot, scopeState, scopeDefs, {
 });
 const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing });
 scopeManager.init();
-mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
+const scopeInstr = mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
 
 // Gruppen-Rechtsklick-Panel der Scope-Gruppe (@dpa ddw.md 20260802 Punkt 3, 1:1 aus
 // overcord/werkbank.js): NUR noch die Instanz-AKTIONEN (Kopie/Löschen/Puffer zurücksetzen)
@@ -372,7 +387,7 @@ const dbg = new DebugPanel(debugState, { appPrefix: APP, getFullState: () => bui
 const debugDefs = debugPanelDefs({ onAction: (id) => dbg.onAction(id) });
 const debugHost = mountGroups(debugRoot, debugState, debugDefs, {});
 mountDebugGroup(debugHost, debugState, dbg);
-mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
+const debugInstr = mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
 window.__debug = { state: debugState, host: debugHost, panel: dbg };
 
 // Render-Loop, GEKÜRZT (@dpa-Auftrag): kein baseKeyboard/toneReadout/freqReadout/sqManager/
@@ -561,6 +576,15 @@ const openCfg = () => {
         onNewEntry: (btn) => openNewEntryFlow(btn),
         reopen: () => { cfgWin.close(); openCfg(); },
         backups,
+        // ISM-Sichtbarkeit (ddw.md 20260803_135251): die fünf „Standard"-ISMs dieses
+        // Einstiegs — mainSettings.js zeigt daraus die Unterrubrik der ausgeblendeten.
+        isms: [
+            { name: 'Tempo & MM', instr: taktInstr },
+            { name: 'Scope', instr: scopeInstr },
+            { name: 'Debug', instr: debugInstr },
+            { name: 'Rec', instr: recInstr },
+            { name: 'Meter', instr: levelMeterInstr },
+        ],
     }), () => cfgBtn.classList.remove('active'));
 };
 cfgBtn.addEventListener('click', () => { cfgWin.isOpen ? cfgWin.close() : openCfg(); });
@@ -912,35 +936,143 @@ const recInstr = mountInstrumentSettings(document.querySelector('#bench-rec'), r
 window.__takt.instr = taktInstr;
 window.__rec.instr = recInstr;
 
-// ── "+ Neu"-Karte positionieren (@dpa ddw.md 20260803_122138 Punkt 1) ─────────────────────
-// MUSS nach den mountInstrumentSettings()-Aufrufen oben laufen: die wenden `instrPos` an
-// (s. lib/InstrumentSettings.js `applyPos()`) und setzen dabei `position:absolute` +
-// `left`/`top` auf JEDES der vier Instrumente — das kann aus dem gezogenen Zustand von @dpa
-// kommen ODER schon aus der mitgelieferten Demo (presets/werkbank-leer-config.json trägt für
-// alle vier ISMs bereits eigene instrPos-Werte). In beiden Fällen ist NICHTS davon "im freien
-// Grid-Fluss", eine feste CSS-Zelle/-Zeile für die Karte könnte also jederzeit mit irgendeinem
-// der vier kollidieren (genau das zeigte ddw/image-11.png). Statt eines geratenen Pixel-Werts
-// misst diese Funktion die TATSÄCHLICHEN Bounding-Boxen aller `.wb-bench` (außer dem
-// unsichtbaren LevelMeter-Viewport-Overlay, s. css/werkbank.css #bench-levelmeter — das ist
-// `position:fixed`, deckt absichtlich den ganzen Viewport ab und zählt nicht als "belegte
-// Fläche") und setzt die Karte GARANTIERT unterhalb der tiefsten davon, waagerecht mittig
-// (@dpa: "mittiger!"). `offsetTop`/`offsetHeight` statt getBoundingClientRect(): #app ist
-// `position:relative` und damit der `offsetParent` aller absolut positionierten Kinder
-// (inkl. der Karte selbst, sobald sie hier auf `position:absolute` gestellt wird) — dieselbe
-// Koordinatenbasis wie `instrPos` selbst verwendet, kein Scroll-Offset-Gerechne nötig.
+// ── "+ Neu"-Karte positionieren (@dpa ddw.md 20260803_122138 Punkt 1, NEU gebaut ddw.md
+// 20260803_135251 Punkt 1: "jetzt ist es ganz unten, versteckt" — der ERSTE Fix vermied nur
+// Überlappung, landete dabei aber am Ende des Dokumentflusses, weit UNTER dem sichtbaren
+// Fensterausschnitt, s. ddw/image-13.png). MUSS weiterhin nach den mountInstrumentSettings()-
+// Aufrufen oben laufen: die wenden `instrPos` an (s. lib/InstrumentSettings.js `applyPos()`)
+// und setzen dabei `position:absolute` + `left`/`top` auf JEDES der vier Instrumente — das
+// kann aus dem gezogenen Zustand von @dpa kommen ODER schon aus der mitgelieferten Demo
+// (presets/werkbank-leer-config.json trägt für alle vier ISMs bereits eigene instrPos-Werte).
+//
+// Neuer Ansatz: statt "unterhalb aller Instrumente" wird die GRÖSSTE zusammenhängende freie
+// Rechteck-Fläche INNERHALB des gerade sichtbaren Fensterausschnitts gesucht (`window.
+// innerHeight`, NICHT die Dokumentgesamthöhe, @dpa-Auftrag) — Vorbild ddw/image-13 Kopie.png
+// ("hier hin", mittig zwischen den bestehenden Instrumenten). Klassisches "größtes freies
+// Rechteck unter Hindernissen"-Problem, hier per Brute-Force über die Kandidaten-Koordinaten
+// der Hindernis-Kanten gelöst (kein externes Paket nötig — bei üblicherweise < 10 Instrumenten
+// trivial schnell, läuft nur bei Laden/Resize/Popup-Schließen, nicht pro Frame).
+//
+// Koordinatenbasis: `offsetTop`/`offsetLeft`/`offsetWidth`/`offsetHeight` der Instrumente
+// (wie zuvor — dieselbe Basis, die `instrPos` selbst benutzt, robust gegen den `transform`
+// der Karte). Um daraus den GERADE SICHTBAREN Ausschnitt zu bestimmen, wird EINMAL
+// `#app.getBoundingClientRect()` gemessen (aktuelle Lage von #app zum Browser-Fenster,
+// ändert sich mit jedem Scroll) und daraus der sichtbare Bereich in #app-lokale Koordinaten
+// zurückgerechnet — kein zweites, inkonsistentes Koordinatensystem.
+//
+// Fallback (@dpa-Auftrag: "sinnvoll degradieren statt zu überlappen"): reicht die größte freie
+// Fläche nicht für die Karte in normaler Breite, wird die Karte auf die tatsächlich freie
+// Breite/Höhe VERKLEINERT (nötigenfalls mit eigenem Scrollbalken) statt über ein Instrument zu
+// ragen. Nur wenn der sichtbare Ausschnitt de facto GAR keine freie Fläche mehr hat (extrem
+// kleines Fenster + viele große Instrumente gleichzeitig — praktisch kaum erreichbar), fällt
+// die Funktion auf die alte Notlösung zurück (unterhalb aller Instrumente im Dokumentfluss,
+// erfordert dann wieder Scrollen) — besser als irgendwo hinein zu überlappen.
 function placeNewEntryCard() {
-    if (!newEntryCard || !newEntryCard.isConnected) return;
+    if (!newEntryCard || !newEntryCard.isConnected || newEntryCard.hidden) return;
     const appEl = document.querySelector('#app');
     if (!appEl) return;
-    let maxBottom = 0;
+
+    // Sichtbaren Ausschnitt von #app in #app-LOKALEN (offset-)Koordinaten bestimmen: der
+    // Browser-Viewport ist [0, innerWidth] × [0, innerHeight] in Fenster-Koordinaten; appRect.
+    // left/top ist die aktuelle Lage von #app IM Fenster — die Umrechnung ist simple Subtraktion.
+    // BUGFIX (mit Playwright gefunden): NICHT zusätzlich gegen `appEl.offsetWidth/offsetHeight`
+    // clampen — sobald alle vier ISMs per instrPos `position:absolute` sind (die mitgelieferte
+    // Demo tut das von Anfang an, s.o.), trägt KEIN Kind mehr zur eigenen Boxgröße von #app bei
+    // (absolut positionierte Kinder verlassen den normalen Fluss) — #app schrumpft dann auf
+    // seine reine Innenabstand-Höhe (hier ~24px), obwohl die Instrumente selbst weiterhin ganz
+    // normal sichtbar irgendwo auf der Seite stehen (kein `overflow:hidden` an #app). Ein Clamp
+    // auf `offsetHeight` hätte hier fälschlich fast den gesamten sichtbaren Bereich als "nicht
+    // zu #app gehörig" verworfen und Hindernisse unterhalb davon ignoriert (Overlap-Risiko).
+    // Einzig der Fenster-Viewport selbst begrenzt den Suchraum.
+    const appRect = appEl.getBoundingClientRect();
+    const viewX0 = Math.max(0, -appRect.left);
+    const viewX1 = window.innerWidth - appRect.left;
+    const viewY0 = Math.max(0, -appRect.top);
+    const viewY1 = window.innerHeight - appRect.top;
+    const MIN_SPAN = 40;   // #app selbst kaum/nicht sichtbar (extrem verscrollt) — nichts zu tun
+    if (viewX1 - viewX0 < MIN_SPAN || viewY1 - viewY0 < MIN_SPAN) return;
+
+    // Belegte Flächen: alle sichtbaren `.wb-bench` außer dem LevelMeter-Viewport-Overlay
+    // (css/werkbank.css #bench-levelmeter ist `position:fixed`, deckt absichtlich den ganzen
+    // Viewport ab und zählt nicht als "belegte Fläche"). Auf den sichtbaren Ausschnitt geclippt
+    // — ein Instrument, das @dpa weit nach unten gezogen hat, blockiert oben nichts.
+    const obstacles = [];
     appEl.querySelectorAll('.wb-bench').forEach((el) => {
         if (el.id === 'bench-levelmeter') return;
-        maxBottom = Math.max(maxBottom, el.offsetTop + el.offsetHeight);
+        const l = el.offsetLeft, t = el.offsetTop, r = l + el.offsetWidth, b = t + el.offsetHeight;
+        if (r <= viewX0 || l >= viewX1 || b <= viewY0 || t >= viewY1) return;   // außerhalb des sichtbaren Ausschnitts
+        obstacles.push({ l: Math.max(l, viewX0), t: Math.max(t, viewY0), r: Math.min(r, viewX1), b: Math.min(b, viewY1) });
     });
-    newEntryCard.style.position = 'absolute';
-    newEntryCard.style.top = (maxBottom + 12) + 'px';
-    newEntryCard.style.left = '50%';
-    newEntryCard.style.transform = 'translateX(-50%)';
+
+    // Größtes freies Rechteck: Kandidaten-Koordinaten = Rand des sichtbaren Ausschnitts +
+    // jede Hindernis-Kante, dann alle Kombinationen prüfen (klassischer Brute-Force-Ansatz für
+    // dieses Problem bei kleiner Hindernis-Zahl).
+    const xs = new Set([viewX0, viewX1]);
+    const ys = new Set([viewY0, viewY1]);
+    obstacles.forEach((o) => { xs.add(o.l); xs.add(o.r); ys.add(o.t); ys.add(o.b); });
+    const xList = [...xs].sort((a, b) => a - b);
+    const yList = [...ys].sort((a, b) => a - b);
+    let best = null;   // { l, t, r, b, area }
+    for (let i = 0; i < xList.length; i++) {
+        for (let j = i + 1; j < xList.length; j++) {
+            const l = xList[i], r = xList[j];
+            if (r - l < 20) continue;
+            for (let k = 0; k < yList.length; k++) {
+                for (let m = k + 1; m < yList.length; m++) {
+                    const t = yList[k], b = yList[m];
+                    if (b - t < 20) continue;
+                    const area = (r - l) * (b - t);
+                    if (best && area <= best.area) continue;
+                    const free = !obstacles.some((o) => l < o.r && r > o.l && t < o.b && b > o.t);
+                    if (free) best = { l, t, r, b, area };
+                }
+            }
+        }
+    }
+
+    const PAD = 16;   // Sicherheitsabstand der Karte zu Instrumenten/Rand
+    const naturalW = Math.min(640, appEl.offsetWidth);
+    const CARD_MIN_W = 260, CARD_MIN_H = 110;   // ungefähre Mindestgröße, unterhalb derer die Karte kaum noch lesbar wäre
+
+    if (best && (best.r - best.l) >= CARD_MIN_W + PAD * 2 && (best.b - best.t) >= CARD_MIN_H + PAD * 2) {
+        // Normalfall: genug Platz — Karte in natürlicher Breite (max. 640px) MITTIG in die
+        // größte freie Fläche setzen (waagerecht UND senkrecht, @dpa: "in die mitte").
+        const w = Math.min(naturalW, best.r - best.l - PAD * 2);
+        newEntryCard.style.width = w + 'px';
+        newEntryCard.style.maxHeight = ''; newEntryCard.style.overflowY = '';
+        newEntryCard.style.position = 'absolute';
+        newEntryCard.style.left = (best.l + (best.r - best.l) / 2) + 'px';
+        newEntryCard.style.top = (best.t + (best.b - best.t) / 2) + 'px';
+        newEntryCard.style.transform = 'translate(-50%, -50%)';
+    } else if (best && best.area > 0) {
+        // Degradieren statt überlappen: die größte freie Fläche reicht nicht für die volle
+        // Karte — auf die tatsächlich freie Breite/Höhe schrumpfen, bei Bedarf mit eigenem
+        // Scrollbalken (overflow-y), statt über ein Instrument zu ragen.
+        const w = Math.max(140, best.r - best.l - PAD * 2);
+        const h = Math.max(70, best.b - best.t - PAD * 2);
+        newEntryCard.style.width = w + 'px';
+        newEntryCard.style.maxHeight = h + 'px';
+        newEntryCard.style.overflowY = 'auto';
+        newEntryCard.style.position = 'absolute';
+        newEntryCard.style.left = (best.l + (best.r - best.l) / 2) + 'px';
+        newEntryCard.style.top = (best.t + (best.b - best.t) / 2) + 'px';
+        newEntryCard.style.transform = 'translate(-50%, -50%)';
+    } else {
+        // Letzter Ausweg (sichtbarer Ausschnitt de facto komplett belegt, praktisch kaum
+        // erreichbar): wie in der Vorfassung unterhalb aller Instrumente im Dokumentfluss
+        // anhängen — erfordert dann Scrollen, aber KEINE Überlappung.
+        let maxBottom = 0;
+        appEl.querySelectorAll('.wb-bench').forEach((el) => {
+            if (el.id === 'bench-levelmeter') return;
+            maxBottom = Math.max(maxBottom, el.offsetTop + el.offsetHeight);
+        });
+        newEntryCard.style.width = '';
+        newEntryCard.style.maxHeight = ''; newEntryCard.style.overflowY = '';
+        newEntryCard.style.position = 'absolute';
+        newEntryCard.style.top = (maxBottom + 12) + 'px';
+        newEntryCard.style.left = '50%';
+        newEntryCard.style.transform = 'translateX(-50%)';
+    }
 }
 // `.isConnected` statt nur der Variable: im Klon (APP !== 'werkbank-leer') wurde die Karte
 // oben schon per `.remove()` aus dem DOM genommen — die JS-Variable bleibt zwar ein gültiger
@@ -955,8 +1087,9 @@ if (newEntryCard && newEntryCard.isConnected) {
     // vollständigen Layout-/Paint-Zyklus ab, bevor gemessen wird (Standardmuster für "nach dem
     // nächsten fertigen Layout").
     requestAnimationFrame(() => requestAnimationFrame(placeNewEntryCard));
-    // Fensterbreite ändert die Kartenbreite (max-width, responsive) UND ob z.B. Rec/Scope
-    // durch #app's eigenes Grid-Reflow (die NICHT gezogenen Instrumente laufen normal im
-    // Grid-Fluss) an anderer Stelle landen — bei beidem neu vermessen.
+    // Fenstergröße ändert sowohl den sichtbaren Ausschnitt (innerHeight/innerWidth) als auch
+    // die Layout-Positionen der NICHT gezogenen Instrumente (#app's eigenes Grid-Reflow) — bei
+    // beidem neu vermessen. Scroll ändert ebenfalls, welcher Ausschnitt gerade sichtbar ist.
     window.addEventListener('resize', placeNewEntryCard);
+    window.addEventListener('scroll', placeNewEntryCard, { passive: true });
 }
