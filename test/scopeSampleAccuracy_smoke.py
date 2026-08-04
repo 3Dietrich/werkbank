@@ -70,6 +70,15 @@ try:
             const env = window.__env.mgr.engines[0];
             const out = {};
 
+            // Quelle EXPLIZIT abräumen (Smoke-Test-Altlast, todos.md 20260802_131434):
+            // presets/werkbank-config.json (@dpas gewachsene Werkseinstellungen) hat Scope 0
+            // inzwischen eine echte, persistierte Quelle mitgegeben (multiScope.js stellt sie
+            // beim Aufbau automatisch wieder her, s. dortiger Kommentar „damit hasNode/node
+            // gleich mitkommen") — ein frischer Playwright-Browser startet dadurch NICHT mehr
+            // quellenlos, wie dieser Test es beim Schreiben noch annehmen konnte. setSource(null)
+            // stellt den für DIESEN Check nötigen Ausgangszustand her, unabhängig vom Stand der
+            // Werkseinstellungen-Datei.
+            scope.setSource(null);
             out.hasNodeBefore = scope.hasNode();
 
             const sources = reg.outputSources();
