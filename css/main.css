@@ -471,6 +471,11 @@ body {
   border: 1px solid var(--sel-line); border-radius: 4px;
   box-shadow: 0 8px 32px rgba(0,0,0,.6); padding: 8px; font-size: 11px;
   display: flex; flex-direction: column; gap: 6px;
+  /* Sicherheitsnetz zur Top-Clamp in GroupHost.js openGroupSettings() (@dpa-Bug 20260804):
+     ist das Popup selbst höher als das ganze Fenster (kleines Browserfenster + viele
+     ADSR-Zusatzfelder aus groupKindSettings), schneidet die Clamp allein nicht mehr – hier
+     scrollt das Popup dann intern, statt den unteren Teil unerreichbar zu machen. */
+  max-height: calc(100vh - 16px); overflow-y: auto;
 }
 /* Verschiebbare Kopfzeile (Titel = Gruppenname, kein Control-Name) + Fußhinweis. */
 .gs-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: move; margin-bottom: 2px; }
