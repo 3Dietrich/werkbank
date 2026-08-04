@@ -54,7 +54,7 @@ import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
 import { mountDebugGroup } from '../lib/debugPanel/mount.js';
 import { adsrOscDefs } from '../lib/adsrOsc/defs.js';
 import { createAdsrOscEngine } from '../lib/adsrOsc/engine.js';
-import { createAdsrSettingsHook, ADSR_DEFAULTS } from '../lib/adsrPanel.js';
+import { createAdsrSettingsHook, ADSR_DEFAULTS, createAdsrOutputPicker } from '../lib/adsrPanel.js';
 import { seedGroupSnapshots } from '../lib/groupPresetFactory.js';
 import { wireAdsrKnobVisibility } from '../lib/polysynth/multiEnv.js';
 import {
@@ -327,6 +327,40 @@ window.__adsrOsc.instr = adsrOscInstr;   // wie __takt/__rec/__levelMeter (Konsi
 // nur im Gate-Modus) — wiederverwendeter Helfer aus multiEnv.js, je einmal pro Env-Scope.
 wireAdsrKnobVisibility({ host: adsrOsc, state: adsrOscState, groupName: 'Amp-ADSR', sfx: '' });
 wireAdsrKnobVisibility({ host: adsrOsc, state: adsrOscState, groupName: 'Pitch-ADSR', sfx: '_p' });
+
+// ── ADSR+OSZ-Ports bei der Registry anmelden (@dpa 20260804, Nachrüstung „echte Ports
+// statt harter Verdrahtung" — s. lib/adsrOsc/defs.js- + engine.js-Köpfe, docs/CONTROLS.md
+// „Pflicht-Rückfragen" Punkt 1). Amp-/Pitch-ADSR bekommen echte Output-Ports (`ampOut`/
+// `pitchOut`), der Oszillator echte Input-Ports (`ampIn`/`pitchIn`) — Bindung (read/write)
+// zeigt auf die engine.js-Closures, die vorher den Oszillator DIREKT gelesen haben.
+routing.registerModule('adsrosc', {
+    label: 'ADSR+OSZ',
+    ...bindPorts(adsrOscDefsConfig.ports, {
+        outputs: {
+            ampOut: { read: () => adsrOscEngine.ampEnvValue(), hasNode: true, node: () => adsrOscEngine.ampEnvNode() },
+            pitchOut: { read: () => adsrOscEngine.pitchEnvValue(), hasNode: true, node: () => adsrOscEngine.pitchEnvNode() },
+        },
+        inputs: {
+            ampIn: { write: (v) => adsrOscEngine.setAmpMod(v) },
+            pitchIn: { write: (v) => adsrOscEngine.setPitchMod(v) },
+        },
+    }),
+});
+// Output-PickMenu je ADSR-Gruppe (lib/adsrPanel.js createAdsrOutputPicker(), Muster aus
+// multiEnv.js) — Panel-sichtbares Ziel-Control (ganz normales `select`-Control, damit auch
+// der generische „Panel?"-Off-Panel-Knopf mitkommt). defaultTarget verbindet beim ALLER-
+// ERSTEN Aufruf (leerer/undefinierter State-Key) real auf den eigenen Oszillator-Eingang —
+// Rückwärtskompatibilität: identischer Klang wie die vorherige harte Verdrahtung.
+createAdsrOutputPicker({
+    host: adsrOsc, state: adsrOscState, routing,
+    groupName: 'Amp-ADSR', sfx: '', srcModule: 'adsrosc', srcPort: 'ampOut',
+    defaultTarget: 'adsrosc.ampIn',
+});
+createAdsrOutputPicker({
+    host: adsrOsc, state: adsrOscState, routing,
+    groupName: 'Pitch-ADSR', sfx: '_p', srcModule: 'adsrosc', srcPort: 'pitchOut',
+    defaultTarget: 'adsrosc.pitchIn',
+});
 
 // Render-Loop, GEKÜRZT (@dpa-Auftrag): kein baseKeyboard/toneReadout/freqReadout/sqManager/
 // envManager — die gibt es hier nicht (kein Poly-Synth/Stepseq). Übrig bleibt nur, was die
