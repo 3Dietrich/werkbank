@@ -54,7 +54,8 @@ import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
 import { mountDebugGroup } from '../lib/debugPanel/mount.js';
 import { adsrOscDefs } from '../lib/adsrOsc/defs.js';
 import { createAdsrOscEngine } from '../lib/adsrOsc/engine.js';
-import { createAdsrSettingsHook } from '../lib/adsrPanel.js';
+import { createAdsrSettingsHook, ADSR_DEFAULTS } from '../lib/adsrPanel.js';
+import { seedGroupSnapshots } from '../lib/groupPresetFactory.js';
 import { wireAdsrKnobVisibility } from '../lib/polysynth/multiEnv.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
@@ -296,6 +297,11 @@ window.__debug.instr = debugInstr;   // wie __takt/__rec/__levelMeter (Konsisten
 // (multiplikativ, Sine-FM-artig) moduliert. s. lib/adsrOsc/ (defs.js + engine.js).
 const ADSROSC_LS = lsKey('adsrosc');
 const adsrOscState = new MiniState(adsrOscDefs().DEFAULTS, ADSROSC_LS);
+// Kombo/Snapshot-Factory (@dpa 20260804, dritter offener Faden): "Standard" ist 1:1 der
+// bestehende ADSR_DEFAULTS-Klang (kein neu erfundener Sound) — gibt dem Snapshot-Menü von
+// Amp-/Pitch-ADSR schon beim Erstbesuch einen Eintrag, statt leer zu starten. Läuft nur
+// einmal (s. lib/groupPresetFactory.js), Amp+Pitch teilen sich den Pool (groupKind 'ADSR').
+seedGroupSnapshots(adsrOscState, { ADSR: [{ name: 'Standard', values: ADSR_DEFAULTS }] });
 const adsrOscRoot = document.querySelector('#adsrosc');
 const adsrOscEngine = createAdsrOscEngine(adsrOscState, {
     getBpm: () => taktState.get('bpm'),
