@@ -162,6 +162,19 @@ const taktMount = mountTaktMetro({
 });
 const { taktState, taktEngine, taktDefs, taktRoot, takt, taktOpts, taktLsKey: TAKT_LS } = taktMount;
 
+// ── Anordnen-Taste lernbar statt festgelötet (@dpa ddw.md, Bug 2 „e-Mode-Taste hartcodiert"):
+// der Header-Knopf „⇄ Anordnen" ist über KeyMidi genauso lernbar wie jeder andere Header-Knopf
+// (`keyMidi.register('hdr:arrangemode', …)`, weiter unten) — die Bindung selbst landet dabei in
+// `taktState.keyBindings` (taktState ist die MiniState-Instanz HINTER `takt.keyMidi`, s. „const
+// keyMidi = takt.keyMidi" weiter unten: takt gilt als repräsentativer Host für ALLE Header-
+// Knöpfe). `arrangeKeyOf()` liest GENAU diese Bindung; jedes mountGroups()-eigene Anordnen-
+// Tastatur-Listener (lib/group/GroupHost.js, EIN Exemplar pro ISM) bekommt sie über
+// `opts.arrangeKeyOf` gereicht, damit ALLE Instrumente auf dieselbe (ggf. umgelernte) Taste
+// hören, ohne dass GroupHost selbst je etwas von 'hdr:arrangemode' wissen müsste. Leer (nichts
+// gelernt) → Default bleibt 'e'/'E', identisch zum bisherigen Verhalten.
+const arrangeKeyOf = () => (taktState.get('keyBindings') || {})['hdr:arrangemode'] || '';
+taktOpts.arrangeKeyOf = arrangeKeyOf;
+
 // ── Poly-Synth – Base-Frq + Audio-Osz, Port aus teslacoil (Schritt 1, @dpa 20260721) ──
 // Eigener MiniState + eigene deklarative defs-Quelle, gemountet über dieselbe
 // GroupHost-Fabrik. Der anfängliche Test-Ton (Übergangslösung, bevor die Voice-Engine
@@ -237,6 +250,7 @@ const polySynthDefsObj = polySynthDefs({
 const polySynth = mountGroups(polySynthRoot, polySynthState, polySynthDefsObj, {
     instrumentScaled: () => polySynthInstr.scaled(),
     groupKindSettings: (kind) => _groupKindSettings[kind],   // lazy: _groupKindSettings kommt später
+    arrangeKeyOf,
 });
 // BUTTONS hängen (anders als TOGGLES) nicht automatisch am State — b:kbHold muss seinen
 // isOn-Zustand explizit nachgezogen bekommen, auch wenn kbHold NICHT per Klick, sondern
@@ -565,6 +579,7 @@ const stepSeqState = new MiniState({}, STEPSEQ_LS);
 const stepSeqRoot = document.querySelector('#stepseq');
 const stepSeq = mountGroups(stepSeqRoot, stepSeqState, stepSeqDefsObj, {
     instrumentScaled: () => stepSeqInstr.scaled(),
+    arrangeKeyOf,
 });
 const getBeatDurMs = () => 60000 / Math.max(1, taktState.get('bpm'));
 // Ein Manager für N Sequenzer-Gruppen: baut/entfernt Sqs (die beiden ISM-Buttons), verteilt
@@ -632,6 +647,7 @@ const recRoot = document.querySelector('#rec');
 const recDefs = { BUTTONS: {}, TEXTS: {}, GROUPS: [] };   // multiRec.js befüllt BUTTONS/TEXTS pro Instanz
 const rec = mountGroups(recRoot, recState, recDefs, {
     instrumentScaled: () => recInstr.scaled(),
+    arrangeKeyOf,
 });
 const recManager = createRecManager({
     host: rec, state: recState, defs: recDefs, routing,
@@ -720,6 +736,7 @@ const levelMeterRoot = document.querySelector('#levelmeter');
 const levelMeterDefs = { GROUPS: [] };
 const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, levelMeterDefs, {
     groupKindSettings: (kind) => _levelMeterKindSettings[kind],
+    arrangeKeyOf,
 });
 const levelMeterManager = createLevelMeterManager({
     host: levelMeterHost, state: levelMeterState, routing,
@@ -751,6 +768,7 @@ const scopeRoot = document.querySelector('#scopes');
 const scopeDefs = { GROUPS: [] };
 const scopeHost = mountGroups(scopeRoot, scopeState, scopeDefs, {
     groupKindSettings: (kind) => _scopeKindSettings[kind],
+    arrangeKeyOf,
 });
 const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing });
 scopeManager.init();
@@ -816,7 +834,7 @@ const debugState = new MiniState(debugPanelDefs().DEFAULTS, DEBUG_LS);
 const debugRoot = document.querySelector('#debug');
 const dbg = new DebugPanel(debugState, { appPrefix: APP, getFullState: () => buildConfig() });
 const debugDefs = debugPanelDefs({ onAction: (id) => dbg.onAction(id) });
-const debugHost = mountGroups(debugRoot, debugState, debugDefs, {});
+const debugHost = mountGroups(debugRoot, debugState, debugDefs, { arrangeKeyOf });
 mountDebugGroup(debugHost, debugState, dbg);
 const debugInstr = mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
 window.__debug = { state: debugState, host: debugHost, panel: dbg };
@@ -901,8 +919,11 @@ if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // D
 // Knopf-Zustand (dieselbe Rolle wie `takt.keyMidi` weiter oben für den globalen Tasten/MIDI-
 // Header) — alle Hosts toggeln über dieselbe Taste ohnehin im Gleichschritt.
 const arrangeBtn = mkHeaderToggle('arrangemode', '⇄ Anordnen',
-    'Anordnen-Modus (Taste e) — Gruppen/Controls frei verschiebbar', (on) => {
-        if (!!on !== !!takt.isArranging()) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', bubbles: true, cancelable: true }));
+    'Anordnen-Modus (Taste e, über ⌨ Tasten umlernbar) — Gruppen/Controls frei verschiebbar', (on) => {
+        // Bug 2 (@dpa ddw.md, „e-Mode-Taste hartcodiert"): NICHT mehr fest 'e' dispatchen,
+        // sondern die TATSÄCHLICH gelernte Taste (arrangeKeyOf(), s.o.) — sonst würde ein
+        // Umlernen den Knopf selbst wirkungslos machen (er triggerte weiter die alte 'e').
+        if (!!on !== !!takt.isArranging()) window.dispatchEvent(new KeyboardEvent('keydown', { key: arrangeKeyOf() || 'e', bubbles: true, cancelable: true }));
     });
 // Spiegelt den Knopf zurück, wenn der Anordnen-Modus NICHT über den Knopf endet/beginnt
 // (echte Taste 'e', oder ESC weiter unten bei `takt.setArranging(false)`) — die Naht dafür
@@ -1087,7 +1108,14 @@ keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { se
 keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { self: true });
 // Hints + Config ebenso lernbar (@dpa 20260720: „'Hints' und 'Config' kriegen auch tasten und midi learn").
 keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
-keyMidi.register('hdr:arrangemode', arrangeBtn, '⇄ Anordnen', () => arrangeBtn.click(), { self: true });
+// activate = No-op (@dpa ddw.md, Bug 2): register() bleibt NUR für den Lern-Slot (Badge/
+// Selbst-Panel/Kollisions-Warnung) nötig — das eigentliche Ein-/Ausschalten übernehmen
+// jetzt die per-Host-Listener in GroupHost.js direkt (opts.arrangeKeyOf, s.o.), die auf
+// GENAU DENSELBEN echten Tastendruck reagieren. Ein `arrangeBtn.click()` hier würde einen
+// ZWEITEN, mit dem ersten kollidierenden Umschalt-Vorgang auslösen (Klick → onToggle →
+// synthetischer keydown → dispatchKey erneut → erneuter Klick → …) und den Toggle sofort
+// wieder rückgängig machen (gefunden beim Testen des Umlernens auf eine andere Taste).
+keyMidi.register('hdr:arrangemode', arrangeBtn, '⇄ Anordnen', () => {}, { self: true });
 // Lim (MasterVolume.js) ist KEIN GroupHost-Control, gehört aber genauso zu den
 // Header-Buttons (@dpa ddw.md 20260802 Punkt 7: „alle header Buttons sollen ... key- und
 // Midilearn haben") — self:true wie jeder andere Haupt-Button hier, .click() löst denselben

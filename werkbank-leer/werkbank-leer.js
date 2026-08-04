@@ -167,6 +167,14 @@ routing.registerModule('master', {
 const taktMount = mountTaktMetro({ routing, instrumentScaledGetter: () => taktInstr.scaled() });
 const { taktState, taktEngine, taktDefs, taktRoot, takt, taktOpts, taktLsKey: TAKT_LS } = taktMount;
 
+// ── Anordnen-Taste lernbar statt festgelötet (@dpa ddw.md, Bug 2 „e-Mode-Taste hartcodiert") —
+// 1:1 aus overcord/werkbank.js: die Bindung landet in taktState.keyBindings['hdr:arrangemode']
+// (takt ist der repräsentative Host für alle Header-Knöpfe, s. „const keyMidi = takt.keyMidi"
+// weiter unten), arrangeKeyOf() liest sie; jedes mountGroups()-eigene Anordnen-Tastatur-
+// Listener bekommt sie über opts.arrangeKeyOf gereicht. Leer → Default bleibt 'e'/'E'.
+const arrangeKeyOf = () => (taktState.get('keyBindings') || {})['hdr:arrangemode'] || '';
+taktOpts.arrangeKeyOf = arrangeKeyOf;
+
 // ── Rec – vervielfältigbares Instrument (@dpa 20260804, s. lib/recInstrument/multiRec.js
 // Kopf — eigener Audio-Tap pro Instanz, Default = Master-Bus wie bisher). Kein Stepseq hier,
 // also kein Fan-out an einen Sq-Manager. ─────────────────────────────────────────────────
@@ -176,6 +184,7 @@ const recRoot = document.querySelector('#rec');
 const recDefs = { BUTTONS: {}, TEXTS: {}, GROUPS: [] };   // multiRec.js befüllt BUTTONS/TEXTS pro Instanz
 const rec = mountGroups(recRoot, recState, recDefs, {
     instrumentScaled: () => recInstr.scaled(),
+    arrangeKeyOf,
 });
 const recManager = createRecManager({
     host: rec, state: recState, defs: recDefs, routing,
@@ -229,6 +238,7 @@ const levelMeterRoot = document.querySelector('#levelmeter');
 const levelMeterDefs = { GROUPS: [] };
 const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, levelMeterDefs, {
     groupKindSettings: (kind) => _levelMeterKindSettings[kind],
+    arrangeKeyOf,
 });
 const levelMeterManager = createLevelMeterManager({
     host: levelMeterHost, state: levelMeterState, routing,
@@ -255,6 +265,7 @@ const scopeRoot = document.querySelector('#scopes');
 const scopeDefs = { GROUPS: [] };
 const scopeHost = mountGroups(scopeRoot, scopeState, scopeDefs, {
     groupKindSettings: (kind) => _scopeKindSettings[kind],
+    arrangeKeyOf,
 });
 const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing });
 scopeManager.init();
@@ -316,7 +327,7 @@ const debugState = new MiniState(debugPanelDefs().DEFAULTS, DEBUG_LS);
 const debugRoot = document.querySelector('#debug');
 const dbg = new DebugPanel(debugState, { appPrefix: APP, getFullState: () => buildConfig() });
 const debugDefs = debugPanelDefs({ onAction: (id) => dbg.onAction(id) });
-const debugHost = mountGroups(debugRoot, debugState, debugDefs, {});
+const debugHost = mountGroups(debugRoot, debugState, debugDefs, { arrangeKeyOf });
 mountDebugGroup(debugHost, debugState, dbg);
 const debugInstr = mountInstrumentSettings(document.querySelector('#bench-debug'), debugState, { bodySelector: '#debug', host: debugHost });
 window.__debug = { state: debugState, host: debugHost, panel: dbg };
@@ -376,8 +387,9 @@ if (taktState.get('hintsOn') !== false) hintsBtn.classList.add('active');   // D
 // Kommentar) statt jeden Host einzeln zu setArranging() zu zwingen. `takt` als
 // repräsentativer Host für den Knopf-Zustand.
 const arrangeBtn = mkHeaderToggle('arrangemode', '⇄ Anordnen',
-    'Anordnen-Modus (Taste e) — Gruppen/Controls frei verschiebbar', (on) => {
-        if (!!on !== !!takt.isArranging()) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', bubbles: true, cancelable: true }));
+    'Anordnen-Modus (Taste e, über ⌨ Tasten umlernbar) — Gruppen/Controls frei verschiebbar', (on) => {
+        // Bug 2: die TATSÄCHLICH gelernte Taste dispatchen, nicht fest 'e' (s. arrangeKeyOf oben).
+        if (!!on !== !!takt.isArranging()) window.dispatchEvent(new KeyboardEvent('keydown', { key: arrangeKeyOf() || 'e', bubbles: true, cancelable: true }));
     });
 taktOpts.onArrangeChange = (on) => arrangeBtn.classList.toggle('active', !!on);
 if (takt.isArranging()) arrangeBtn.classList.add('active');
@@ -541,7 +553,11 @@ window.__structure = { view: structureView };
 keyMidi.register('hdr:keyedit', keyBtn, '⌨ Tasten', () => keyBtn.click(), { self: true });
 keyMidi.register('hdr:midiedit', midiBtn, '🎹 MIDI', () => midiBtn.click(), { self: true });
 keyMidi.register('hdr:hintsedit', hintsBtn, '💬 Hints', () => hintsBtn.click(), { self: true });
-keyMidi.register('hdr:arrangemode', arrangeBtn, '⇄ Anordnen', () => arrangeBtn.click(), { self: true });
+// activate = No-op (@dpa ddw.md, Bug 2, 1:1 aus overcord/werkbank.js): register() bleibt
+// NUR für den Lern-Slot nötig — den echten Toggle übernehmen die per-Host-Listener in
+// GroupHost.js (opts.arrangeKeyOf), die auf denselben echten Tastendruck reagieren. Ein
+// arrangeBtn.click() hier würde einen zweiten, kollidierenden Umschalt-Vorgang auslösen.
+keyMidi.register('hdr:arrangemode', arrangeBtn, '⇄ Anordnen', () => {}, { self: true });
 // Lim (1:1 aus overcord/werkbank.js, ddw.md 20260802 Punkt 7). WS hat kein eigenes Learn
 // mehr — s. Kommentar dort (ddw.md 20260802_234615 Punkt 1, WS zog ins Lim-Popover).
 keyMidi.register('hdr:limbtn', masterVolume.limBtn, 'Lim', () => masterVolume.limBtn.click(), { self: true });
