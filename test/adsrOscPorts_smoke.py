@@ -79,18 +79,21 @@ try:
         amp_label = amp_pm.inner_text() if amp_pm.count() > 0 else ""
         check("kein Ziel" not in amp_label, f"Amp-Output-PickMenu zeigt kein Ziel: {amp_label!r}")
 
-        # ── 4) Gate-Trigger: Env-Werte bewegen sich UND kommen über den Port am
-        #      Oszillator an (routing.flush() liefert, kein Direktzugriff mehr). ─────
+        # ── 4) Gate-Trigger: Env-Werte bewegen sich, UND getValue(ampOut) liest denselben
+        #      Live-Wert wie ampEnvValue() (@dpa-Nachprüfung 20260804: Registry.getValue()
+        #      ruft port.read() live auf, KEIN Cache — die beiden Werte müssen exakt
+        #      übereinstimmen, aber NUR wenn beide innerhalb DESSELBEN JS-Ticks gelesen
+        #      werden. Zwei getrennte page.evaluate()-Aufrufe hätten hier zuerst fälschlich
+        #      ein FAIL gezeigt: die kontinuierlich abklingende Hüllkurve hatte sich im
+        #      IPC-Roundtrip zwischen den beiden Calls bereits weiterbewegt — kein Bug,
+        #      nur eine zu strenge Testmethode. Darum hier EIN evaluate() für beide Werte.) ─
         pg.evaluate("() => { window.__adsrOsc.engine.ensureAudio(); window.__adsrOsc.engine.onAction('gate', 'down'); }")
         pg.wait_for_timeout(120)
-        amp_val = pg.evaluate("() => window.__adsrOsc.engine.ampEnvValue()")
-        pitch_val = pg.evaluate("() => window.__adsrOsc.engine.pitchEnvValue()")
+        amp_val, delivered = pg.evaluate("""() => [
+            window.__adsrOsc.engine.ampEnvValue(),
+            window.__routing.reg.getValue({ module: 'adsrosc', port: 'ampOut' }),
+        ]""")
         check(abs(amp_val) > 1e-4, f"ampEnvValue() bewegt sich nach Gate-Trigger nicht (war {amp_val})")
-        # Mind. ein flush()-Tick abwarten, dann prüfen, dass die Registry den Wert über
-        # den Port GENAU DORTHIN geliefert hat, wo der Oszillator ihn abliest — Zugriff
-        # über routing.getValue() auf den Output simuliert dieselbe Zustellung, die
-        # flush() intern nutzt (kein privater engine-Zugriff nötig).
-        delivered = pg.evaluate("() => window.__routing.reg.getValue({ module: 'adsrosc', port: 'ampOut' })")
         check(abs(delivered - amp_val) < 1e-6, f"getValue(ampOut) sollte ampEnvValue() spiegeln (delivered={delivered}, amp={amp_val})")
 
         pg.evaluate("() => window.__adsrOsc.engine.onAction('gate', 'up')")
