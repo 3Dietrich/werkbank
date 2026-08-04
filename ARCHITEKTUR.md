@@ -96,6 +96,8 @@ sich ein Export nur dort einlesen, wo er entstanden ist.
 | Poly-Synth (ISM): Control-Definitionen + Audio-Verdrahtung | `lib/polysynth/defs.js` · `lib/polysynth/engine.js` | Keyboard, Base-Frq, Chord-Memory |
 | Multi-ADSR (vervielfältigbare Envelopes, Multi-Sq-Muster) | `lib/polysynth/multiEnv.js` | `EnvEngine` (ConstantSourceNode-basiert) + `createEnvManager()`; einziger aktueller `hasNode`-Output (s. Nähte) |
 | Signal-Scope (schmales Steuersignal-Meter zum Reinklinken, frame/sample) | `lib/SignalScope.js` + `lib/scope/multiScope.js` | reine Anzeige, kein Routing-Modul; `accuracy:'sample'` hängt sich mit `AnalyserNode` audio-rate an Quellen mit `hasNode` |
+| Rec (ISM): Audio-Verdrahtung + vervielfältigbarer Manager (@dpa 20260804) | `lib/recInstrument/engine.js` (`createRecEngine`) + `lib/recInstrument/multiRec.js` (`createRecManager`) | anders als Multi-ADSR/Scope bekommt JEDE Instanz ihre EIGENE Engine (eigener Tap via `opts.getInputNode`, Default `getMaster()` = Alt-Verhalten); wählbarer Tap-Punkt ist ein PickMenu aus `routing.outputSources()`, gefiltert auf `hasNode` |
+| LevelMeter (ISM): Pegelanzeige + vervielfältigbarer Manager (@dpa 20260804) | `lib/LevelMeter.js` (Klasse) + `lib/levelMeter/multiLevelMeter.js` (`createLevelMeterManager`) | wie Rec: EIGENER Analyser-Tap pro Instanz (lazy `makeAnalyserResolver()`), Instanz 0 defaultet auf `'master.out'` (Alt-Verhalten); kein `<h2>`-Header → +➚/🚮 sitzt im Gruppen-Rechtsklick-Settings (`createLevelMeterSettingsHook`), nicht im ISM-Header |
 | Haupt-Styles (inkl. `:root`-Variablen) | `css/main.css` (1020 Z.) | Variablen Z. 1–25 |
 | Werkbank-Rahmen-Styles | `css/werkbank.css` (114 Z.) | |
 | Takt-Styles (NICHT zusätzlich zu main.css laden — Kollision, s. Memory) | `css/takt.css` (210 Z.) | |
@@ -113,10 +115,10 @@ sich ein Export nur dort einlesen, wo er entstanden ist.
 | Neuen Pool-Einstieg anlegen (Node, kein Browser) | `tools/new-entry.mjs` | `--source`/`--publish`, legt Start-/Lösch-Skripte + README an |
 | Pool-Einstieg wieder entfernen (Node, kein Browser) | `tools/remove-entry.mjs` | räumt Ordner+Preset+ggf. Landing-Page-Karte auf |
 
-> Lücke (doc-sync 20260727): `lib/stepseq/multiSq.js`, `lib/recInstrument/`, `lib/group/registry`-
-> nahe Multi-Instanz-Bausteine sind ebenfalls noch nicht in dieser Tabelle — vorbestehend seit
-> dem 2026-07-23-Stand, nicht Teil der heutigen Änderung. Eigener doc-sync-Durchgang empfohlen,
-> falls die Karte wieder vollständig sein soll.
+> Lücke (doc-sync 20260727, Rec/LevelMeter-Zeilen oben am 20260804 nachgetragen):
+> `lib/stepseq/multiSq.js`, `lib/group/registry`-nahe Multi-Instanz-Bausteine sind weiterhin
+> nicht in dieser Tabelle — vorbestehend seit dem 2026-07-23-Stand. Eigener doc-sync-Durchgang
+> empfohlen, falls die Karte wieder vollständig sein soll.
 
 ## Settings-Hierarchie (Rechtsklick-System)
 
