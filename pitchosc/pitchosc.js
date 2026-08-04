@@ -45,7 +45,7 @@ import { installSelectOnFocus } from '../lib/selectOnFocus.js';
 import { mountGroups } from '../lib/group/GroupHost.js';
 import { createEnsembleStore, mountEnsembleMenu } from '../lib/EnsembleStore.js';
 import { ElementSettings } from '../lib/ElementSettings.js';
-import { makeWireHeaderBtnSettings } from '../lib/headerBtn.js';
+import { makeWireHeaderBtnSettings, makeHeaderToggle } from '../lib/headerBtn.js';
 import { taktMetroDefs } from '../lib/taktmetro/defs.js';
 import { createTaktEngine } from '../lib/taktmetro/engine.js';
 import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
@@ -376,22 +376,10 @@ wireAdsrKnobVisibility({ host: adsrOsc, state: adsrOscState, groupName: 'Pitch-A
 // LevelMeter/Scope sogar (Bug, s. ARCHITEKTUR.md-Lücke) — hier bewusst ergänzt, sonst
 // reagieren deren Controls (u:meter, s:scopeSrc_i, u:scope_i) nie auf ⌨/🎹.
 const keyMidi = takt.keyMidi;
-const mkHeaderToggle = (id, label, title, onToggle) => {
-    const btn = document.createElement('button');
-    btn.className = 'pb-btn'; btn.id = id; btn.type = 'button';
-    btn.textContent = label; btn.title = title;
-    btn.addEventListener('click', () => {
-        const on = btn.classList.toggle('active');
-        if (on && btn._radioPeer && btn._radioPeer.classList.contains('active')) {
-            btn._radioPeer.classList.remove('active');
-            btn._radioPeer._onToggle(false);
-        }
-        onToggle(on);
-    });
-    btn._onToggle = onToggle;
-    document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:' + id, btn, label));
-    return btn;
-};
+// mkHeaderToggle() selbst (reine Button-Mechanik) kommt seit @dpa 20260804 aus
+// lib/headerBtn.js (war byte-identisch dreifach dupliziert). Die Host-Listen der einzelnen
+// Buttons (s.u.) bleiben bewusst hier — s. headerBtn.js-Kommentar zu makeHeaderToggle().
+const mkHeaderToggle = makeHeaderToggle(wireHeaderBtnSettings);
 const keyBtn = mkHeaderToggle('keyedit', '⌨ Tasten', 'Tastenbelegung über allen Controls anzeigen/ändern — nur einer von Tasten/MIDI zugleich', (on) => {
     keyMidi.setKeyEdit(on); rec.keyMidi.setKeyEdit(on); levelMeterHost.keyMidi.setKeyEdit(on); scopeHost.keyMidi.setKeyEdit(on); debugHost.keyMidi.setKeyEdit(on); adsrOsc.keyMidi.setKeyEdit(on);
 });

@@ -26,7 +26,7 @@ import { installSelectOnFocus } from '../lib/selectOnFocus.js';
 import { mountGroups, kbStyle } from '../lib/group/GroupHost.js';
 import { createEnsembleStore, mountEnsembleMenu } from '../lib/EnsembleStore.js';
 import { ElementSettings } from '../lib/ElementSettings.js';
-import { makeWireHeaderBtnSettings } from '../lib/headerBtn.js';
+import { makeWireHeaderBtnSettings, makeHeaderToggle } from '../lib/headerBtn.js';
 import { taktMetroDefs } from '../lib/taktmetro/defs.js';
 import { createTaktEngine } from '../lib/taktmetro/engine.js';
 import { polySynthDefs } from '../lib/polysynth/defs.js';
@@ -889,22 +889,10 @@ const keyMidi = takt.keyMidi;
 // des Badges über allen Controls.
 // Radio-Verhalten (@dpa 20260719_120425: „bitte nur einen von beiden aktivieren"):
 // das Einschalten des einen schaltet den anderen aus — wie ein Selector.
-const mkHeaderToggle = (id, label, title, onToggle) => {
-    const btn = document.createElement('button');
-    btn.className = 'pb-btn'; btn.id = id; btn.type = 'button';
-    btn.textContent = label; btn.title = title;
-    btn.addEventListener('click', () => {
-        const on = btn.classList.toggle('active');
-        if (on && btn._radioPeer && btn._radioPeer.classList.contains('active')) {
-            btn._radioPeer.classList.remove('active');
-            btn._radioPeer._onToggle(false);
-        }
-        onToggle(on);
-    });
-    btn._onToggle = onToggle;
-    document.querySelector('.topbar-right').appendChild(wireHeaderBtnSettings('hdr:' + id, btn, label));
-    return btn;
-};
+// mkHeaderToggle() selbst (reine Button-Mechanik) kommt seit @dpa 20260804 aus
+// lib/headerBtn.js (war byte-identisch dreifach dupliziert). Die Host-Listen der einzelnen
+// Buttons (s.u.) bleiben bewusst hier — s. headerBtn.js-Kommentar zu makeHeaderToggle().
+const mkHeaderToggle = makeHeaderToggle(wireHeaderBtnSettings);
 // Jedes Instrument hat sein EIGENES KeyMidi (eigener mountGroups-Aufruf) — der globale
 // Header-Schalter muss deshalb BEIDE zugleich schalten (Poly-Synth-Instrument Schritt 1,
 // @dpa 20260721: die neuen Base-Frq/Audio-Osz-Controls sollen wie taktgeber lernbar sein).
