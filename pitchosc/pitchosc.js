@@ -61,7 +61,7 @@ import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
     getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper, setMasterDb as setBusMasterDb,
 } from '../lib/audioBus.js';
-import { createRoutingRegistry } from '../lib/routing/Registry.js';
+import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
 import { createStructureView } from '../lib/routing/StructureView.js';
 import { createLevelMeterManager, createLevelMeterSettingsHook } from '../lib/levelMeter/multiLevelMeter.js';
 import { createScopeManager, createScopeSettingsHook } from '../lib/scope/multiScope.js';
