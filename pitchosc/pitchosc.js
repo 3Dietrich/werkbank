@@ -401,6 +401,12 @@ createAdsrOutputPicker({
 (function tick() {
     levelMeterManager.tick();
     routing.flush();      // verbundene VALUE-Ports sampeln (Phase 2.3)
+    // ERST flush() (schreibt ampModIn/pitchModIn aus den Ports), DANN applyModulation()
+    // im selben synchronen Tick (@dpa 20260804: vorher hatte adsrOscEngine einen eigenen,
+    // unabhängigen rAF-Loop — Reihenfolge zu flush() war nur zufällig richtig, effektiv ein
+    // konstanter 1-Frame-Versatz zwischen Hüllkurve und Gain/Frequenz. Kein DSP-Delay,
+    // sondern eine vermeidbare Aufruf-Reihenfolge — s. lib/adsrOsc/engine.js-Kommentar).
+    adsrOscEngine.applyModulation();
     scopeManager.tick();  // Signal-Scopes zeichnen + Passthrough
     requestAnimationFrame(tick);
 })();

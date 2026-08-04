@@ -157,6 +157,24 @@ woanders hinmoduliert), bekommen ein Panel-sichtbares PickMenu; reine Ziel-Ports
 eigene Bedienung (z. B. `baseFreqIn`, `trig`, `clock`, `ampIn`/`pitchIn`) bleiben unsichtbare
 Metadaten – dieselbe Asymmetrie gilt schon für alle bestehenden Ports im Projekt.
 
+**Latenz-Regel bei Ports (@dpa 20260804):** verzögert ein Zweig durch seine Verarbeitung
+(z. B. ein Analyser-Fenster, ein Debounce, eine Puffer-Stufe), wird das NICHT durch
+zusätzliche Latenz bei allen anderen Zweigen ausgeglichen. Stattdessen holt die QUELLE
+dieses einen Zweigs (Gate/Trigger/Ereignis) sich die Verzögerung über eine entsprechend
+NEGATIVE Latenz vorab wieder heraus — nur für diesen Strang, alles andere bleibt in Time
+(oder auf dessen eigener, unvermeidbarer Latenz). Klassisches Plugin-Delay-Compensation-
+Prinzip aus DAWs, hier: bei bekannter Zweig-Latenz `L` plant die Quelle ihr Ereignis um `L`
+früher, damit die VERZÖGERT ankommende Wirkung zur richtigen Zeit hörbar wird.
+**Wichtig — erst prüfen, ob die Latenz überhaupt ECHT ist:** beim `adsrOsc`-Umbau sah ein
+~1-Frame-Versatz zwischen Hüllkurve und Gain/Frequenz zunächst wie so ein Fall aus, war
+aber gar keine echte Verarbeitungs-Latenz, sondern nur eine zufällige Aufruf-Reihenfolge
+zwischen zwei unabhängigen `requestAnimationFrame`-Loops (`engine.js`-eigener Tick vs.
+`routing.flush()` im Render-Loop) — richtig lag hier, die Reihenfolge zu FIXEN (Wert
+IMMER direkt nach `flush()` im selben synchronen Tick anwenden, s. `applyModulation()` in
+`lib/adsrOsc/engine.js`), nicht sie zu kompensieren. Kompensation über negative Latenz ist
+für Fälle mit WIRKLICH unvermeidbarer Latenz gedacht (die sich nicht wegfixen lässt),
+nicht als Ersatz für eine korrekte Aufruf-Reihenfolge.
+
 #### Rezept: neuen Pool-Einstiegspunkt anlegen (Header-Baukasten)
 
 > Auslöser (@dpa 20260804): `overcord/werkbank.js`, `werkbank-leer/werkbank-leer.js` und
