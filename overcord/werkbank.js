@@ -41,7 +41,7 @@ import { StepSeqGrid } from '../lib/stepseq/ui/StepSeqGrid.js';
 import { createSqManager } from '../lib/stepseq/multiSq.js';
 import { makeWorkerTicker } from '../lib/workerTicker.js';
 import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
-import { createRecEngine } from '../lib/recInstrument/engine.js';
+import { createRecManager } from '../lib/recInstrument/multiRec.js';
 import { debugPanelDefs } from '../lib/debugPanel/defs.js';
 import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
 import { mountDebugGroup } from '../lib/debugPanel/mount.js';
@@ -49,7 +49,7 @@ import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as 
 import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
 import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
 import { createStructureView } from '../lib/routing/StructureView.js';
-import { LevelMeter } from '../lib/LevelMeter.js';
+import { createLevelMeterManager, createLevelMeterSettingsHook } from '../lib/levelMeter/multiLevelMeter.js';
 import { createScopeManager, createScopeSettingsHook } from '../lib/scope/multiScope.js';
 import { icon } from '../lib/icons.js';
 import { mountBenchHelp } from '../lib/benchHelp.js';
@@ -535,8 +535,8 @@ const _groupKindSettings = {
 window.__env = { mgr: envManager };
 
 // Render-Loop steht GANZ UNTEN in dieser Datei (nach LevelMeter) — ruft sich beim ersten Mal
-// SYNCHRON selbst auf (IIFE), bräuchte levelMeter also schon hier (TDZ-Fehler), das aber
-// erst weiter unten gebaut wird (s. Kommentar dort, gleiches Muster wie oben bei baseKeyboard).
+// SYNCHRON selbst auf (IIFE), bräuchte levelMeterManager also schon hier (TDZ-Fehler), das
+// aber erst weiter unten gebaut wird (s. Kommentar dort, gleiches Muster wie oben bei baseKeyboard).
 
 // ── Stepsequenzer – eigenes ISM (@dpa 20260722_203201, ddw.md: „neues ISM Stepsequenzer:
 // Stepsequenzer, Basisclock (n*BaseFreq) mit Teiler (Clock/n) als trigger source. Erstmal
@@ -618,45 +618,50 @@ routing.connect({ module: 'stepseq', port: 'amp' }, { module: 'polysynth', port:
     h2.appendChild(wrap);
 })();
 
-// ── Rec – eigenes Instrument (@dpa 20260721: „Rec nicht in Poly drin, sondern als Extra
-// Instrument") ────────────────────────────────────────────────────────────────────────
+// ── Rec – vervielfältigbares Instrument (@dpa 20260721 Singleton, 20260804 Vervielfältigung
+// mit eigenem Audio-Tap pro Instanz, s. lib/recInstrument/multiRec.js-Kopf) ────────────────
 // War Teil von taktmetro/defs.js (Gruppe „Aufnahme") — jetzt eigenständig, weil Rec
 // „alles Hörbare" abnehmen soll (lib/audioBus.js, gemeinsamer Master), nicht an EIN
 // Instrument gebunden. Start/Stop-Sync (Downbeat-Arming) hängt weiterhin am Takt: das
-// Taktmetro-Instrument liefert seine rohen Scheduler-Beats über onClockBeat() nach außen.
+// Taktmetro-Instrument liefert seine rohen Scheduler-Beats über onClockBeat() nach außen —
+// EIN Ensemble-Takt (Singleton, s. lib/taktmetro/mount.js), an dem beliebig viele Rec-
+// Instanzen unabhängig voneinander armen/stoppen.
 const REC_LS = lsKey('rec');
 const recState = new MiniState(recInstrumentDefs().DEFAULTS, REC_LS);
 const recRoot = document.querySelector('#rec');
-const recEngine = createRecEngine(recState, {
+const recDefs = { BUTTONS: {}, TEXTS: {}, GROUPS: [] };   // multiRec.js befüllt BUTTONS/TEXTS pro Instanz
+const rec = mountGroups(recRoot, recState, recDefs, {
+    instrumentScaled: () => recInstr.scaled(),
+});
+const recManager = createRecManager({
+    host: rec, state: recState, defs: recDefs, routing,
     getBpm: () => taktState.get('bpm'),
     getBeatsPerBar: () => taktState.get('beatsPerBar'),
     isClockRunning: () => taktEngine.running(),
 });
-const recDefs = recInstrumentDefs({ onAction: (id, phase) => recEngine.onAction(id, phase) });
-const rec = mountGroups(recRoot, recState, recDefs, {
-    instrumentScaled: () => recInstr.scaled(),
-});
-// Roher Scheduler-Beat, fan-out an Rec (Downbeat-Arming) UND Stepseq (Beat-Anker,
-// PHASE4_SPEC.md 4A.3 — taktEngine.onClockBeat ist ein Einzel-Callback, deshalb hier
+recManager.init();
+// Roher Scheduler-Beat, fan-out an ALLE Rec-Instanzen (Downbeat-Arming) UND Stepseq (Beat-
+// Anker, PHASE4_SPEC.md 4A.3 — taktEngine.onClockBeat ist ein Einzel-Callback, deshalb hier
 // gebündelt statt überschrieben).
 // `t` ist AudioContext-Zeit in SEKUNDEN (dieselbe Größe, mit der scheduleBeat/metroTick
 // oben rechnen) — stepSeqEngine.tick() läuft dagegen auf performance.now()-Millisekunden
-// (rAF-Render-Loop). Umrechnen wie recEngine.handleClockBeat/scheduleBeat es schon tun
+// (rAF-Render-Loop). Umrechnen wie recManager.handleClockBeat/scheduleBeat es schon tun
 // ((t - ctx.currentTime) = Vorlauf in Sekunden, ×1000 auf die reale Uhr draufaddiert) —
 // ohne diese Umrechnung bleibt der Beat-Anker witzlos (@dpa 20260723_1400: „!! springt
 // beim Metronom, aber der Sequenzer läuft stur weiter" — genau dieser Bug: der Anker
 // verglich Audio-Sekunden mit rAF-Millisekunden und korrigierte de facto nie etwas).
 taktEngine.onClockBeat((t, beat) => {
-    recEngine.handleClockBeat(t, beat);
+    recManager.handleClockBeat(t, beat);
     const ctx = taktEngine.context;
     const beatMs = ctx ? performance.now() + (t - ctx.currentTime) * 1000 : performance.now();
     sqManager.handleClockBeat(beatMs);
 });
-// Takt gestoppt, während Rec noch auf den nächsten Downbeat wartete → Arm sofort auflösen
-// (@dpa 20260722_013727), statt für immer blinkend hängenzubleiben. Stepseq hängt hier mit
-// dran (PHASE4_SPEC.md 4A.4): Start armt auf Step 0 (Downbeat-phasengleich), Stop lässt die
-// Position auf -1 verfallen. Hängt sich an den EINEN taktEngine.onRunning-Callback an
-// (s. _onTaktRunning oben, Zeile ~92) statt ihn zu überschreiben.
+// Takt gestoppt, während eine/mehrere Rec-Instanzen noch auf den nächsten Downbeat warteten
+// → Arm sofort auflösen (@dpa 20260722_013727), statt für immer blinkend hängenzubleiben.
+// Stepseq hängt hier mit dran (PHASE4_SPEC.md 4A.4): Start armt auf Step 0 (Downbeat-
+// phasengleich), Stop lässt die Position auf -1 verfallen. Hängt sich an den EINEN
+// taktEngine.onRunning-Callback an (s. _onTaktRunning oben, Zeile ~92) statt ihn zu
+// überschreiben.
 // Worker-getriebener Antrieb für den Seq-Transport (ddw.md 20260724_212747, „stabiler
 // Bus"): der rAF-Loop unten tickt sqManager nur, solange der Tab sichtbar ist — im
 // Hintergrund friert rAF ein und die Sequenzer „senden nichts mehr". Dieser Ticker läuft
@@ -665,50 +670,74 @@ taktEngine.onClockBeat((t, beat) => {
 // Doppelantrieb rAF+Worker ist unschädlich, weil tick() gegen `nextAt` idempotent ist.
 const seqTicker = makeWorkerTicker(20, (nowMs) => sqManager.tick(nowMs));
 taktMount.setOnRunningExtra((on, avv = true) => {
-    if (!on) recEngine.clockStopped();
+    if (!on) recManager.clockStopped();
     sqManager.transport(on, avv);   // avv=false ('|>') → Sequenzer laufen ab Position weiter
     on ? seqTicker.start() : seqTicker.stop();
 });
-// Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
-// den „armed, wartet auf nächsten Takt-Downbeat"-Zustand (Rec-Instrument-TODO 5).
-recEngine.onRecording((on) => rec.setCtrlOn('b:rec', on));
-recEngine.onRecArmed((armed) => rec.setCtrlBlink('b:rec', !!armed));
-window.__rec = { engine: recEngine, state: recState, host: rec };
-// Routing-Anmeldung (Paket B): der `clock`-Input ist noch nicht die aktive Zustellung — die
-// echte Verbindung bleibt taktEngine.onClockBeat(recEngine.handleClockBeat) oben (braucht Zeit
-// UND beatInBar, ein skalarer Gate-Wert reicht dafür nicht). write() ist ein Platzhalter für
-// eine spätere Migration mit einem passenderen Payload/Adapter (s. PHASE2_SPEC.md, offene
-// Mikro-Entscheidung); die Registry kennt die Verbindung nur für die Struktur-Ansicht.
-routing.registerModule('rec', {
-    label: 'Rec', latency: recEngine.latency,
-    ...bindPorts(recDefs.ports, { inputs: { clock: { write: () => {} } } }),
-});
-routing.connect({ module: 'takt', port: 'beat' }, { module: 'rec', port: 'clock' }, { active: false });
+window.__rec = { mgr: recManager, state: recState, host: rec };
+// Header-Buttons (+/−) für Rec-Instanzen, wie bei Sq/ADSR/Scope.
+(() => {
+    const h2 = document.querySelector('#bench-rec h2');
+    if (!h2) return;
+    const wrap = document.createElement('span'); wrap.className = 'sq-edit-ctrls';
+    const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.className = 'wb-help-btn sq-edit-btn';
+    editBtn.appendChild(icon('edit', 12)); hint(editBtn, 'Rec bearbeiten: hinzufügen/entfernen');
+    const addBtn = document.createElement('button'); addBtn.type = 'button'; addBtn.className = 'wb-help-btn sq-pm'; addBtn.textContent = '+';
+    hint(addBtn, 'Rec hinzufügen (eigener Abgriffspunkt wählbar)');
+    const remBtn = document.createElement('button'); remBtn.type = 'button'; remBtn.className = 'wb-help-btn sq-pm'; remBtn.textContent = '−';
+    hint(remBtn, 'Letzten Rec entfernen (mindestens einer bleibt)');
+    addBtn.style.display = remBtn.style.display = 'none';
+    let editing = false;
+    const sync = () => { remBtn.disabled = recManager.count() <= 1; };
+    editBtn.addEventListener('click', () => {
+        editing = !editing;
+        addBtn.style.display = remBtn.style.display = editing ? '' : 'none';
+        editBtn.classList.toggle('active', editing);
+        sync();
+    });
+    addBtn.addEventListener('click', () => { recManager.addRec(); sync(); });
+    remBtn.addEventListener('click', () => { recManager.removeRec(); sync(); });
+    wrap.append(editBtn, addBtn, remBtn);
+    h2.appendChild(wrap);
+})();
 // Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
 window.__audioBus = {
     getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser,
     getLimiter: getBusLimiter, getWaveshaper: getBusWaveshaper,
 };
 
-// ── LevelMeter – eigenes Instrument (ISM), @dpa 20260722 (ddw.md) ──────────────────────
+// ── LevelMeter – vervielfältigbares Instrument (ISM), @dpa 20260722 Singleton, 20260804
+// Vervielfältigung mit eigenem Analyser-Tap pro Instanz (s. lib/levelMeter/multiLevelMeter.js
+// Kopf) ─────────────────────────────────────────────────────────────────────────────────
 // "soll dem Level ISM angehören, aber kein Header besitzen und keinen extra BG" — trotzdem
-// ein ECHTES GroupHost-Control (mountGroups mit genau einer, leeren Gruppe), damit es wie
-// jedes andere Control im e-Mode verschiebbar ist und Rechtsklick-Settings bekommt; Kopf-
-// zeile/Hintergrund sind nur weggestylt (css/werkbank.css #levelmeter/.wb-bare).
+// ECHTE GroupHost-Controls (mountGroups mit leerem GROUPS-Gerüst, multiLevelMeter.js baut
+// die Gruppen zur Laufzeit), damit sie wie jedes andere Control im e-Mode verschiebbar sind
+// und Rechtsklick-Settings bekommen; Kopfzeile/Hintergrund sind nur weggestylt
+// (css/werkbank.css #levelmeter/.wb-bare).
 const LEVELMETER_LS = lsKey('levelmeter');
 const levelMeterState = new MiniState({}, LEVELMETER_LS);
 const levelMeterRoot = document.querySelector('#levelmeter');
-const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, { GROUPS: [{ name: 'Meter' }] });
-const levelMeter = new LevelMeter(() => getBusAnalyser(), () => getBusLimiter());
-levelMeterHost.mountInGroup('Meter', levelMeter.element, 'u:meter');
-hint(levelMeter.element, 'Ausgangspegel des gesamten Ensembles (dBFS, Peak-Hold).');
-levelMeterHost.registerCtrlStyle('u:meter', 'levelmeter', levelMeter.element, (s) => levelMeter.applyStyle(s), 'Level');
+const levelMeterDefs = { GROUPS: [] };
+const levelMeterHost = mountGroups(levelMeterRoot, levelMeterState, levelMeterDefs, {
+    groupKindSettings: (kind) => _levelMeterKindSettings[kind],
+});
+const levelMeterManager = createLevelMeterManager({
+    host: levelMeterHost, state: levelMeterState, routing,
+    getLimiter: () => getBusLimiter(),
+});
+// groupKindSettings-Hook (+➚/🚮) — LevelMeter hat keinen Header, die Vervielfältigung sitzt
+// darum in den Gruppen-Settings (Rechtsklick auf die Meter-„Gruppe"), s. multiLevelMeter.js.
+const _levelMeterKindSettings = {
+    LevelMeter: createLevelMeterSettingsHook({ meterManager: levelMeterManager }),
+};
+levelMeterManager.init();
 levelMeterHost.refresh();
+hint(levelMeterRoot, 'Ausgangspegel des Ensembles (dBFS, Peak-Hold) — Rechtsklick auf ein Meter: Quelle/Aussehen/+➚/🚮.');
 // ISM-Settings + Sichtbarkeits-Toggle (ddw.md 20260803_135251) — LevelMeter hat KEINEN h2
 // (bewusst „kein Header", s. Kommentar oben), darum defaultName explizit mitgeben (sonst
 // bliebe der Name in der Haupt-Settings-Liste leer, s. lib/InstrumentSettings.js-Kopf).
 const levelMeterInstr = mountInstrumentSettings(document.querySelector('#bench-levelmeter'), levelMeterState, { defaultName: 'Meter' });
-window.__levelMeter = { state: levelMeterState, host: levelMeterHost, meter: levelMeter, instr: levelMeterInstr };
+window.__levelMeter = { state: levelMeterState, host: levelMeterHost, mgr: levelMeterManager, instr: levelMeterInstr };
 
 // ── Signal-Scopes – eigenes ISM (@dpa 20260726) ────────────────────────────────────
 // Schmale Steuersignal-Oszilloskope zum „Reinklinken": Quelle → scope_i.in zeigt an,
@@ -797,7 +826,7 @@ window.__debug.instr = debugInstr;   // wie __takt/__rec/__levelMeter (Konsisten
 // sich nicht von allein — tickt wie in teslacoil.
 (function tick(nowMs) {
     baseKeyboard.tick(); toneReadout.tick(); freqReadout.tick();
-    levelMeter.tick();
+    levelMeterManager.tick();
     sqManager.tick(nowMs);
     routing.flush();   // verbundene VALUE-Ports sampeln (Phase 2.3) — Event-Ports laufen über emit()
     envManager.flush();   // Multi-ADSR: Env-Werte an gewählte Ziele liefern (ddw.md 20260725)
@@ -916,7 +945,14 @@ const ensembleStore = createEnsembleStore(ensembleState, [
         snapExtra: () => sqManager.snapshotExtra(),
         onRecalled: (extra, values) => sqManager.recallSnapshot(extra, values),
     },
-    { lsKey: REC_LS, state: recState, allSoundValues: () => rec.allSoundValues() },
+    // Rec: recCount ist ISM-weit (keine Gruppe, wie scopeCount) → mit sichern, sonst käme
+    // aus einem Ensemble-Snapshot die Rec-Instanz-Anzahl nicht zurück (@dpa 20260804,
+    // dasselbe Muster wie Scope/Stepseq oben).
+    {
+        lsKey: REC_LS, state: recState, allSoundValues: () => rec.allSoundValues(),
+        snapExtra: () => ({ recCount: recManager.count() }),
+        onRecalled: (extra) => { if (extra && extra.recCount) recState.set('recCount', extra.recCount); recManager.reconcile(); },
+    },
 ]);
 window.__ensemble = { state: ensembleState, store: ensembleStore };
 // buildConfig/applyConfig/exportConfig/backups kommen seit @dpa 20260804 aus
