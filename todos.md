@@ -1,5 +1,21 @@
 # Werkbank – TODOs / Ideen
 
+## Combo-Factory mit Größe/Position + definierbarer Initial-Layout (@dpa 20260804)
+Beobachtung (Screenshot pitchosc, Amp-/Pitch-ADSR nach Umbau): neu erstellte/wieder
+aufgebaute Gruppen rendern zunächst groß/simpel/überlappend statt in der von @dpa mühsam
+per Hand eingestellten kompakten Optik — nach jedem Umbau muss die Optik neu gesetzt
+werden. Gewünscht: (1) vorgefertigte Combo-„Factory-Einstellungen" (Größe/Anordnung, nicht
+nur Werte), die beim Ersteinrichten schon zur Auswahl stehen, s. lib/groupPresetFactory.js
+(bisher NUR Snapshots/Werte, bewusst keine Combos — Begründung im Datei-Kopf: Combo-Payload
+kommt aus LIVE-DOM, lässt sich nicht ohne Weiteres von außen vorbauen); (2) eine
+definierbare Initial-Einstellung (Größe/Position), die eine Gruppe beim allerersten
+Erstellen automatisch bekommt, statt am generischen Auto-Placement-Default zu hängen.
+Hängt vermutlich mit dem Initial-Render-Bug zusammen (Gruppen/Instrumente zeigen sich beim
+ersten Laden falsch, erst ein e-Mode-Toggle korrigiert es, s. Screenshots Debug-Panel) —
+erst diesen Bug klären, dann diese Idee angehen (sonst wird ggf. ein Symptom kaschiert
+statt die Ursache).
+
+
 ## Smoke-Test-Altlast: 14 Tests rot durch gewachsene Demo-Config (20260802_131434)
 Beim dd.md-20260802-Nachtdurchgang (main-Snapshot-Fix) fiel auf: 18 von 52 Smoke-Tests
 waren rot — davon 4 an echten Test-Annahmen, die inzwischen falsch sind (Pool-Index 0
