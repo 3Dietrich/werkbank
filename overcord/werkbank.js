@@ -10,7 +10,7 @@
  * lib/appId.js (`<html data-app>`). Für DIESE Seite ist das der Default 'werkbank', die
  * Keys heißen also unverändert werkbank_* — die Trennung kostet index.html nichts.
  */
-import { APP, lsKey, toOwnKey } from '../lib/appId.js';
+import { APP, lsKey } from '../lib/appId.js';
 import { MiniState } from '../lib/MiniState.js';
 import { mountInstrumentSettings } from '../lib/InstrumentSettings.js';
 import { HintBubble } from '../lib/HintBubble.js';
@@ -20,7 +20,7 @@ import { hint, text as i18nText, setLang, lang as curLang } from '../lib/i18n.js
 import { SettingsWindow } from '../lib/SettingsWindow.js';
 import { buildMainSettings } from '../lib/mainSettings.js';
 import { openNewEntryFlow } from '../lib/newEntryFlow.js';
-import { readBackups, pushBackup, watchAutoBackup } from '../lib/Backup.js';
+import { makeConfigIO } from '../lib/configIO.js';
 import { wireGlobalLook } from '../lib/globalLook.js';
 import { installSelectOnFocus } from '../lib/selectOnFocus.js';
 import { mountGroups, kbStyle } from '../lib/group/GroupHost.js';
@@ -1006,55 +1006,15 @@ const ensembleStore = createEnsembleStore(ensembleState, [
     { lsKey: REC_LS, state: recState, allSoundValues: () => rec.allSoundValues() },
 ]);
 window.__ensemble = { state: ensembleState, store: ensembleStore };
-function buildConfig() {
-    const ls = {};
-    for (const k of LS_KEYS) { const v = localStorage.getItem(k); if (v != null) { try { ls[k] = JSON.parse(v); } catch { /* skip */ } } }
-    return { _werkbank: 1, saved: new Date().toISOString(), ls };
-}
-function applyConfig(obj) {
-    const ls = (obj && obj.ls) || obj || {};   // toleriert nacktes { key: data }
-    // Fremde Präfixe umbiegen (@dpa dd.md 20260801_2): eine Export-Datei trägt die Keys
-    // DER SEITE, auf der sie entstand (und jede Datei von vor der Einstiegs-Trennung
-    // durchweg 'werkbank_…'). Ohne das Umbiegen ließe sich ein Export nur dort wieder
-    // einlesen, wo er gemacht wurde. Erst auf die eigenen Keys normalisieren, dann wie
-    // gehabt nur die BEKANNTEN Bereiche übernehmen (nichts Fremdes in den localStorage).
-    const own = {};
-    for (const [k, v] of Object.entries(ls)) own[toOwnKey(k)] = v;
-    let n = 0;
-    for (const k of LS_KEYS) if (own[k] != null) { localStorage.setItem(k, JSON.stringify(own[k])); n++; }
-    return n;
-}
-function exportConfig() {
-    const blob = new Blob([JSON.stringify(buildConfig(), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);   // YYYYMMDDHHMMSS, ohne den Millisekunden-Punkt
-    // Dateiname trägt den Ensemble-Namen (@dpa dd.md 20260802: "sollten ihren Namen vom
-    // Ensemblenamen übernehmen") — sonst heißen Exports aus verschiedenen Einstiegen gleich.
-    // NICHT `APP` selbst (der bleibt bewusst 'werkbank', s. ARCHITEKTUR.md "keine Migration"
-    // der Keys) — @dpa 20260803: nur der sichtbare Dateiname soll "overcord" heißen, damit
-    // Exports im Download-Ordner erkennbar sind, ohne die internen Keys/localStorage anzufassen.
-    a.href = url; a.download = 'overcord-config-' + ts + '.json'; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-// Gestaffelte Auto-Backups (@dpa ddw.md 20260802 Punkt 4, lib/Backup.js-Kopf für die
-// Werkbank-Anpassung: periodischer Änderungs-Check statt teslacoils state.subscribe()).
-// buildConfig() liefert denselben vollständigen Zustand wie der Datei-Export oben — hier
-// nur zusätzlich AUTOMATISCH und GESTAFFELT im eigenen Datentopf (lsKey) abgelegt.
-const BACKUP_LS = lsKey('backups');
-const stopAutoBackup = watchAutoBackup(localStorage, BACKUP_LS, buildConfig, { intervalMs: 20000 });
-window.addEventListener('beforeunload', stopAutoBackup);
-const backups = {
-    list: () => readBackups(localStorage, BACKUP_LS).slice().sort((a, b) => b.ts - a.ts),
-    load: (ts) => {
-        const b = readBackups(localStorage, BACKUP_LS).find((x) => x.ts === ts);
-        if (!b) return;
-        if (!confirm('Backup vom ' + new Date(ts).toLocaleString('de-DE') + ' laden?\n\nDer AKTUELLE Zustand wird ersetzt.')) return;
-        const n = applyConfig(b.data);
-        if (n) location.reload(); else alert('Backup enthielt keine passenden Daten.');
-    },
-    saveNow: () => { try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'manuell'); } catch { alert('Backup fehlgeschlagen (Speicher voll?).'); } },
-};
+// buildConfig/applyConfig/exportConfig/backups kommen seit @dpa 20260804 aus
+// lib/configIO.js (war byte-identisch dreifach dupliziert — dasselbe Duplikat-Risiko wie
+// bei ADSR/Scope/mountBenchHelp/headerBtn, s. lib/adsrPanel.js-Kommentar). NUR `LS_KEYS`
+// (oben) bleibt bewusst lokal/vollständig gepflegt — s. configIO.js-Kopf, warum diese
+// Liste NIE gemeinsam sein darf. Zweiter Parameter = sichtbarer Datei-Präfix beim
+// Export; NICHT `APP` selbst (der bleibt bewusst 'werkbank', s. ARCHITEKTUR.md "keine
+// Migration" der Keys) — @dpa 20260803: nur der sichtbare Dateiname soll "overcord"
+// heißen.
+const { buildConfig, applyConfig, exportConfig, doReset, backups } = makeConfigIO(LS_KEYS, 'overcord');
 // Kein fest verdrahtetes Icon mehr (@dpa 20260803: „Settings hat einen eingebauten '⚙︎'
 // Icon, was ich nicht beeinflussen kann — weg mit diesem Icon, ich habe ja 🛠️"). Bis dahin
 // saß hier zusätzlich zum .hdr-btn-text-Span ein festes SVG-Zahnrad (dd.md 20260802), das
@@ -1076,18 +1036,8 @@ fileIn.addEventListener('change', () => {
     rd.onload = () => { try { const n = applyConfig(JSON.parse(rd.result)); if (n) location.reload(); else alert('Keine passenden Daten in der Datei.'); } catch (e) { alert('Import fehlgeschlagen: ' + e.message); } };
     rd.readAsText(f); fileIn.value = '';
 });
-// Reset-Logik EINMAL (PLAN_OPERA.md 1.3): bisher nur versteckt unter ⚙ Config → ↺ Reset
-// erreichbar — jetzt zusätzlich ein sichtbarer Header-Button (s.u.), beide rufen dieselbe
-// Funktion, derselbe Bestätigungsdialog.
-function doReset() {
-    if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) {
-        // Sicherheitsnetz wie in teslacoil (@dpa ddw.md 20260802 Punkt 4): ein Backup VOR dem
-        // Zurücksetzen bleibt im eigenen Datentopf erhalten (BACKUP_LS gehört nicht zu
-        // LS_KEYS, überlebt den Reset) — falls @dpa sich doch vertan hat.
-        try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'vor Reset'); } catch { /* Quota o.ä. */ }
-        LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload();
-    }
-}
+// doReset kommt jetzt ebenfalls aus makeConfigIO() oben (PLAN_OPERA.md 1.3: EINE
+// Reset-Funktion für Header-Button UND ⚙ Config-Menü, derselbe Bestätigungsdialog).
 // ⚙ = ein echtes EINSTELLUNGS-FENSTER (@dpa dd.md 20260802: „es ist derzeit zu wenig
 // ‚Einstellungs'-mäßig … das ganze graue Fenster design"). Bis hierhin war es ein
 // MiniSettings-Popover, also dieselbe Chrome, die auch ein Rechtsklick auf EIN Element

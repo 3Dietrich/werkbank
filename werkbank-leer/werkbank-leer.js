@@ -29,7 +29,7 @@
  * index.html/werkbank.js selbst bleiben UNANGETASTET (deren Keys heißen unverändert
  * werkbank_*, weil 'werkbank' der Default von data-app ist — keine Migration nötig).
  */
-import { APP, lsKey, toOwnKey } from '../lib/appId.js';
+import { APP, lsKey } from '../lib/appId.js';
 import { MiniState } from '../lib/MiniState.js';
 import { mountInstrumentSettings } from '../lib/InstrumentSettings.js';
 import { HintBubble } from '../lib/HintBubble.js';
@@ -39,7 +39,7 @@ import { hint, text as i18nText, setLang, lang as curLang } from '../lib/i18n.js
 import { SettingsWindow } from '../lib/SettingsWindow.js';
 import { buildMainSettings } from '../lib/mainSettings.js';
 import { openNewEntryFlow, isOutsourceMode } from '../lib/newEntryFlow.js';
-import { readBackups, pushBackup, watchAutoBackup } from '../lib/Backup.js';
+import { makeConfigIO } from '../lib/configIO.js';
 import { wireGlobalLook } from '../lib/globalLook.js';
 import { installSelectOnFocus } from '../lib/selectOnFocus.js';
 import { mountGroups } from '../lib/group/GroupHost.js';
@@ -429,50 +429,11 @@ const ensembleStore = createEnsembleStore(ensembleState, [
     },
 ]);
 window.__ensemble = { state: ensembleState, store: ensembleStore };
-function buildConfig() {
-    const ls = {};
-    for (const k of LS_KEYS) { const v = localStorage.getItem(k); if (v != null) { try { ls[k] = JSON.parse(v); } catch { /* skip */ } } }
-    return { _werkbank: 1, saved: new Date().toISOString(), ls };
-}
-function applyConfig(obj) {
-    const ls = (obj && obj.ls) || obj || {};   // toleriert nacktes { key: data }
-    // Fremde Präfixe umbiegen (@dpa dd.md 20260801_2): eine Export-Datei trägt die Keys
-    // DER SEITE, auf der sie entstand (und jede Datei von vor der Einstiegs-Trennung
-    // durchweg 'werkbank_…'). Ohne das Umbiegen ließe sich ein Export nur dort wieder
-    // einlesen, wo er gemacht wurde. Erst auf die eigenen Keys normalisieren, dann wie
-    // gehabt nur die BEKANNTEN Bereiche übernehmen (nichts Fremdes in den localStorage).
-    const own = {};
-    for (const [k, v] of Object.entries(ls)) own[toOwnKey(k)] = v;
-    let n = 0;
-    for (const k of LS_KEYS) if (own[k] != null) { localStorage.setItem(k, JSON.stringify(own[k])); n++; }
-    return n;
-}
-function exportConfig() {
-    const blob = new Blob([JSON.stringify(buildConfig(), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);   // YYYYMMDDHHMMSS
-    // Dateiname trägt den Ensemble-Namen (@dpa dd.md 20260802: "sollten ihren Namen vom
-    // Ensemblenamen übernehmen") — sonst heißen Exports aus verschiedenen Einstiegen gleich.
-    a.href = url; a.download = APP + '-config-' + ts + '.json'; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-// Gestaffelte Auto-Backups (1:1-Muster aus overcord/werkbank.js, @dpa ddw.md 20260802
-// Punkt 4, lib/Backup.js-Kopf für die Werkbank-Anpassung).
-const BACKUP_LS = lsKey('backups');
-const stopAutoBackup = watchAutoBackup(localStorage, BACKUP_LS, buildConfig, { intervalMs: 20000 });
-window.addEventListener('beforeunload', stopAutoBackup);
-const backups = {
-    list: () => readBackups(localStorage, BACKUP_LS).slice().sort((a, b) => b.ts - a.ts),
-    load: (ts) => {
-        const b = readBackups(localStorage, BACKUP_LS).find((x) => x.ts === ts);
-        if (!b) return;
-        if (!confirm('Backup vom ' + new Date(ts).toLocaleString('de-DE') + ' laden?\n\nDer AKTUELLE Zustand wird ersetzt.')) return;
-        const n = applyConfig(b.data);
-        if (n) location.reload(); else alert('Backup enthielt keine passenden Daten.');
-    },
-    saveNow: () => { try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'manuell'); } catch { alert('Backup fehlgeschlagen (Speicher voll?).'); } },
-};
+// buildConfig/applyConfig/exportConfig/backups kommen seit @dpa 20260804 aus
+// lib/configIO.js (war byte-identisch dreifach dupliziert — dasselbe Duplikat-Risiko wie
+// bei ADSR/Scope/mountBenchHelp/headerBtn, s. lib/adsrPanel.js-Kommentar). NUR `LS_KEYS`
+// bleibt bewusst lokal/vollständig gepflegt — s. configIO.js-Kopf.
+const { buildConfig, applyConfig, exportConfig, doReset, backups } = makeConfigIO(LS_KEYS, APP);
 // Kein festes Icon mehr (@dpa 20260803: „Settings hat einen eingebauten '⚙︎' Icon, was ich
 // nicht beeinflussen kann — weg mit diesem Icon, ich habe ja 🛠️", 1:1-Fix aus werkbank.js) —
 // nur noch der Text-Span, frei über die Rechtsklick-Optik (ctrlStyles hdr:cfgmenu) bestimmbar.
@@ -491,14 +452,7 @@ fileIn.addEventListener('change', () => {
     rd.onload = () => { try { const n = applyConfig(JSON.parse(rd.result)); if (n) location.reload(); else alert('Keine passenden Daten in der Datei.'); } catch (e) { alert('Import fehlgeschlagen: ' + e.message); } };
     rd.readAsText(f); fileIn.value = '';
 });
-function doReset() {
-    if (confirm('Wirklich ALLES zurücksetzen? Umbenennungen, Anordnung, Belegungen gehen verloren.')) {
-        // Sicherheitsnetz wie in teslacoil (@dpa ddw.md 20260802 Punkt 4): BACKUP_LS gehört
-        // nicht zu LS_KEYS, überlebt den Reset.
-        try { pushBackup(localStorage, BACKUP_LS, Date.now(), buildConfig, 'vor Reset'); } catch { /* Quota o.ä. */ }
-        LS_KEYS.forEach((k) => localStorage.removeItem(k)); location.reload();
-    }
-}
+// doReset kommt jetzt ebenfalls aus makeConfigIO() oben.
 // ⚙ = echtes Einstellungs-Fenster (1:1-Muster aus werkbank.js, @dpa dd.md 20260802).
 // Der INHALT kommt aus lib/mainSettings.js — identisch für alle Pool-Einstiege; hier steht
 // nur, was diesem Einstieg gehört: sein state und seine Daten-Aktionen (eigene LS_KEYS).
