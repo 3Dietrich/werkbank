@@ -46,8 +46,7 @@ import { mountGroups } from '../lib/group/GroupHost.js';
 import { createEnsembleStore, mountEnsembleMenu } from '../lib/EnsembleStore.js';
 import { ElementSettings } from '../lib/ElementSettings.js';
 import { makeWireHeaderBtnSettings, makeHeaderToggle } from '../lib/headerBtn.js';
-import { taktMetroDefs } from '../lib/taktmetro/defs.js';
-import { createTaktEngine } from '../lib/taktmetro/engine.js';
+import { mountTaktMetro } from '../lib/taktmetro/mount.js';
 import { recInstrumentDefs } from '../lib/recInstrument/defs.js';
 import { createRecEngine } from '../lib/recInstrument/engine.js';
 import { debugPanelDefs } from '../lib/debugPanel/defs.js';
@@ -62,7 +61,6 @@ import {
     getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper, setMasterDb as setBusMasterDb,
 } from '../lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
-import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
 import { createStructureView } from '../lib/routing/StructureView.js';
 import { LevelMeter } from '../lib/LevelMeter.js';
 import { createScopeManager, createScopeSettingsHook } from '../lib/scope/multiScope.js';
@@ -166,46 +164,10 @@ routing.registerModule('master', {
     inputs: {},
 });
 
-// ── Takt + Metronom (1:1 aus werkbank.js Z.143-231, minus Stepseq-Verweise: sqManager
-// existiert hier nicht, darum onAction nur noch Attrappe fürs Sq-Sync-Feintuning weglassen) ─
-const TAKT_LS = lsKey('taktmetro');
-const taktState = new MiniState(taktMetroDefs().DEFAULTS, TAKT_LS);
-const taktRoot = document.querySelector('#taktgeber');
-const taktEngine = createTaktEngine(taktState);
-const taktDefs = taktMetroDefs({
-    onAction: (id, phase) => { taktEngine.onAction(id, phase); },
-    audioInfo: () => {
-        taktEngine.ensureAudio();
-        const c = taktEngine.context;
-        return c ? { sampleRate: c.sampleRate, baseLatency: c.baseLatency, outputLatency: c.outputLatency, state: c.state } : null;
-    },
-});
-// Eigene Variable statt Objekt-Literal (@dpa ddw.md 20260802 Punkt 6, 1:1 aus overcord/
-// werkbank.js): `onArrangeChange` wird erst weiter unten gesetzt, wenn der Header-Knopf
-// existiert — GroupHost liest `opts.onArrangeChange` bei jedem setArranging() frisch aus
-// derselben Objekt-Referenz.
-const taktOpts = { instrumentScaled: () => taktInstr.scaled() };
-const takt = mountGroups(taktRoot, taktState, taktDefs, taktOpts);
-// _onTaktRunning wird von Rec weiter unten belegt (dasselbe Muster wie werkbank.js): NUR
-// EINE Registrierung bei taktEngine.onRunning, Rec hängt sich über diese Closure mit an.
-let _onTaktRunning = () => {};
-taktEngine.onRunning((on, avv) => { takt.setCtrlOn('b:start', on); takt.setCtrlOn('b:startCont', on); _onTaktRunning(on, avv); });
-taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
-taktEngine.onNudge((liveBpm) => takt.setKnobDisplay('bpm', liveBpm));
-window.__takt = { engine: taktEngine, state: taktState, host: takt };
-routing.registerModule('takt', {
-    label: 'Takt/Metronom', latency: taktEngine.latency,
-    ...bindPorts(taktDefs.ports, {
-        outputs: {},
-        inputs: {
-            ...knobWrites(taktState, taktDefs.KNOBS),
-            ...buttonWrites(takt.keyMidi, Object.keys(taktDefs.BUTTONS)),
-            // baseFreqIn bleibt Teil der Naht (Modularität, s. Auftrag) — hier ohne
-            // Poly-Synth aber ohne Quelle, die je verbindet. Idempotent/harmlos.
-            baseFreqIn: { write: (v) => taktEngine.setBaseFreqIn(v) },
-        },
-    }),
-});
+// ── Takt + Metronom — dedupliziert in lib/taktmetro/mount.js (@dpa 20260804, Singleton
+// fürs ganze Ensemble). Kein onExtraAction — Stepseq gibt es in pitchosc nicht. ─────────
+const taktMount = mountTaktMetro({ routing, instrumentScaledGetter: () => taktInstr.scaled() });
+const { taktState, taktEngine, taktDefs, taktRoot, takt, taktOpts, taktLsKey: TAKT_LS } = taktMount;
 
 // ── Rec – eigenes Instrument (1:1 aus werkbank.js Z.729-793, minus Stepseq-Fanout) ─────
 const REC_LS = lsKey('rec');
@@ -224,7 +186,7 @@ const rec = mountGroups(recRoot, recState, recDefs, {
 taktEngine.onClockBeat((t, beat) => { recEngine.handleClockBeat(t, beat); });
 // Takt gestoppt, während Rec noch auf den nächsten Downbeat wartete → Arm sofort auflösen
 // (@dpa 20260722_013727), statt für immer blinkend hängenzubleiben.
-_onTaktRunning = (on) => { if (!on) recEngine.clockStopped(); };
+taktMount.setOnRunningExtra((on) => { if (!on) recEngine.clockStopped(); });
 recEngine.onRecording((on) => rec.setCtrlOn('b:rec', on));
 recEngine.onRecArmed((armed) => rec.setCtrlBlink('b:rec', !!armed));
 window.__rec = { engine: recEngine, state: recState, host: rec };

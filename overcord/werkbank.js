@@ -27,8 +27,7 @@ import { mountGroups, kbStyle } from '../lib/group/GroupHost.js';
 import { createEnsembleStore, mountEnsembleMenu } from '../lib/EnsembleStore.js';
 import { ElementSettings } from '../lib/ElementSettings.js';
 import { makeWireHeaderBtnSettings, makeHeaderToggle } from '../lib/headerBtn.js';
-import { taktMetroDefs } from '../lib/taktmetro/defs.js';
-import { createTaktEngine } from '../lib/taktmetro/engine.js';
+import { mountTaktMetro } from '../lib/taktmetro/mount.js';
 import { polySynthDefs } from '../lib/polysynth/defs.js';
 import { createPolySynthEngine } from '../lib/polysynth/engine.js';
 import { PlayKeyboard } from '../lib/polysynth/ui/PlayKeyboard.js';
@@ -148,93 +147,20 @@ routing.registerModule('master', {
     inputs: {},
 });
 
-// ── Takt + Metronom – Neu-Port (P1) + echter Ton (P4) ──────────────────────────
-// Der frühere Mount lief über taktgebers eigene ui.js (der „eigene Scheiß"). Jetzt füttert
-// EINE deklarative defs-Quelle (lib/taktmetro/defs.js, gemappt aus taktgeber-Manifest +
-// Defaults) teslacoils Fabriken via mountGroups — zwei Gruppen, im e-Mode ('e') frei
-// verschiebbar. Eigener MiniState mit eigenem localStorage-Key = klare, isolierte Naht.
-// P4: die Action-Buttons treiben jetzt die echte Audio-Engine (metro.js/clock.js aus
-// taktgeber). onAction(id, phase) — phase ('down'/'up') MUSS durchgereicht werden, sonst
-// wirken die Gate-Knöpfe −/+ nicht als gehaltener ASR-Nudge (@dpa 20260720, Punkt C).
-const TAKT_LS = lsKey('taktmetro');
-const taktState = new MiniState(taktMetroDefs().DEFAULTS, TAKT_LS);
-const taktRoot = document.querySelector('#taktgeber');
-const taktEngine = createTaktEngine(taktState);
-// audioInfo: echte Latenz/Samplerate fürs Tab-Sonderfenster (Punkt A). ensureAudio() baut den
-// Context (bleibt stumm bis Start) → SR + Basislatenz sind sofort echt, Ausgabelatenz sobald bekannt.
-const taktDefs = taktMetroDefs({
-    onAction: (id, phase) => {
-        taktEngine.onAction(id, phase);
-        // Resync reicht ans Sequenzer-ISM weiter (@dpa 20260723_1400/1427/1455: „Metronom
-        // springt, Sequenzer läuft stur weiter" / „! funktioniert noch immer nicht" / "'!'
-        // soll auf den BPM-Schlag synchron syncen, nicht sofort bei jeder Geschwindigkeit").
-        // Zwei Fälle, bewusst UNTERSCHIEDLICH behandelt:
-        //  - 'bang' ('!', weich): bewegt KEINE Audio-Zeit (Clock.resync(false) setzt nur
-        //    beatInBar=0, `_next` bleibt stehen — „der Takt läuft unbeirrt weiter"). Der
-        //    Sequenzer bekommt darum auch keinen sofortigen Trigger, sondern armBeatSync():
-        //    exakt der NÄCHSTE rohe Beat (nicht der nächste Sequenzer-eigene Sub-Trigger bei
-        //    seqMult/seqDiv≠1/1) wird zum neuen Anker + Step 0 — BPM-Schlag und Seq.-Anfang
-        //    bleiben so synchron, egal welche Geschwindigkeit eingestellt ist.
-        //  - 'bang2' ('!!', hart): reicht den Phasen-Sprung EXPLIZIT an resyncPhase() weiter.
-        //    Die Zeit-Heuristik in stepSeqEngine.handleClockBeat (4A.3) erkennt Sprünge nur,
-        //    wenn sie GENUG vom alten Raster abweichen — liegt der Resync zufällig nah dran,
-        //    verfehlt sie das knapp. Dieser Pfad ist der garantierte, kein Ersatz für die
-        //    Heuristik (die bleibt für Reanchor/Tempo-Sprung ohne Tastendruck).
-        // sqManager verteilt an ALLE Sq-Engines (Multi-Sq) — existiert erst weiter unten
-        // (TDZ-sicher, Closure liest erst beim Klick, dasselbe Muster wie chordUp/chordDown).
+// ── Takt + Metronom — dedupliziert in lib/taktmetro/mount.js (@dpa 20260804, Singleton
+// fürs ganze Ensemble, s. mount.js-Kopf). Der Sq-Resync-Zweig (bang/bang2 → sqManager) ist
+// KEINE Takt-Logik, sondern eine Naht zum Stepsequenzer, der nur hier in overcord existiert
+// — darum als onExtraAction-Hook durchgereicht statt in mount.js fest verdrahtet. `sqManager`
+// existiert erst weiter unten (TDZ-sicher, Closure liest erst beim Klick). ─────────────────
+const taktMount = mountTaktMetro({
+    routing,
+    instrumentScaledGetter: () => taktInstr.scaled(),
+    onExtraAction: (id) => {
         if (id === 'bang') sqManager.armBeatSync();
         else if (id === 'bang2') sqManager.resyncPhase();
     },
-    audioInfo: () => {
-        taktEngine.ensureAudio();
-        const c = taktEngine.context;
-        return c ? { sampleRate: c.sampleRate, baseLatency: c.baseLatency, outputLatency: c.outputLatency, state: c.state } : null;
-    },
 });
-// Eigene Variable statt eines Objekt-Literals (@dpa ddw.md 20260802, Punkt 6 „Header-Button
-// für e-Mode"): `onArrangeChange` (GroupHost.js-Naht, bisher von KEINEM Aufrufer genutzt)
-// wird erst WEITER UNTEN gesetzt, wenn der neue Header-Knopf existiert — GroupHost liest
-// `opts.onArrangeChange` bei JEDEM setArranging()-Aufruf frisch aus demselben Objekt, ein
-// nachträgliches Zuweisen auf dieselbe Referenz reicht, kein Umbau der Aufrufreihenfolge nötig.
-const taktOpts = { instrumentScaled: () => taktInstr.scaled() };
-const takt = mountGroups(taktRoot, taktState, taktDefs, taktOpts);
-// Der Start-Knopf trägt den ON-Zustand (Metronom läuft) → nutzt die „BG an"-Farbe (Task D).
-// (recEngine hängt sich hier per _onTaktRunning mit an, sobald es weiter unten existiert —
-// onRunning ist ein Einzel-Callback, s. taktmetro/engine.js, deshalb NUR EINE Registrierung.)
-let _onTaktRunning = () => {};
-// Beide Start-Knöpfe (>/|>, ddw.md 20260724_212747) tragen den „Transport läuft"-Zustand:
-// egal welcher gestartet hat, beide leuchten, und ein Druck auf einen von beiden stoppt.
-// `avv` (nur bei on=true belegt) unterscheidet '>' (alles von vorne) von '|>' (weiter).
-taktEngine.onRunning((on, avv) => { takt.setCtrlOn('b:start', on); takt.setCtrlOn('b:startCont', on); _onTaktRunning(on, avv); });
-// Die Takt-Anzeige leuchtet auf dem laufenden Beat (zeit-ausgerichtet vom Engine).
-taktEngine.onBeat((i) => takt.setBeat('u:beatView', i));
-// BPM-Anzeige folgt dem Anschieben +/− (@dpa 20260720, Punkt): der ±-Schub wird SICHTBAR, ohne
-// den gespeicherten bpm zu ändern. Bias zurück auf 0 → liveBpm == bpm → Anzeige steht wieder original.
-taktEngine.onNudge((liveBpm) => takt.setKnobDisplay('bpm', liveBpm));
-// Debug/Headless-Test-Haken (wie _selftest.html sein __host): Zugriff auf Engine/State/Host.
-window.__takt = { engine: taktEngine, state: taktState, host: takt };
-// Routing-Anmeldung (Paket B): der `beat`-Output ist ein EVENT-Port ohne read() — seine
-// tatsächliche Zustellung an Rec läuft weiterhin über taktEngine.onClockBeat() (unverändert,
-// s. weiter unten); die Registry kennt die Verbindung nur für die Struktur-Ansicht (Phase 3).
-routing.registerModule('takt', {
-    label: 'Takt/Metronom', latency: taktEngine.latency,
-    ...bindPorts(taktDefs.ports, {
-        outputs: {},
-        // Punkt 3b (ddw.md 20260724, Phase B): ALLE Takt/Metronom-Knobs + -Buttons als Sq-
-        // Ziele — dieselbe Brücke wie beim Poly-Synth (portGen.js), `takt.keyMidi` ist DIESES
-        // Instruments eigene KeyMidi-Instanz (nicht die globale `keyMidi`-Konstante weiter
-        // unten, die IST takt.keyMidi, aber existiert an dieser Stelle im Datei-Fluss noch
-        // nicht — s. TDZ-Hinweis dort).
-        inputs: {
-            ...knobWrites(taktState, taktDefs.KNOBS),
-            ...buttonWrites(takt.keyMidi, Object.keys(taktDefs.BUTTONS)),
-            // Base-Frq als Modulations-Quelle (ddw.md 20260724_212747, teslacoil-Parität): der
-            // gefaltete Wert landet über setBaseFreqIn im Metro-Cutoff, sobald metroCutoffQuant an
-            // ist. Die Verbindung selbst wird direkt darunter hergestellt (routing.connect).
-            baseFreqIn: { write: (v) => taktEngine.setBaseFreqIn(v) },
-        },
-    }),
-});
+const { taktState, taktEngine, taktDefs, taktRoot, takt, taktOpts, taktLsKey: TAKT_LS } = taktMount;
 
 // ── Poly-Synth – Base-Frq + Audio-Osz, Port aus teslacoil (Schritt 1, @dpa 20260721) ──
 // Eigener MiniState + eigene deklarative defs-Quelle, gemountet über dieselbe
@@ -738,11 +664,11 @@ taktEngine.onClockBeat((t, beat) => {
 // Nur bei laufendem Transport aktiv (tick() ist ohne Transport ohnehin ein No-op); der
 // Doppelantrieb rAF+Worker ist unschädlich, weil tick() gegen `nextAt` idempotent ist.
 const seqTicker = makeWorkerTicker(20, (nowMs) => sqManager.tick(nowMs));
-_onTaktRunning = (on, avv = true) => {
+taktMount.setOnRunningExtra((on, avv = true) => {
     if (!on) recEngine.clockStopped();
     sqManager.transport(on, avv);   // avv=false ('|>') → Sequenzer laufen ab Position weiter
     on ? seqTicker.start() : seqTicker.stop();
-};
+});
 // Rec-Knopf: ON-Farbe folgt der TATSÄCHLICHEN Aufnahme (nicht dem Klick), Blinken zeigt
 // den „armed, wartet auf nächsten Takt-Downbeat"-Zustand (Rec-Instrument-TODO 5).
 recEngine.onRecording((on) => rec.setCtrlOn('b:rec', on));
