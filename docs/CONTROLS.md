@@ -133,6 +133,39 @@ den niemand in der UI sieht und niemand eingebaut hat.
 
 Antworten unklar → fragen, nicht die naheliegendste (oft aufwändigste) Variante annehmen.
 
+#### Rezept: neuen Pool-Einstiegspunkt anlegen (Header-Baukasten)
+
+> Auslöser (@dpa 20260804): `overcord/werkbank.js`, `werkbank-leer/werkbank-leer.js` und
+> `pitchosc/pitchosc.js` sind eigenständige Dateien, die sich `lib/`+`css/` teilen, aber
+> selbst nichts miteinander importierten – der Header (Tasten/MIDI-Knöpfe, Hilfe-Popover,
+> Export/Reset, Ensemble-Menü) stand darum bis auf Kommentare **byte-identisch mehrfach**
+> in allen dreien. Wer per `tools/new-entry.mjs` eine neue Kopie von `werkbank-leer/`
+> anlegt, bekommt diese Bausteine jetzt automatisch aus `lib/` mit – nichts davon muss neu
+> geschrieben werden.
+
+**Was schon da ist – für den Header eines neuen Einstiegspunkts, fertig zum Importieren:**
+
+| Baustein | Datei | Signatur | Wofür |
+|---|---|---|---|
+| Header-Umschalt-Button (⌨ Tasten, 🎹 MIDI, 💬 Hints, …) | [lib/headerBtn.js](../lib/headerBtn.js) | `makeHeaderToggle(wireHeaderBtnSettings)` → `mkHeaderToggle(id, label, title, onToggle)` | Baut den Button selbst (Klick schaltet `.active`, zwei Buttons können sich per `_radioPeer` gegenseitig ausschalten). **Welche Instrumente der Toggle erreicht (`onToggle`), bleibt Sache des Aufrufers** – diese Liste ist bei jedem Einstiegspunkt anders (s. Warnung unten) |
+| Rechtsklick-Optik für Header-Buttons | [lib/headerBtn.js](../lib/headerBtn.js) | `makeWireHeaderBtnSettings({ hdrElemSettings, state })` → `wireHeaderBtnSettings(id, btn, defLabel)` | Macht einen Header-Button rechtsklickbar (Label-Position, Ein/Aus-Text, Farben) |
+| [?]-Hilfe-Popover im Instrument-Header | [lib/benchHelp.js](../lib/benchHelp.js) | `mountBenchHelp(sectionId, state, benchHelpEn)` | Nimmt den Hilfetext aus dem `.wb-note`-Block der Sektion, macht Titel + Text editierbar (Markdown), zeigt EN-Übersetzung aus der übergebenen Tabelle |
+| State-Export/Import als Datei + Auto-Backups | [lib/configIO.js](../lib/configIO.js) | `makeConfigIO(LS_KEYS, filenamePrefix)` → `{ buildConfig, applyConfig, exportConfig, doReset, backups }` | Kompletten localStorage-Stand als `.json` sichern/laden, "Alles zurücksetzen", automatische gestaffelte Backups |
+| Ensemble-Snapshot-Menü im Header | [lib/EnsembleStore.js](../lib/EnsembleStore.js) | `createEnsembleStore(ensembleState, instruments)` (Speicherlogik) + `mountEnsembleMenu({ ensembleStore, ensembleState, hdrElemSettings, state })` (das PickMenu dazu) | Ein benannter Zustand über mehrere Instrumente hinweg speichern/laden |
+| Rechtsklick-Settings fürs vervielfältigbare Scope | [lib/scope/multiScope.js](../lib/scope/multiScope.js) | `createScopeManager(...)` + `createScopeSettingsHook({ scopeManager, state, host })` | +➚ Kopie / 🚮 Löschen / ⟲ Reset im Gruppen-Rechtsklick-Panel |
+
+**⚠️ EINE Sache bleibt bewusst NICHT in `lib/`, obwohl sie in allen drei Dateien vorkommt:**
+welche Instrumente ein Header-Button erreicht (z. B. `keyBtn`s `onToggle`, das
+`keyMidi.setKeyEdit(on)` auf JEDEM vorhandenen Instrument aufruft) UND die
+`hintResolve`/`keydown`-Aufzählungen. Diese Listen sind bei jedem Einstiegspunkt
+unterschiedlich (overcord hat Poly-Synth/Stepseq, die anderen nicht) und waren in der
+Vergangenheit schon **lückenhaft** (ein neues Instrument eingebaut, aber hier zu ergänzen
+vergessen – ein Button wirkte dann auf dem neuen Instrument einfach nicht). Beim Einbauen
+eines neuen Instruments in einen Einstiegspunkt: JEDE dieser Listen in derselben Datei
+durchgehen und das neue Instrument überall eintragen, wo es hingehört – nicht nur an einer
+Stelle. Dieselbe Vorsicht gilt für `LS_KEYS` (s. `lib/configIO.js`-Kommentar) und für die
+`instruments`-Liste bei `createEnsembleStore`.
+
 ## Was alle Controls gemeinsam haben
 
 | | |
