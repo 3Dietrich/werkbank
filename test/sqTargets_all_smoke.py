@@ -55,6 +55,15 @@ try:
 
             let speicherThrew = null;
             try { deliver('speicher', 1); } catch (e) { speicherThrew = String(e); }
+            // Slot 1 ist in der gewachsenen Werkseinstellungen-Datei (presets/werkbank-
+            // config.json, @dpas Stand für Erstbesucher) NICHT mehr leer, sondern haelt einen
+            // echten mehrstimmigen Akkord (Smoke-Test-Altlast, todos.md 20260802_131434) — der
+            // obige Trigger spielt ihn also wirklich an. Ohne dieses Aufräumen würde der
+            // anschließende Keyboard-Retrigger-Check (unten) auf den Akkord-Noten aufsetzen
+            // statt auf einem sauberen Nullstand, und könnte zufällig mit einer der Test-Noten
+            // (64/67) kollidieren. allNotesOff() ist hier bewusst neutral zur eigentlichen
+            // Speicher-Prüfung (die endet schon oben mit speicherThrew).
+            window.__polysynth.engine.allNotesOff();
 
             const heldBefore = window.__polysynth.engine.heldCount();
             deliver('note', 64);
