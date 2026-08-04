@@ -43,8 +43,7 @@ import { makeConfigIO } from '../lib/configIO.js';
 import { wireGlobalLook } from '../lib/globalLook.js';
 import { installSelectOnFocus } from '../lib/selectOnFocus.js';
 import { mountGroups } from '../lib/group/GroupHost.js';
-import { PickMenu } from '../lib/PickMenu.js';
-import { createEnsembleStore } from '../lib/EnsembleStore.js';
+import { createEnsembleStore, mountEnsembleMenu } from '../lib/EnsembleStore.js';
 import { ElementSettings } from '../lib/ElementSettings.js';
 import { makeWireHeaderBtnSettings } from '../lib/headerBtn.js';
 import { taktMetroDefs } from '../lib/taktmetro/defs.js';
@@ -523,40 +522,11 @@ const openCfg = () => {
 cfgBtn.addEventListener('click', () => { cfgWin.isOpen ? cfgWin.close() : openCfg(); });
 window.__cfg = { build: buildConfig, apply: applyConfig };   // Test-/Debug-Haken
 
-// ── Ensemble-Snapshot-Menü im Header (1:1 aus werkbank.js Z.1154-1193) ────────────────
-const ensembleMenu = new PickMenu({
-    label: '',
-    empty: '⭐ Ensemble',
-    // Rechtsklick-Hinweis ergänzt (1:1 aus overcord/werkbank.js, ddw.md 20260802_234615 Punkt 4).
-    title: 'Zustand mehrerer Instrumente zusammen speichern/laden (Master-Fader bleibt außen vor) · Rechtsklick = Einstellungen (Farbe/Größe)',
-    noContextOpen: true,
-    list: () => ensembleStore.list(),
-    current: () => ensembleState.get('ensembleSnapSel') || '',
-    onPick: (i) => ensembleStore.recall(i),
-    onUpdate: (i) => ensembleStore.update(i),
-    onRename: (i, item, newName) => ensembleStore.rename(i, newName),
-    onDelete: (i) => ensembleStore.del(i),
-    foot: [['plus', '+ Neu', 'Aktuellen Zustand als neuen Ensemble-Snapshot speichern', () => {
-        const nm = prompt('Name für den neuen Ensemble-Snapshot?', 'Snapshot ' + (ensembleStore.list().length + 1));
-        if (nm && nm.trim()) ensembleStore.save(nm.trim());
-    }]],
-});
-ensembleMenu.element.dataset.ctrl = 'hdr:ensemble';
-const applyEnsembleStyle = (s) => {
-    const btn = ensembleMenu.element.querySelector('.pm-btn');
-    if (btn) {
-        btn.style.background = s.bg0 || '';
-        btn.style.color = s.fg || '';
-        btn.style.fontSize = s.size ? s.size + 'px' : '';
-        btn.style.padding = s.pad != null ? s.pad + 'px' : '';
-        btn.style.width = s.boxSize ? s.boxSize + 'px' : '';
-    }
-};
-ensembleMenu.element.addEventListener('contextmenu', (e) => {
-    e.preventDefault(); e.stopPropagation();
-    hdrElemSettings.open({ id: 'hdr:ensemble', type: 'select', el: ensembleMenu.element, defLabel: 'Ensemble', applyStyle: applyEnsembleStyle });
-});
-applyEnsembleStyle((state.get('ctrlStyles') || {})['hdr:ensemble'] || {});
+// mountEnsembleMenu() kommt seit @dpa 20260804 aus lib/EnsembleStore.js (war bis auf
+// Kommentare byte-identisch dreifach dupliziert — dasselbe Duplikat-Risiko wie bei
+// ADSR/Scope/mountBenchHelp/headerBtn/configIO, s. lib/adsrPanel.js-Kommentar). Kommt genau
+// EINMAL pro Ensemble vor (Header-Chrome, nicht vervielfältigbar wie ADSR/Scope).
+const ensembleMenu = mountEnsembleMenu({ ensembleStore, ensembleState, hdrElemSettings, state });
 document.querySelector('.topbar h1').insertAdjacentElement('afterend', ensembleMenu.element);
 window.__ensemble.menu = ensembleMenu;
 
