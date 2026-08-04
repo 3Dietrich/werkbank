@@ -42,6 +42,38 @@ try:
         pg.on("pageerror", lambda e: errors.append(str(e)))
         pg.goto(f"http://localhost:{PORT}/overcord/", wait_until="networkidle", timeout=15000)
 
+        # Custom-Namen abräumen + neu laden (Smoke-Test-Altlast, todos.md 20260802_131434):
+        # presets/werkbank-config.json (@dpas gewachsene Werkseinstellungen) hat inzwischen
+        # ausgerechnet GENAU die hier geprüften Gruppen/den Oktaven-Knob selbst umbenannt
+        # (groupStyles.name: "Transport / Tempo"→"Tempo", "Takt / Metronom"→"Click",
+        # "Audio-Osz"→"OSZ", "ADSR"→"DSR", knobMeta.kbOctaves.label→"Okt."). Per Design
+        # (i18n.js stopText(), s. Knob.js) bleiben solche selbst vergebenen Namen ÜBER JEDEN
+        # Sprachwechsel hinweg unangetastet — GENAU das Verhalten, das dieser Test weiter
+        # unten für "MeineOktaven" selbst beweisen will. Ein bereits per Custom-Label
+        # gesetzter Knob lässt sich nicht live zurück in den i18n-Kreislauf holen (stopText()
+        # ist einseitig) — darum: Overrides aus dem State entfernen und NEU LADEN, damit
+        # GroupHost/Knob.js diese Controls frisch aus den Code-Defaults aufbauen, statt den
+        # bereits personalisierten Live-Zustand umzubiegen. Ändert NICHTS an der echten
+        # Werkseinstellungen-Datei (rein In-Memory/localStorage dieser Browser-Instanz).
+        pg.evaluate("""() => {
+            const stripName = (state, groupNames) => {
+                const styles = { ...(state.get('groupStyles') || {}) };
+                for (const g of groupNames) {
+                    if (styles[g] && styles[g].name != null) {
+                        const { name, ...rest } = styles[g];
+                        styles[g] = rest;
+                    }
+                }
+                state.set('groupStyles', styles);
+            };
+            stripName(window.__takt.state, ['Transport / Tempo', 'Takt / Metronom']);
+            stripName(window.__polysynth.state, ['Audio-Osz', 'ADSR']);
+            const km = { ...(window.__polysynth.state.get('knobMeta') || {}) };
+            if (km.kbOctaves) { delete km.kbOctaves; window.__polysynth.state.set('knobMeta', km); }
+        }""")
+        pg.reload(wait_until="networkidle")
+        pg.wait_for_timeout(300)
+
         titles_de_before = pg.evaluate("() => [...document.querySelectorAll('.group-title')].map(g => g.textContent)")
         check('Takt / Metronom' in titles_de_before, f"Default sollte Deutsch sein, war {titles_de_before!r}")
 
