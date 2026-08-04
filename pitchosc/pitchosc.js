@@ -265,12 +265,12 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, mgr: level
 const SCOPE_LS = lsKey('scope');
 const scopeState = new MiniState({ scopeCount: 1 }, SCOPE_LS);
 const scopeRoot = document.querySelector('#scopes');
-const scopeDefs = { GROUPS: [] };
+const scopeDefs = { BUTTONS: {}, KNOBS: {}, GROUPS: [] };   // multiScope.js befüllt BUTTONS/KNOBS pro Instanz (Sync/Freeze/Trigger-Pos/Offset)
 const scopeHost = mountGroups(scopeRoot, scopeState, scopeDefs, {
     groupKindSettings: (kind) => _scopeKindSettings[kind],
     arrangeKeyOf,
 });
-const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing });
+const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing, onClockBeat: taktEngine.onClockBeat });
 scopeManager.init();
 const scopeInstr = mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
 

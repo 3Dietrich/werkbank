@@ -657,8 +657,10 @@ const recManager = createRecManager({
 });
 recManager.init();
 // Roher Scheduler-Beat, fan-out an ALLE Rec-Instanzen (Downbeat-Arming) UND Stepseq (Beat-
-// Anker, PHASE4_SPEC.md 4A.3 — taktEngine.onClockBeat ist ein Einzel-Callback, deshalb hier
-// gebündelt statt überschrieben).
+// Anker, PHASE4_SPEC.md 4A.3) — beide hier gebündelt aus Gewohnheit/Übersicht, seit @dpa
+// 20260804 aber nicht mehr NÖTIG: taktEngine.onClockBeat ist inzwischen eine Listener-Liste
+// (mehrere unabhängige Abonnenten möglich, s. lib/taktmetro/engine.js), der Scope-Sync
+// unten meldet sich z.B. separat an, ohne diesen Block anzufassen.
 // `t` ist AudioContext-Zeit in SEKUNDEN (dieselbe Größe, mit der scheduleBeat/metroTick
 // oben rechnen) — stepSeqEngine.tick() läuft dagegen auf performance.now()-Millisekunden
 // (rAF-Render-Loop). Umrechnen wie recManager.handleClockBeat/scheduleBeat es schon tun
@@ -765,12 +767,12 @@ window.__levelMeter = { state: levelMeterState, host: levelMeterHost, mgr: level
 const SCOPE_LS = lsKey('scope');
 const scopeState = new MiniState({ scopeCount: 1 }, SCOPE_LS);
 const scopeRoot = document.querySelector('#scopes');
-const scopeDefs = { GROUPS: [] };
+const scopeDefs = { BUTTONS: {}, KNOBS: {}, GROUPS: [] };   // multiScope.js befüllt BUTTONS/KNOBS pro Instanz (Sync/Freeze/Trigger-Pos/Offset)
 const scopeHost = mountGroups(scopeRoot, scopeState, scopeDefs, {
     groupKindSettings: (kind) => _scopeKindSettings[kind],
     arrangeKeyOf,
 });
-const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing });
+const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing, onClockBeat: taktEngine.onClockBeat });
 scopeManager.init();
 const scopeInstr = mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
 
