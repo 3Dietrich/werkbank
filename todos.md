@@ -20,21 +20,38 @@ statt die Ursache).
 Beim dd.md-20260802-Nachtdurchgang (main-Snapshot-Fix) fiel auf: 18 von 52 Smoke-Tests
 waren rot — davon 4 an echten Test-Annahmen, die inzwischen falsch sind (Pool-Index 0
 statt Namenssuche, feste Sq-Baseline "1"), gefixt (Commit "Smoke-Tests: robust gegen
-gewachsene Demo-Config"). Die restlichen 14 sind noch offen: `presets/werkbank-config.json`
-ist über die Zeit gewachsen (mehr Sequenzer/ISM-Snapshots/Combos als bei Testerstellung,
-Sq-Ziel-Bezeichner haben sich verschoben — z.B. `'polysynth.trig'` vs. jetzt
-`'polysynth.speicher'` als erstes Ziel in der Liste, "polysynth.env_0"-Gruppe existiert
-jetzt per Default). Betroffen (Stand 20260802, per Baseline-Vergleich VOR den heutigen
-Fixes bestätigt — keine Regression, alte Bekannte):
+gewachsene Demo-Config"). Die restlichen 14 waren offen.
+
+**20260804-Aufräumrunde:** 6 der inzwischen weiter angewachsenen roten Tests einzeln per
+`git log -p -S`/Handnachmessen auf Bug vs. überholte Testannahme geprüft (Methode: eigener
+Fix erst per `git stash` gegen die Baseline verglichen, um Regression von Alt-Annahme zu
+trennen). Ergebnis — alle 6 grün, je 1 Commit:
+- `ensembleSnapshot_smoke`, `i18nLabels_smoke`, `sqTargets_all_smoke` (aus der Liste unten):
+  überholte Testannahmen (leerer Ensemble-Speicher/Chord-Slot, Default-Gruppennamen/Oktaven-
+  Label, Index-0-Recall) — @dpas gewachsene `presets/werkbank-config.json` (Werkseinstellungen
+  für Erstbesucher, Commit f18f359) füllt diese Stellen inzwischen mit echten eigenen Daten.
+  Tests robust gemacht (Namenssuche/Längen-Diff statt Index, expliziter Reset vor dem Check)
+  statt die Datei anzufassen.
+- `ampEnvAdsrCore_smoke` (nicht in der Original-14er-Liste, seither dazugekommen): keine
+  DSP-Formel falsch (Peak*Sustain per Hand nachgemessen: exakt korrekt) — `adsrLenFest` in
+  der Werkseinstellungen-Datei ist inzwischen `true`, Test setzt es jetzt explizit `false`.
+- `scopeSampleAccuracy_smoke` (dito, neu dazugekommen): Scope 0 hat inzwischen eine
+  persistierte Quelle — Test ruft jetzt `scope.setSource(null)` vor dem "quellenlos"-Check.
+- `hintTranslation_smoke` (dito, neu dazugekommen): Tab/Tempo-Öffner ist in der
+  Werkseinstellungen-Datei per Off-Panel-Liste ausgeblendet — UND dabei einen ECHTEN Bug in
+  `lib/group/GroupHost.js` `applyOffPanel()` aufgedeckt und gefixt: Wieder-Einschalten
+  entfernte bisher nur die CSS-Klasse, ein von `freezeGroup()` (Free-Canvas) hinterlassenes
+  Inline-`style.display='none'` blieb hängen und hielt den Control trotzdem unsichtbar.
+
+Damit aus der Original-Liste noch offen (Root Cause vermutlich dieselbe Familie, nicht
+einzeln nachverfolgt):
 adsrGateButtonClick_smoke, adsrGateTrigPhase_smoke, adsrGateVisibility_smoke,
 adsrKette_smoke, adsrLenFest_smoke, chordMemorySnapshot_smoke, ddw_20260724_192304_smoke,
-ddw_feedback_fixes_smoke, ensembleSnapshot_smoke, i18nLabels_smoke, phase4a_seqsync_smoke,
-seqFillSet0_style_smoke, seqLenKnob_smoke, seqOutput_smoke, signalScope_smoke,
-sqAddDefault_smoke, sqTargets_all_smoke, tempoStartContinue_smoke.
-Root Cause je Test nicht einzeln nachverfolgt — vermutlich dieselbe Familie (Baseline-
-Annahmen, Pool-Vorbelegung, verschobene Default-Ziele). Eigener Aufräum-Anlauf nötig,
-am besten mit derselben Methode wie diesmal: `git stash` der eigenen Fixes, Baseline-
-Vergleich, um echte Regressionen von Alt-Annahmen zu trennen.
+ddw_feedback_fixes_smoke, phase4a_seqsync_smoke, seqFillSet0_style_smoke, seqLenKnob_smoke,
+seqOutput_smoke, signalScope_smoke, sqAddDefault_smoke, tempoStartContinue_smoke.
+Zusätzlich neu aufgefallen (nicht Teil dieser Runde, beim Regressionscheck nebenbei
+gesehen): `seqElementsMovable_smoke` ist ebenfalls rot (Baseline-bestätigt, keine
+Regression durch die heutigen Fixes) — noch nicht root-caused.
 
 ## Amp-Env ↔ Multi-ADSR: bewusst GETRENNTE Combo-Pools (dd.md 20260802 geklärt)
 @dpa-Frage: "Warum teilt Amp-Env seine Combo nicht mit der anderen Env? Sie wurde extra
