@@ -45,7 +45,7 @@ import { createRecManager } from '../lib/recInstrument/multiRec.js';
 import { debugPanelDefs } from '../lib/debugPanel/defs.js';
 import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
 import { mountDebugGroup } from '../lib/debugPanel/mount.js';
-import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser, getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper } from '../lib/audioBus.js';
+import { getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser, getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper, getWaveshaperPreGain as getBusWaveshaperPreGain } from '../lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
 import { knobWrites, buttonWrites } from '../lib/routing/portGen.js';
 import { createStructureView } from '../lib/routing/StructureView.js';
@@ -722,6 +722,7 @@ window.__rec = { mgr: recManager, state: recState, host: rec };
 window.__audioBus = {
     getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser,
     getLimiter: getBusLimiter, getWaveshaper: getBusWaveshaper,
+    getWaveshaperPreGain: getBusWaveshaperPreGain,
 };
 
 // ── LevelMeter – vervielfältigbares Instrument (ISM), @dpa 20260722 Singleton, 20260804

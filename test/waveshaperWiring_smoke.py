@@ -12,7 +12,9 @@ GEZAEHLT/PROGRAMMATISCH, nie ueber tatsaechliches Abspielen/Hoeren (CLAUDE.md-Wa
 Prueft in BEIDEN Ensembles (overcord/ + werkbank-leer/, gemeinsamer audioBus.js-Code):
   - WaveShaper existiert, oversample='4x', curve mit 2048 Punkten, Default AUS.
   - Alle vier Kombinationen (limiterOn x waveshaperOn) verkabeln volumeGain -> [limiter] ->
-    [waveshaper] -> destination + analyser OHNE doppelte/verwaiste Kanten.
+    [waveshaperPreGain -> waveshaper] -> destination + analyser OHNE doppelte/verwaiste Kanten.
+    (@dpa ddw.md 20260804: Debug-Fund Hart-Clip bei >0dBFS -> waveshaperPreGain staucht den
+    erweiterten Kurven-Bereich zurueck auf den [-1,1]-Eingang der WaveShaperNode-Tabelle.)
   - WS hat KEINEN eigenen Header-Button mehr (ddw.md 20260802_234615 Punkt 1: "WS soll in
     Lim (settings) mit rein") -- die Checkbox `.mv-lim-ws` im Rechtsklick-Popover des
     [Lim]-Buttons schaltet korrekt um (state + setWaveshaperOn()).
@@ -94,6 +96,7 @@ SNAPSHOT_JS = """
   const ctx = bus.getContext();
   const limiter = bus.getLimiter();
   const waveshaper = bus.getWaveshaper();
+  const preGain = bus.getWaveshaperPreGain();
   const analyser = bus.getAnalyser();
   const master = bus.getMaster();
   const dest = ctx.destination;
@@ -125,10 +128,10 @@ SNAPSHOT_JS = """
     oversample: waveshaper ? waveshaper.oversample : null,
     curveLen: waveshaper && waveshaper.curve ? waveshaper.curve.length : null,
     volumeGainToLimiter: has(volumeGainNode, limiter),
-    volumeGainToWaveshaper: has(volumeGainNode, waveshaper),
+    volumeGainToWaveshaper: has(volumeGainNode, preGain) && has(preGain, waveshaper),
     volumeGainToDest: has(volumeGainNode, dest),
     volumeGainToAnalyser: has(volumeGainNode, analyser),
-    limiterToWaveshaper: has(limiter, waveshaper),
+    limiterToWaveshaper: has(limiter, preGain) && has(preGain, waveshaper),
     limiterToDest: has(limiter, dest),
     limiterToAnalyser: has(limiter, analyser),
     waveshaperToDest: has(waveshaper, dest),
@@ -136,6 +139,7 @@ SNAPSHOT_JS = """
     volumeGainOut: outCount(volumeGainNode),
     limiterOut: outCount(limiter),
     waveshaperOut: outCount(waveshaper),
+    preGainOut: outCount(preGain),
   };
 }
 """
@@ -207,6 +211,7 @@ try:
                 check(snap['volumeGainOut'] <= 2, f"{label}: volumeGain hat zu viele ausgehende Kanten: {snap['volumeGainOut']}")
                 check(snap['limiterOut'] <= 2, f"{label}: limiter hat zu viele ausgehende Kanten: {snap['limiterOut']}")
                 check(snap['waveshaperOut'] <= 2, f"{label}: waveshaper hat zu viele ausgehende Kanten: {snap['waveshaperOut']}")
+                check(snap['preGainOut'] <= 1, f"{label}: waveshaperPreGain hat zu viele ausgehende Kanten: {snap['preGainOut']}")
 
             # ── 3) Kein eigener [WS]-Header-Button mehr, Checkbox toggelt zuverlässig ──
             check(page.locator(".mv-ws").count() == 0, f"{entry}: [WS]-Header-Button sollte weg sein (WS lebt im Lim-Popover)")

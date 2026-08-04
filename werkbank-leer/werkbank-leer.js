@@ -54,7 +54,8 @@ import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
 import { mountDebugGroup } from '../lib/debugPanel/mount.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
-    getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper, setMasterDb as setBusMasterDb,
+    getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper,
+    getWaveshaperPreGain as getBusWaveshaperPreGain, setMasterDb as setBusMasterDb,
 } from '../lib/audioBus.js';
 import { createRoutingRegistry } from '../lib/routing/Registry.js';
 import { createStructureView } from '../lib/routing/StructureView.js';
@@ -228,6 +229,7 @@ window.__rec = { mgr: recManager, state: recState, host: rec };
 window.__audioBus = {
     getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser,
     getLimiter: getBusLimiter, getWaveshaper: getBusWaveshaper,
+    getWaveshaperPreGain: getBusWaveshaperPreGain,
 };
 
 // ── LevelMeter – vervielfältigbares Instrument (ISM), @dpa 20260804, s.

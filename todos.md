@@ -1,5 +1,14 @@
 # Werkbank – TODOs / Ideen
 
+## Demo-Presets: waveshaperOn=true widerspricht Code-Default (20260804)
+`test/waveshaperWiring_smoke.py` schlägt reproduzierbar (auch auf unverändertem main, per
+git-stash-Vergleich geprüft) mit „waveshaperOn sollte per Default aus sein" fehl – die
+Erstbesuch-Demo-Dateien `presets/werkbank-config.json`, `presets/werkbank-leer-config.json`,
+`presets/pitchosc-config.json` haben `"waveshaperOn": true` fest eingebacken, obwohl
+`lib/MasterVolume.js:35` (`waveshaperOn: false`) und der WS-Kommentar in `lib/audioBus.js`
+„Default AUS" als Absicht festhalten. Fix: die drei Presets auf `false` setzen (oder klären,
+ob WS in der Demo bewusst hörbar sein soll – dann stattdessen den Test/Kommentar anpassen).
+
 ## Combo-Factory mit Größe/Position + definierbarer Initial-Layout (@dpa 20260804)
 Beobachtung (Screenshot pitchosc, Amp-/Pitch-ADSR nach Umbau): neu erstellte/wieder
 aufgebaute Gruppen rendern zunächst groß/simpel/überlappend statt in der von @dpa mühsam
