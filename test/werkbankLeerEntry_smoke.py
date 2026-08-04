@@ -107,14 +107,18 @@ try:
         pg.locator('#midiedit').click()   # wieder aus
         time.sleep(0.1)
 
-        # ── 4c. Struktur-Ansicht zeigt NUR takt+rec ──
+        # ── 4c. Struktur-Ansicht zeigt NUR master+rec_0+takt ──
+        # (Stand angepasst: 'master' registriert sich seit dem Master-Bus-Registry-Tap
+        # bereits beim Seitenaufbau selbst — VOR diesem Test entstanden, unabhängig von Rec/
+        # LevelMeter; 'rec' heißt seit der Rec-Vervielfältigung (@dpa 20260804,
+        # lib/recInstrument/multiRec.js) 'rec_0' statt 'rec' — die erste Instanz.)
         mods = pg.evaluate("() => window.__routing.reg.modules().map(m => m.id).sort()")
-        check(mods == ['rec', 'takt'], f"Registry sollte nur ['rec','takt'] registriert haben, war {mods!r}")
+        check(mods == ['master', 'rec_0', 'takt'], f"Registry sollte ['master','rec_0','takt'] registriert haben, war {mods!r}")
         pg.locator('#structurebtn').click()
         time.sleep(0.15)
         boxes = pg.locator('.structure-box').all_inner_texts()
         check(pg.locator('.structure-pop').count() == 1, "⧉ Struktur öffnet kein Fenster")
-        check(len(boxes) == 2, f"Struktur-Ansicht sollte genau 2 Kästen zeigen (takt+rec), war {len(boxes)}")
+        check(len(boxes) == 3, f"Struktur-Ansicht sollte genau 3 Kästen zeigen (master+rec_0+takt), war {len(boxes)}")
         pg.keyboard.press("Escape")
         time.sleep(0.1)
 

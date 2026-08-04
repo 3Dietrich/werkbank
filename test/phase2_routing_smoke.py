@@ -56,8 +56,11 @@ try:
         # Phase 2 sagt NUR zu, dass diese vier weiterhin da sind (additiv) — seit dem
         # Multi-ADSR-Feature (ddw.md 20260725) registriert sich zusätzlich JEDE ADSR-Instanz
         # als eigenes Modul ('polysynth.env_0', …), das ist kein Bruch der Phase-2-Zusage.
-        check({"takt", "polysynth", "stepseq", "rec"} <= ids,
-              f"erwartet mindestens takt/polysynth/stepseq/rec, gefunden: {ids}")
+        # Rec selbst ist seit @dpa 20260804 (Vervielfältigung, lib/recInstrument/multiRec.js)
+        # ebenfalls indiziert ('rec_0', 'rec_1', …statt nur 'rec') — dieselbe additive Regel,
+        # die erste Instanz heißt 'rec_0'.
+        check({"takt", "polysynth", "stepseq", "rec_0"} <= ids,
+              f"erwartet mindestens takt/polysynth/stepseq/rec_0, gefunden: {ids}")
 
         by_id = {m["id"]: m for m in mods}
         poly_out = {p["id"]: p["type"] for p in by_id["polysynth"]["outputs"]}
@@ -69,19 +72,19 @@ try:
         check(step_out.get("amp") == "AmpEnv", f"stepseq.amp-Typ falsch: {step_out}")
         takt_out = {p["id"]: p["type"] for p in by_id["takt"]["outputs"]}
         check(takt_out.get("beat") == "Gate", f"takt.beat-Typ falsch: {takt_out}")
-        rec_in = {p["id"]: p["type"] for p in by_id["rec"]["inputs"]}
-        check(rec_in.get("clock") == "Gate", f"rec.clock-Typ falsch: {rec_in}")
+        rec_in = {p["id"]: p["type"] for p in by_id["rec_0"]["inputs"]}
+        check(rec_in.get("clock") == "Gate", f"rec_0.clock-Typ falsch: {rec_in}")
 
         # ── Die drei bestehenden Verbindungen sind eingetragen (Paket B) ──
         conns = pg.evaluate("() => window.__routing.reg.connections()")
         conn_pairs = {(c["src"]["module"], c["src"]["port"], c["dst"]["module"], c["dst"]["port"]) for c in conns}
         check(("stepseq", "amp", "polysynth", "trig") in conn_pairs,
               f"Stepseq.amp→Poly.trig fehlt in connections(): {conn_pairs}")
-        check(("takt", "beat", "rec", "clock") in conn_pairs,
-              f"Takt.beat→Rec.clock fehlt in connections(): {conn_pairs}")
+        check(("takt", "beat", "rec_0", "clock") in conn_pairs,
+              f"Takt.beat→Rec_0.clock fehlt in connections(): {conn_pairs}")
 
         # ── Latenz-Vertrag: alle vier liefern eine Zahl (Bus-Anteil, Context evtl. noch stumm) ──
-        for mid in ("takt", "polysynth", "stepseq", "rec"):
+        for mid in ("takt", "polysynth", "stepseq", "rec_0"):
             lat = by_id[mid]["latency"]
             check(isinstance(lat, (int, float)), f"{mid}.latency() liefert keine Zahl: {lat!r}")
 
