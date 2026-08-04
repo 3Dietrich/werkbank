@@ -81,6 +81,20 @@ try:
         time.sleep(0.1)
 
         # ── Tab/Tempo-Sonderfenster: Label- und Hilfstext-Spalte auf English. ──
+        # 'u:tabSettings' EXPLIZIT vom Panel sichtbar machen (Smoke-Test-Altlast, todos.md
+        # 20260802_131434): presets/werkbank-config.json (@dpas gewachsene Werkseinstellungen)
+        # hat den Öffnen-Knopf über die Off-Panel-Liste (ctrlOffPanel) ausgeblendet. Nebenbei
+        # aufgedeckt: applyOffPanel() (GroupHost.js) entfernte beim Wieder-Einschalten bisher
+        # nur die CSS-Klasse — ein von freezeGroup() (Free-Canvas) hinterlassenes Inline-
+        # style.display='none' blieb hängen und hielt den Control trotzdem unsichtbar (echter,
+        # inzwischen gefixter Bug, s. Kommentar an applyOffPanel()). Ohne dieses Zurücksetzen
+        # würde der folgende Klick auf einen unsichtbaren Button laufen.
+        pg.evaluate("""() => {
+            const op = { ...(window.__takt.state.get('ctrlOffPanel') || {}) };
+            delete op['u:tabSettings'];
+            window.__takt.state.set('ctrlOffPanel', op);
+        }""")
+        pg.wait_for_timeout(150)
         pg.locator('.special-open').first.click()
         time.sleep(0.2)
         table_txt = pg.evaluate("() => document.querySelector('.special-pop-table')?.textContent || 'NOTFOUND'")
