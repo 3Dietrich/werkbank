@@ -53,6 +53,15 @@ try:
             st.set('adsrS', 0.4);
             st.set('adsrR', 0.05);
             st.set('osc2On', false);
+            // adsrLenFest EXPLIZIT false (Smoke-Test-Altlast, todos.md 20260802_131434):
+            // presets/werkbank-config.json (@dpas Werkseinstellungen, Commit f18f359) setzt
+            // adsrLenFest=true + adsrLenMs~50ms — ein frischer Playwright-Browser lädt diese
+            // Erstbesuch-Datei, NICHT die defs.js-DEFAULTS (dort steht adsrLenFest:false).
+            // Ohne dieses Set schließt der Amp-Env automatisch ~50ms nach Decay-Ende (Fest-
+            // Modus) und rutscht in Release, BEVOR dieser Test seinen Sustain-Wert misst —
+            // die Peak*Sustain-Formel selbst ist korrekt (per Hand nachgemessen: exakt 0.12),
+            // nur der implizite "frischer Browser = Code-Default" hielt nicht mehr.
+            st.set('adsrLenFest', false);
             window.__polysynth.engine.noteOn(60, 127);   // volle Velocity -> peak = AMP_BASE = 0.3
         }""")
 
