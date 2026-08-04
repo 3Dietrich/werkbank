@@ -48,9 +48,17 @@ try:
         check('werkbank_ensemble' in cfg['ls'], f"werkbank_ensemble fehlt im Config-Export: {list(cfg['ls'].keys())!r}")
 
         # ── Werte über zwei Instrumente hinweg merken ──
+        # NICHT von einem leeren Speicher ausgehen (Smoke-Test-Altlast, todos.md 20260802_131434):
+        # presets/werkbank-config.json (@dpas gewachsene Werkseinstellungen) bringt bereits
+        # mehrere benannte Ensemble-Snapshots mit — save() hängt hinten an, der neue Eintrag
+        # landet NICHT zwingend bei Index 0. Index dynamisch über den (eindeutigen) Namen finden,
+        # statt 0/Länge-1 hart anzunehmen.
+        before_n = pg.evaluate("() => window.__ensemble.store.list().length")
         before = pg.evaluate("() => ({ bpm: window.__takt.state.get('bpm'), attack: window.__polysynth.state.get('adsrA'), master: window.__master.state.get('masterDb') })")
-        n = pg.evaluate("() => window.__ensemble.store.save('Mein Ensemble').length")
-        check(n == 1, f"save() sollte 1 Eintrag liefern, war {n}")
+        n = pg.evaluate("() => window.__ensemble.store.save('Mein Ensemble Smoke-Test').length")
+        check(n == before_n + 1, f"save() sollte GENAU EINEN Eintrag anhängen ({before_n} -> {n})")
+        idx = pg.evaluate("() => window.__ensemble.store.list().findIndex((e) => e.name === 'Mein Ensemble Smoke-Test')")
+        check(idx >= 0, "gerade gespeicherter Ensemble-Snapshot nicht per Name wiederzufinden")
 
         pg.evaluate("""() => {
             window.__takt.state.set('bpm', Math.min(900, (window.__takt.state.get('bpm')||120) + 10));
@@ -60,14 +68,14 @@ try:
         changed = pg.evaluate("() => ({ bpm: window.__takt.state.get('bpm'), attack: window.__polysynth.state.get('adsrA') })")
         check(changed['bpm'] != before['bpm'] and changed['attack'] != before['attack'], f"Werte sollten geändert sein: {changed!r}")
 
-        ok = pg.evaluate("() => window.__ensemble.store.recall(0)")
+        ok = pg.evaluate(f"() => window.__ensemble.store.recall({idx})")
         check(ok is True, "recall() sollte true liefern")
         after = pg.evaluate("() => ({ bpm: window.__takt.state.get('bpm'), attack: window.__polysynth.state.get('adsrA'), master: window.__master.state.get('masterDb') })")
         check(after['bpm'] == before['bpm'] and after['attack'] == before['attack'], f"Recall sollte Takt+Poly-Synth zurückholen: {after!r} != {before!r}")
         check(after['master'] == -9, f"Master-Fader sollte VOM Recall unberührt bleiben (blieb bei -9), war {after['master']!r}")
 
         # ── Aufräumen ──
-        pg.evaluate("() => window.__ensemble.store.del(0)")
+        pg.evaluate(f"() => window.__ensemble.store.del({idx})")
         pg.evaluate("() => window.__master.state.set('masterDb', 0)")
 
         errs = [e for e in errors if "favicon" not in e.lower()]
