@@ -133,6 +133,30 @@ den niemand in der UI sieht und niemand eingebaut hat.
 
 Antworten unklar → fragen, nicht die naheliegendste (oft aufwändigste) Variante annehmen.
 
+**Gilt nachträglich auch für BESTEHENDE Module (@dpa 20260804):** Punkt 1 oben war zuerst
+nur die Default-Regel für NEU gebaute Module. `lib/adsrOsc/` (deepseek-Baustelle, s.
+„Rezept" oben) hatte seinen Oszillator per hartem JS-Code an die eigene Amp-/Pitch-ADSR
+gekoppelt — formal erlaubt, weil die Verbindung („Amp-/Pitch-ADSR moduliert diesen
+Oszillator") beim Bau explizit genannt war, aber @dpa wollte es nachträglich auf echte
+Ports umstellen: „Ja! alles bekommt seine Ein- und Ausgänge (Panel oder 'versteckt' in
+Settings einstellbar wie andere Controls)." Ziel-Zustand für JEDES Modul, alt wie neu:
+echte `outputs`/`inputs`-Ports (Registry.js/types.js) statt fester Verdrahtung im
+Engine-Code — auch dort, wo die Verbindung feststeht und sich (vorerst) nicht ändert.
+Eine feste Default-Verbindung bleibt erlaubt, muss aber über `routing.connect()`
+hergestellt werden (sichtbar in der Struktur-Ansicht, später lösbar/umsteckbar), nicht
+über einen direkten Funktionsaufruf zwischen zwei Engines.
+
+Sichtbarkeit ist frei wählbar, wie bei jedem anderen Control: ein Port kann als
+Panel-Control auftreten (z. B. ein Output-PickMenu wie `multiEnv.js`s `adsrOutput` —
+`lib/adsrPanel.js` `createAdsrOutputPicker()` bietet das jetzt auch für ein FESTES
+Einzel-ADSR, ohne die +/‑-Instanzverwaltung von `multiEnv.js`) oder rein in den
+Settings/als Registry-Metadaten „versteckt" bleiben (kein eigener Panel-Control, s. den
+generischen „Panel?"-Off-Panel-Mechanismus oben). Faustregel aus dem `adsrOsc`-Umbau:
+Ports, für die es sinnvoll VIELE mögliche Ziele/Quellen gibt (ein Env-Ausgang, der auch
+woanders hinmoduliert), bekommen ein Panel-sichtbares PickMenu; reine Ziel-Ports ohne
+eigene Bedienung (z. B. `baseFreqIn`, `trig`, `clock`, `ampIn`/`pitchIn`) bleiben unsichtbare
+Metadaten – dieselbe Asymmetrie gilt schon für alle bestehenden Ports im Projekt.
+
 #### Rezept: neuen Pool-Einstiegspunkt anlegen (Header-Baukasten)
 
 > Auslöser (@dpa 20260804): `overcord/werkbank.js`, `werkbank-leer/werkbank-leer.js` und
