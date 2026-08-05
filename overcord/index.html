@@ -71,10 +71,10 @@
 
 <div id="app">
     <section class="wb-bench wb-wide" id="bench-taktgeber">
-        <!-- Ein-/Ausklapp-Icon LINKS an der Übergruppen-Headline (@dpa 20260718_203341).
-             Eingeklappt = Hauptbildschirm leer (ausdrücklich okay). Die Headline bleibt
-             (Instrumentenname), eigene Settings potentiell später. -->
-        <h2><button class="wb-collapse" id="taktCollapse" type="button" title="Ein-/Ausklappen">▾</button> <span class="wb-instr-name">Takt + Metronom</span></h2>
+        <!-- Zusammenklapp-Icon links im Header: baut lib/InstrumentSettings.js selbst
+             (generisch für JEDES ISM, @dpa ddw.md 20260805) — war hier vorher taktgeber-
+             exklusiv per Hand verdrahtet (taktCollapse/wb-collapse). -->
+        <h2><span class="wb-instr-name">Takt + Metronom</span></h2>
         <div id="taktgeber"></div>
         <details class="wb-note">
             <summary>Transport / Tempo · Takt / Metronom — Neu-Port (P1–P4)</summary>

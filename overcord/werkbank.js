@@ -1154,14 +1154,10 @@ window.addEventListener('keydown', (e) => {
     if (takt.isArranging && takt.isArranging()) { takt.setArranging(false); e.stopImmediatePropagation(); return; }
 });
 
-// ── Übergruppe ein-/ausklappen (@dpa 20260718_203341) ──────────────────────────
-// Icon links an der Headline; eingeklappt ist der Hauptschirm leer (okay). Zustand im
-// eigenen State (überlebt Reload wie alles andere).
+// ── Übergruppe ein-/ausklappen: jetzt generisch über lib/InstrumentSettings.js (@dpa
+// ddw.md 20260805, s. Datei-Kopf dort) — kein eigenes Wiring mehr nötig, `taktInstr`
+// unten bekommt das Klapp-Icon automatisch.
 const benchTakt = document.querySelector('#bench-taktgeber');
-const taktCollapse = document.querySelector('#taktCollapse');
-const applyBenchCollapse = () => benchTakt.classList.toggle('bench-collapsed', !!taktState.get('benchCollapsed'));
-taktCollapse.addEventListener('click', () => { taktState.set('benchCollapsed', !taktState.get('benchCollapsed')); applyBenchCollapse(); });
-applyBenchCollapse();
 
 // ── Instrument-Beschreibung: raus aus dem Body → aufklappbares [?] rechts im Header
 //    (@dpa 20260720: „nimmt immer Platz ein"). Die wb-note (summary=Titel + Fließtext)

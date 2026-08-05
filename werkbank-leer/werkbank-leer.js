@@ -583,12 +583,10 @@ window.addEventListener('keydown', (e) => {
     if (takt.isArranging && takt.isArranging()) { takt.setArranging(false); e.stopImmediatePropagation(); return; }
 });
 
-// ── Übergruppe ein-/ausklappen (1:1 aus werkbank.js Z.1375-1382) ──────────────────────
+// ── Übergruppe ein-/ausklappen: jetzt generisch über lib/InstrumentSettings.js (@dpa
+// ddw.md 20260805, s. Datei-Kopf dort) — kein eigenes Wiring mehr nötig, `taktInstr`
+// unten bekommt das Klapp-Icon automatisch.
 const benchTakt = document.querySelector('#bench-taktgeber');
-const taktCollapse = document.querySelector('#taktCollapse');
-const applyBenchCollapse = () => benchTakt.classList.toggle('bench-collapsed', !!taktState.get('benchCollapsed'));
-taktCollapse.addEventListener('click', () => { taktState.set('benchCollapsed', !taktState.get('benchCollapsed')); applyBenchCollapse(); });
-applyBenchCollapse();
 
 // ── Instrument-Beschreibung: [?]-Popover im ISM-Header (1:1 aus werkbank.js Z.1384-1538),
 // nur noch für die zwei ISMs mit eigenem .wb-note-Text (Takt/Metronom + Rec). ─────────────
