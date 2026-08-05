@@ -274,7 +274,7 @@ const scopeHost = mountGroups(scopeRoot, scopeState, scopeDefs, {
 });
 const scopeManager = createScopeManager({ host: scopeHost, state: scopeState, defs: scopeDefs, routing, onClockBeat: taktEngine.onClockBeat });
 scopeManager.init();
-const scopeInstr = mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes' });
+const scopeInstr = mountInstrumentSettings(document.querySelector('#bench-scope'), scopeState, { defaultName: 'Signal-Scopes', host: scopeHost });
 
 // Gruppen-Rechtsklick-Panel der Scope-Gruppe (@dpa ddw.md 20260802 Punkt 3, 1:1 aus
 // overcord/werkbank.js): NUR noch die Instanz-AKTIONEN (Kopie/Löschen/Puffer zurücksetzen)
