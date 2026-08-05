@@ -66,3 +66,7 @@ Bitte bau mir meine Einstellungen gespeichert in .JSON in Werkbank-leer ein:
 /Users/dpa/Downloads/werkbank-leer-config-20260804220925.json
 
 nachdem die Latenz kette funktioniert: gibt es vielleicht doch eine Möglichkeit, meim 'Lim' die Vol-Kennkiurve mit predelay (entsprechend Att) zu versehen und das beeinflussende Audio nicht, so dass das Audio früher "geduckt"wird und somit die clips (unabhängig von WS) verhindern kann?
+
+signal scopes hat noch ein Größen updateProblem (was mit "Anordnen" (e-Mode) direkt verschwindet, aber es soll gleich beim laden korrekt aussehen. (das ist ein altes, immer wieder auftauchendes Problem)
+
+und Anordnen hatte früher ein anderes, besseres Icon: zwei waagerechte Pfeile statt einem Viereck.. das will ich wieder
