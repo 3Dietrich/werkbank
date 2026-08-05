@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scope Debug - Console Capture</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .console-output {
+            background: #0e1116;
+            border: 1px solid #444;
+            padding: 10px;
+            height: 600px;
+            overflow-y: auto;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+        .log { padding: 2px; }
+        .log.warn { color: #ce9178; }
+        .log.error { color: #f48771; }
+        .log.info { color: #4fc1ff; }
+        .log.success { color: #89d185; }
+    </style>
+</head>
+<body>
+    <h1>Scope Size Debug - Console Output</h1>
+    <div class="console-output" id="output"></div>
+
+    <script>
+        // Capture console output
+        const output = document.getElementById('output');
+        const logs = [];
+
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addLog(msg, type = 'log') {
+            const line = document.createElement('div');
+            line.className = 'log ' + type;
+            line.textContent = msg;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+            logs.push(msg);
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog(args.join(' '), 'info');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog('ERROR: ' + args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addLog('WARN: ' + args.join(' '), 'warn');
+        };
+
+        addLog('=== STARTING APP LOAD ===', 'success');
+    </script>
+
+    <!-- Load the werkbank-leer app (simpler version for testing) -->
+    <script type="module">
+        const path = './werkbank-leer/werkbank-leer.js';
+        console.log('Loading app from: ' + path);
+        try {
+            const mod = await import(path);
+            console.log('App loaded successfully');
+            console.log('Waiting 2 seconds for initialization...');
+            await new Promise(r => setTimeout(r, 2000));
+            console.log('=== INITIALIZATION COMPLETE - CHECK SCOPE SIZES ===');
+        } catch(e) {
+            console.error('Failed to load app: ' + e.message);
+        }
+    </script>
+</body>
+</html>

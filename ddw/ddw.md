@@ -56,17 +56,31 @@ WS ist geclipped auf max. -3dB (geschätzt) ![Das ist clip, kein "Waveshaping"](
 
 
 --
-20260804_230902
+20260804_230902 Überarbietetes Scope weiter..
 schau mal in scope, wurde gerade frisch gebaut. ich will bei der Anzeige einen extra zoom, also man gibt einen Buffer z.B. 100ms ein und kann dann auf der Anzeige via mouse/touchpad zoomfunktionen rein und rauszoomen. Für touchpad gleich grunsätzlich: zoomen: 2-Finger sweep senkrecht: bei sync=on: auf den trigger, ansonsten bei der mouseposition ein (und aus)zoomen; bei 2-Finder waagerecht: verandert die zeitlicche Position (Beispiel: /Users/dpa/hass/sensor-archive/mac/index.html)
 
+Output lesen
 Sonnet 5. Zoom/Pan in lib/SignalScope.js gebaut: bufferMs bleibt die voll ausgezoomte Ansicht, Zoom cropt rein darin (nie mehr Zeit als bufferMs). 2-Finger senkrecht = zoomen (Anker: Trigger bei Sync-an, sonst Mausposition), 2-Finger waagerecht = Zeitfenster verschieben, Achsen-Lock ~140ms wie im Vorbild sensor-archive/mac/index.html. Doppelklick + der ⟲-Button setzen zurück auf voll ausgezoomt. Transient, nicht persistiert (wie Sync/Freeze). Alle vier Zeichenpfade (Sync-Ring, Freeze-Ring/Points, Live-Analyser, Live-Buf) über zwei neue gemeinsame Helfer (_drawRingCurve/_drawPointsCurve) vereinheitlicht, Trigger-Drag und Freeze-Hover-Readout aufs Zoom-Fenster umgerechnet. Bestehende Smoke-Tests (signalScope_smoke, signalScopeSyncFreeze_smoke) + node-Unit-Tests (triggerSync, taktgeber) grün.
 
 
 Bitte bau mir meine Einstellungen gespeichert in .JSON in Werkbank-leer ein:
 /Users/dpa/Downloads/werkbank-leer-config-20260804220925.json
 
+Lim
 nachdem die Latenz kette funktioniert: gibt es vielleicht doch eine Möglichkeit, meim 'Lim' die Vol-Kennkiurve mit predelay (entsprechend Att) zu versehen und das beeinflussende Audio nicht, so dass das Audio früher "geduckt"wird und somit die clips (unabhängig von WS) verhindern kann?
 
+Scope ansicht
 signal scopes hat noch ein Größen updateProblem (was mit "Anordnen" (e-Mode) direkt verschwindet, aber es soll gleich beim laden korrekt aussehen. (das ist ein altes, immer wieder auftauchendes Problem)
 
+Icons
 und Anordnen hatte früher ein anderes, besseres Icon: zwei waagerechte Pfeile statt einem Viereck.. das will ich wieder
+
+
+alles zusammenklappbar:
+Auf den Gruppen header links ist das Zusammenklapp Icon [>, v]: das klappt die Gruppe zusammen, aber noch nicht richtig: es soll auch Gruppen mit Settings 'Breite' und 'Höhe' > 0  (auf 0) zusammenklappen!
+
+**Das gleiche für alle ISM Header**. Derzeit ist es in 'Tempo..', so soll es in alle (außer die ohne Header )
+
+
+Beim Browser reload mit geschlossenem ISM zeigt es danach keinen Inhalt mehr nach dem ausklappen ![alt text](image-20.png)
+ähnlich bei Gruppen, nur dass es da die Breite betrifft: ![alt text](image-21.png)
