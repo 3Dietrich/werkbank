@@ -59,7 +59,7 @@ import { seedGroupSnapshots } from '../lib/groupPresetFactory.js';
 import { wireAdsrKnobVisibility } from '../lib/polysynth/multiEnv.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
-    getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper,
+    getLimiter as getBusLimiter, getZeroAttackTrim as getBusZeroAttackTrim, getWaveshaper as getBusWaveshaper,
     getWaveshaperPreGain as getBusWaveshaperPreGain, setMasterDb as setBusMasterDb,
 } from '../lib/audioBus.js';
 import { createRoutingRegistry, bindPorts } from '../lib/routing/Registry.js';
@@ -231,7 +231,7 @@ window.__rec = { mgr: recManager, state: recState, host: rec };
 // Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
 window.__audioBus = {
     getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser,
-    getLimiter: getBusLimiter, getWaveshaper: getBusWaveshaper,
+    getLimiter: getBusLimiter, getZeroAttackTrim: getBusZeroAttackTrim, getWaveshaper: getBusWaveshaper,
     getWaveshaperPreGain: getBusWaveshaperPreGain,
 };
 

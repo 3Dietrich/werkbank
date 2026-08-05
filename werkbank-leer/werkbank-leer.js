@@ -54,7 +54,7 @@ import { DebugPanel } from '../lib/debugPanel/DebugPanel.js';
 import { mountDebugGroup } from '../lib/debugPanel/mount.js';
 import {
     getContext as getBusContext, getMaster as getBusMaster, getAnalyser as getBusAnalyser,
-    getLimiter as getBusLimiter, getWaveshaper as getBusWaveshaper,
+    getLimiter as getBusLimiter, getZeroAttackTrim as getBusZeroAttackTrim, getWaveshaper as getBusWaveshaper,
     getWaveshaperPreGain as getBusWaveshaperPreGain, setMasterDb as setBusMasterDb,
 } from '../lib/audioBus.js';
 import { createRoutingRegistry } from '../lib/routing/Registry.js';
@@ -228,7 +228,7 @@ window.__rec = { mgr: recManager, state: recState, host: rec };
 // Debug/Test: direkter Zugriff auf den gemeinsamen Audio-Bus (lib/audioBus.js).
 window.__audioBus = {
     getContext: getBusContext, getMaster: getBusMaster, getAnalyser: getBusAnalyser,
-    getLimiter: getBusLimiter, getWaveshaper: getBusWaveshaper,
+    getLimiter: getBusLimiter, getZeroAttackTrim: getBusZeroAttackTrim, getWaveshaper: getBusWaveshaper,
     getWaveshaperPreGain: getBusWaveshaperPreGain,
 };
 

@@ -95,6 +95,7 @@ SNAPSHOT_JS = """
   const bus = window.__audioBus;
   const ctx = bus.getContext();
   const limiter = bus.getLimiter();
+  const trim = bus.getZeroAttackTrim();
   const waveshaper = bus.getWaveshaper();
   const preGain = bus.getWaveshaperPreGain();
   const analyser = bus.getAnalyser();
@@ -131,13 +132,17 @@ SNAPSHOT_JS = """
     volumeGainToWaveshaper: has(volumeGainNode, preGain) && has(preGain, waveshaper),
     volumeGainToDest: has(volumeGainNode, dest),
     volumeGainToAnalyser: has(volumeGainNode, analyser),
-    limiterToWaveshaper: has(limiter, preGain) && has(preGain, waveshaper),
-    limiterToDest: has(limiter, dest),
-    limiterToAnalyser: has(limiter, analyser),
+    // zeroAttackTrim (@dpa 20260805) hängt IMMER zwischen Limiter und dem Rest, sobald der
+    // Limiter an ist (s. audioBus.js rebuildChain) — limiter->X prüft deshalb über den Trim.
+    limiterToTrim: has(limiter, trim),
+    limiterToWaveshaper: has(limiter, trim) && has(trim, preGain) && has(preGain, waveshaper),
+    limiterToDest: has(limiter, trim) && has(trim, dest),
+    limiterToAnalyser: has(limiter, trim) && has(trim, analyser),
     waveshaperToDest: has(waveshaper, dest),
     waveshaperToAnalyser: has(waveshaper, analyser),
     volumeGainOut: outCount(volumeGainNode),
     limiterOut: outCount(limiter),
+    trimOut: outCount(trim),
     waveshaperOut: outCount(waveshaper),
     preGainOut: outCount(preGain),
   };
@@ -209,7 +214,8 @@ try:
                 # Duplikat-Schutz: jeder aktive Knoten hat max. 2 ausgehende Kanten (dest+analyser),
                 # jeder durchgereichte Zwischenknoten genau 1.
                 check(snap['volumeGainOut'] <= 2, f"{label}: volumeGain hat zu viele ausgehende Kanten: {snap['volumeGainOut']}")
-                check(snap['limiterOut'] <= 2, f"{label}: limiter hat zu viele ausgehende Kanten: {snap['limiterOut']}")
+                check(snap['limiterOut'] <= 1, f"{label}: limiter hat zu viele ausgehende Kanten: {snap['limiterOut']}")
+                check(snap['trimOut'] <= 2, f"{label}: zeroAttackTrim hat zu viele ausgehende Kanten: {snap['trimOut']}")
                 check(snap['waveshaperOut'] <= 2, f"{label}: waveshaper hat zu viele ausgehende Kanten: {snap['waveshaperOut']}")
                 check(snap['preGainOut'] <= 1, f"{label}: waveshaperPreGain hat zu viele ausgehende Kanten: {snap['preGainOut']}")
 
