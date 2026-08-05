@@ -1,4 +1,4 @@
-!: nicht für die KI, nur personlicher promptspeicher!
+!: nicht für die KI, nicht für github, nur persönlicher promptspeicher!
 
 
 
@@ -329,3 +329,20 @@ Ich habe diese Gestaltung gewählt: Labels oben, Button mit nur dem Icon, breite
 Bei Tasten fällt auf dass die (schöne) Tastaturdarstellung zu tief sitzt und dass bei Settings das Icon schon eingabaut ist. Ich habe jetzt eins aus Mac Emojis genommen.. muss ja alles allgemeinkompatibel sein.. 
 Die Breiten (Buttons 60, Vol 120, Snaoshot 140) könnten bei engerem Screen automatisch schmaler werden, bis nur noch das Symbol reinpasst bzw. ein handhabbares minimum erreicht ist, wenn es noch enger ist soll die Minimale Breite für allesbleiben, also nicht mehr alles  auf dem Screensichtbar, (ohne "Zeilenumbruch"!).
 json für werkbank-leer attached. kannst Du (frage!) das in overcord so umbauen? Ne wa? das muss ich selbst machen oder .. ich gebe Dir das export json und dort in das JSON baust du die headeränderungen ein und ich lade es wieder..?
+
+20260804_14
+"phase2_routing_smoke.py/werkbankLeerEntry_smoke.py auf rec_0 statt rec angepasst. Fünf andere Tests (sqTargets_all, ensembleSnapshot, scopeSampleAccuracy, i18nLabels, hintTranslation) schlagen fehl – per git stash-Vergleich verifiziert: bereits auf dem unveränderten Merge-Stand kaputt, nicht durch diese Aufgabe verursacht."
+und
+"6 Smoke-Tests sind nachweislich seit vor dem heutigen Umbau rot ..."
+Diese fehlgeschlagenen Tests werden immer mehr und verursachen einiges an zusatzlichen 'Runden'. kannst Du mal diese fails irgendwie auschalten/ausschließen/fiixen?
+
+"Die ~1-Frame-Sound-Latenz bei adsrOsc (voriger Nachricht) – braucht dein Ohr."
+ok.. wo? wie? was? Grundsätzlich (ohne zu hören, nur die Regel): verzögerungen werden über negativ-Latenz für den Grund diesen Zweiges 'herausgeholt'. Bei einer ADSR z.B. ist das Gate/Trigger die Quelle, dieses muss entsprechend früher (nur für diesen Strang) geschehen.. alles andere bleibt in time (oder auf deren latenz). 
+"bei der Migration Singleton→Instanz-0 werden ctrlPos/controlOrder (Position innerhalb der Gruppe) nicht mitgezoge"
+was ist "Singleton"?
+".. nur ggf. die Gruppen-Anordnung nach dem ersten Reload seit dem Update."
+ja das kenne ich gut: wenn Du Gruppen neu erstellst, werden sie sehr simpel und groß dargestellt ![beispiel pitchosc, wo ich schon mehrmals die ADSR optisch eingestellt habe und immer nach dem umbau wieder neu einstellen muss](image-16.png). Dafür gibt es Combo. Von diesen Combos sollen später "factory-einstellungen" zur verfügung stehen, die bestimmte einstellungen, Größen und Anordnungen zur Verfügung stellen. Natürlich hätte ich auch gerne eine definierbare initial-Einstellung bei neu erstellen dieser Groups..
+
+Andererseits gibt es noch einen anderen Bug, den ich bei diesem Thema gleich mit ansprechen will: es gibt initial Einstellungen, wo die Gruppe oder das Instrument zunächst noch nicht richtig dargestellt wird ![Beispiel Debug initial](image-17.png), man muss kurz in den e-mode und wieder raus - dann stimmt es ![e-mode ein, aus, voila.](image-18.png)
+
+apropo e-mode: der Tastaturshortcut ist für e-mode (='e') festgelötet, das muss er nicht mehr, weil es einen "learnbaren" header button dafür gibt. 

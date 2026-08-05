@@ -52,7 +52,7 @@ viele Coments (gut, ABER:)
 
 -- 
 Lim: siehe debug /Users/dpa/Downloads/werkbank-leer_debug_amp_12_Limitertest (1).txt
-WS ist geclipped auf max. -3dB (geschätzt) ![Das ist clip, kein "Waveshaping"](image-19.png)
+WS ist geclipped auf max. -3dB (geschätzt) ![Das ist clip, kein "Waveshaping"](image-19.png) Und dass WS sich auch nochmal 6ms rausnimmt.. finde ich auch nicht in ordnung. kommt das durch den WebAudioprozess? ließen sich beide vielleicht in ein 6ms Zeiitfenser stecken? oder sind das falsche Annahmen?
 
 
 --
@@ -61,3 +61,8 @@ schau mal in scope, wurde gerade frisch gebaut. ich will bei der Anzeige einen e
 
 Sonnet 5. Zoom/Pan in lib/SignalScope.js gebaut: bufferMs bleibt die voll ausgezoomte Ansicht, Zoom cropt rein darin (nie mehr Zeit als bufferMs). 2-Finger senkrecht = zoomen (Anker: Trigger bei Sync-an, sonst Mausposition), 2-Finger waagerecht = Zeitfenster verschieben, Achsen-Lock ~140ms wie im Vorbild sensor-archive/mac/index.html. Doppelklick + der ⟲-Button setzen zurück auf voll ausgezoomt. Transient, nicht persistiert (wie Sync/Freeze). Alle vier Zeichenpfade (Sync-Ring, Freeze-Ring/Points, Live-Analyser, Live-Buf) über zwei neue gemeinsame Helfer (_drawRingCurve/_drawPointsCurve) vereinheitlicht, Trigger-Drag und Freeze-Hover-Readout aufs Zoom-Fenster umgerechnet. Bestehende Smoke-Tests (signalScope_smoke, signalScopeSyncFreeze_smoke) + node-Unit-Tests (triggerSync, taktgeber) grün.
 
+
+Bitte bau mir meine Einstellungen gespeichert in .JSON in Werkbank-leer ein:
+/Users/dpa/Downloads/werkbank-leer-config-20260804220925.json
+
+nachdem die Latenz kette funktioniert: gibt es vielleicht doch eine Möglichkeit, meim 'Lim' die Vol-Kennkiurve mit predelay (entsprechend Att) zu versehen und das beeinflussende Audio nicht, so dass das Audio früher "geduckt"wird und somit die clips (unabhängig von WS) verhindern kann?
