@@ -550,6 +550,22 @@ body {
    `.wb-bench`-Sektion bleibt im DOM (Snapshots/Routing/State laufen weiter unbeeinflusst),
    nur unsichtbar. Wieder einblendbar über die Haupt-Settings (lib/mainSettings.js). */
 .ism-hidden { display: none !important; }
+/* ISM zusammengeklappt (@dpa ddw.md 20260805, State-Key `instrCollapsed`, lib/InstrumentSettings.js)
+   — generalisiert aus dem ehemals taktgeber-exklusiven `wb-collapse`/`bench-collapsed`-Muster
+   (css/werkbank.css), jetzt für JEDES ISM mit Header. Anders als `.ism-hidden`: der `h2` bleibt
+   sichtbar/bedienbar (Verschieben, Rechtsklick-Settings), nur der INHALT (alle anderen direkten
+   Kinder der Sektion) klappt weg — dieselbe Idee wie `.group-collapse` bei GroupHost.js, eine
+   Ebene höher. */
+.ism-collapsed > *:not(h2) { display: none !important; }
+.ism-collapse {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  padding: 0 2px; margin-right: 2px; opacity: .6; line-height: 1;
+  display: inline-flex; align-items: center;
+}
+.ism-collapse:hover { opacity: 1; color: var(--accent); }
+/* Zugeklappt: derselbe Pfeil, nur gedreht — wie .group-collapse (eine Aussage, ein Zeichen). */
+.ism-collapse .ico { transition: transform .12s ease; }
+.ism-collapse.collapsed .ico { transform: rotate(-90deg); }
 /* align-items:flex-start → jedes Control ist nur so hoch wie sein Inhalt (kein Strecken
    auf die Reihenhöhe; „ohne Knob" endet direkt unter dem Label, @dpa 20260713). */
 .knob-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: flex-start; }

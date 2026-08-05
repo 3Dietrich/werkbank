@@ -214,16 +214,10 @@
    weg! nur unsichtbar"), nur nicht gezeigt — jederzeit zurückholbar. */
 .wb-hidden { display: none; }
 
-/* Ein-/Ausklapp-Icon der Übergruppe. Kleiner Radius (@dpa: dezente Rundungen). */
-.wb-collapse {
-  background: none; border: none; color: var(--accent); cursor: pointer;
-  font-size: 12px; line-height: 1; padding: 2px 4px; border-radius: 3px;
-  transition: transform .12s;
-}
-.wb-collapse:hover { background: var(--sel-bg); }
-/* Eingeklappt: Caret zeigt nach rechts, der Gruppen-Bereich verschwindet (Hauptschirm leer). */
-.bench-collapsed .wb-collapse { transform: rotate(-90deg); }
-.bench-collapsed #taktgeber, .bench-collapsed > .wb-note { display: none; }
+/* Ein-/Ausklapp-Icon der Übergruppe: war hier taktgeber-exklusiv fest verdrahtet
+   (`.wb-collapse`/`.bench-collapsed`), @dpa ddw.md 20260805 generalisiert auf JEDES ISM
+   → jetzt `.ism-collapse`/`.ism-collapsed` in css/main.css (lib/InstrumentSettings.js baut
+   das Icon selbst, kein HTML-Handbau mehr nötig). */
 .wb-noaudio {
   position: absolute; top: 4px; right: 6px; z-index: 5;
   background: var(--panel2); border: 1px solid var(--line); border-radius: 4px;
